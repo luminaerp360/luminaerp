@@ -1,0 +1,40 @@
+module.exports = {
+  apps: [
+    {
+      name: "lumina-backend",
+      cwd: "/var/www/Lumina-erp/apps/backend",
+      script: "dist/src/main.js",
+      instances: 1,
+      exec_mode: "cluster",
+      autorestart: true,
+      watch: false,
+      max_memory_restart: "1G",
+      env: {
+        NODE_ENV: "production",
+        PORT: 3000,
+      },
+      error_file: "/var/log/pm2/lumina-backend-error.log",
+      out_file: "/var/log/pm2/lumina-backend-out.log",
+      log_file: "/var/log/pm2/lumina-backend-combined.log",
+      time: true,
+    },
+    {
+      name: "lumina-frontend",
+      cwd: "/var/www/Lumina-erp/apps/frontend",
+      script: "server.js",
+      instances: 1,
+      exec_mode: "cluster",
+      autorestart: true,
+      watch: false,
+      max_memory_restart: "512M",
+      env: {
+        NODE_ENV: "production",
+        PORT: 8080,
+      },
+      error_file: "/var/log/pm2/lumina-frontend-error.log",
+      out_file: "/var/log/pm2/lumina-frontend-out.log",
+      log_file: "/var/log/pm2/lumina-frontend-combined.log",
+      time: true,
+    },
+  ],
+};

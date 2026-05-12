@@ -1,0 +1,125 @@
+﻿<div class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white p-8">
+  <!-- Loading Spinner for initial LPO load -->
+  <div *ngIf="isLoadingLpo" class="flex justify-center items-center h-64">
+    <div class="loader"></div>
+  </div>
+
+  <!-- Main Form -->
+  <form
+    *ngIf="!isLoadingLpo"
+    [formGroup]="lpoForm"
+    (ngSubmit)="approveLpo()"
+    class="max-w-2xl mx-auto space-y-6"
+  >
+    <h2 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-6">Approve LPO</h2>
+
+    <!-- Supplier Section -->
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg">
+      <label for="supplier" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >Supplier:</label
+      >
+      <div class="relative">
+        <input
+          id="supplier"
+          type="text"
+          [value]="getSupplierNameById(lpoForm.get('supplierId')?.value)"
+          readonly
+          class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+        <div
+          *ngIf="isLoadingSuppliers"
+          class="absolute right-3 top-1/2 transform -translate-y-1/2"
+        >
+          <div class="loader-sm"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Section -->
+    <div formArrayName="items" class="space-y-4">
+      <h3 class="text-xl font-semibold text-indigo-600 dark:text-indigo-400 mb-2">Items</h3>
+
+      <!-- Loading state for products -->
+      <div
+        *ngIf="isLoadingProducts"
+        class="flex justify-center items-center h-32"
+      >
+        <div class="loader"></div>
+      </div>
+
+      <!-- Items list -->
+      <div
+        *ngFor="let item of items.controls; let i = index"
+        [formGroupName]="i"
+        class="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md space-y-3"
+      >
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >Product Name:</label
+            >
+            <input
+              type="text"
+              [value]="getProductNameById(item.get('productId')?.value)"
+              readonly
+              class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >Quantity:</label
+            >
+            <input
+              type="number"
+              formControlName="quantity"
+              readonly
+              class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >Price:</label
+            >
+            <input
+              type="number"
+              formControlName="price"
+              (input)="updateTotalAmount()"
+              class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Amount Section -->
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg">
+      <label
+        for="totalAmount"
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >Total Amount:</label
+      >
+      <input
+        id="totalAmount"
+        type="number"
+        formControlName="totalAmount"
+        readonly
+        class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+    </div>
+
+    <!-- Submit Button -->
+    <div class="flex justify-end">
+      <button
+        type="submit"
+        [disabled]="!lpoForm.valid || isSubmitting"
+        class="px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-slate-950 disabled:opacity-50 transition duration-200 flex items-center space-x-2"
+      >
+        <span *ngIf="!isSubmitting">Approve and Convert to Purchase</span>
+        <div *ngIf="isSubmitting" class="flex items-center">
+          <i class="fas fa-spinner fa-spin mr-2"></i>
+          Processing...
+        </div>
+      </button>
+    </div>
+  </form>
+</div>

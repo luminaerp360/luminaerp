@@ -1,0 +1,500 @@
+<div class="fixed inset-0 flex items-center justify-center p-4 bg-gray-900/75 backdrop-blur-sm z-50">
+  <div class="w-full max-w-6xl bg-white dark:bg-slate-900 rounded-lg shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-700 dark:to-blue-700 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center">
+        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-white">{{ supplierName }}</h2>
+          <p class="text-indigo-100 text-sm">Supplier Statement</p>
+        </div>
+      </div>
+      <button
+        (click)="close()"
+        class="text-white hover:bg-white/20 rounded-full p-2 transition-colors duration-200"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-20">
+      <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 dark:border-indigo-400"></div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="p-6">
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <p class="text-red-800 dark:text-red-400">{{ error }}</p>
+        <button
+          (click)="loadSupplierStatement()"
+          class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!isLoading && !error && supplierStatement" class="flex-1 overflow-y-auto">
+
+      <!-- Supplier Info & Summary -->
+      <div class="p-6 bg-gray-50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-gray-700">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Supplier Details -->
+          <div class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Supplier Details</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Email:</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{ supplierStatement.supplier.email || 'N/A' }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Phone:</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{ supplierStatement.supplier.phone || 'N/A' }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Address:</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{ supplierStatement.supplier.address || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Summary -->
+          <div class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Financial Summary</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Total Amount:</span>
+                <span class="font-semibold text-gray-900 dark:text-white">{{ formatCurrency(supplierStatement.totals.totalAmount) }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Total Paid:</span>
+                <span class="font-semibold text-green-600 dark:text-green-400">{{ formatCurrency(supplierStatement.totals.totalPaid) }}</span>
+              </div>
+              <div class="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                <span class="text-gray-900 dark:text-white font-bold">Outstanding Balance:</span>
+                <span class="font-bold text-lg text-red-600 dark:text-red-400">{{ formatCurrency(supplierStatement.totals.outstandingBalance) }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Statement Summary -->
+        <div class="grid grid-cols-3 gap-4 mt-4">
+          <div class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+            <p class="text-sm text-gray-600 dark:text-gray-400">Total Bills</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ supplierStatement.summary.totalBills }}</p>
+          </div>
+          <div class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+            <p class="text-sm text-gray-600 dark:text-gray-400">Unpaid Bills</p>
+            <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ supplierStatement.summary.unpaidBillsCount }}</p>
+          </div>
+          <div class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700 text-center">
+            <p class="text-sm text-gray-600 dark:text-gray-400">Paid Bills</p>
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ supplierStatement.summary.paidBillsCount }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="border-b border-gray-200 dark:border-gray-700">
+        <nav class="flex -mb-px px-6">
+          <button
+            (click)="setActiveTab('unpaid')"
+            [class.border-indigo-500]="activeTab === 'unpaid'"
+            [class.text-indigo-600]="activeTab === 'unpaid'"
+            [class.dark:text-indigo-400]="activeTab === 'unpaid'"
+            [class.border-transparent]="activeTab !== 'unpaid'"
+            [class.text-gray-500]="activeTab !== 'unpaid'"
+            class="px-6 py-3 border-b-2 font-medium text-sm transition-colors duration-200"
+          >
+            Unpaid Bills ({{ supplierStatement.summary.unpaidBillsCount }})
+          </button>
+          <button
+            (click)="setActiveTab('paid')"
+            [class.border-indigo-500]="activeTab === 'paid'"
+            [class.text-indigo-600]="activeTab === 'paid'"
+            [class.dark:text-indigo-400]="activeTab === 'paid'"
+            [class.border-transparent]="activeTab !== 'paid'"
+            [class.text-gray-500]="activeTab !== 'paid'"
+            class="px-6 py-3 border-b-2 font-medium text-sm transition-colors duration-200"
+          >
+            Paid Bills ({{ supplierStatement.summary.paidBillsCount }})
+          </button>
+          <button
+            (click)="setActiveTab('aging')"
+            [class.border-indigo-500]="activeTab === 'aging'"
+            [class.text-indigo-600]="activeTab === 'aging'"
+            [class.dark:text-indigo-400]="activeTab === 'aging'"
+            [class.border-transparent]="activeTab !== 'aging'"
+            [class.text-gray-500]="activeTab !== 'aging'"
+            class="px-6 py-3 border-b-2 font-medium text-sm transition-colors duration-200"
+          >
+            Aging Analysis
+          </button>
+        </nav>
+      </div>
+
+      <!-- Unpaid Bills Tab -->
+      <div *ngIf="activeTab === 'unpaid'" class="p-6">
+
+        <!-- Select All -->
+        <div *ngIf="supplierStatement.unpaidBills.length > 0" class="mb-4 flex items-center">
+          <input
+            type="checkbox"
+            [(ngModel)]="allSelected"
+            (change)="toggleSelectAll()"
+            class="form-checkbox h-5 w-5 text-indigo-600 dark:text-indigo-400 rounded border-gray-300 dark:border-gray-600 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+          />
+          <label class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+            Select All Bills
+          </label>
+          <span *ngIf="selectedBills.length > 0" class="ml-4 text-sm text-indigo-600 dark:text-indigo-400 font-medium">
+            {{ selectedBills.length }} selected ({{ formatCurrency(calculateSelectedTotal()) }})
+          </span>
+        </div>
+
+        <!-- Bills List -->
+        <div class="space-y-3">
+          <div
+            *ngFor="let bill of supplierStatement.unpaidBills"
+            class="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors duration-200"
+          >
+            <div class="p-4">
+              <div class="flex items-start">
+                <!-- Checkbox -->
+                <div class="flex items-center h-5 mr-4 mt-1">
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(bill.id)"
+                    (change)="toggleSelection(bill)"
+                    class="form-checkbox h-5 w-5 text-indigo-600 dark:text-indigo-400 rounded border-gray-300 dark:border-gray-600 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+                  />
+                </div>
+
+                <!-- Bill Details -->
+                <div class="flex-1">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <div class="flex items-center">
+                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white">{{ bill.billNumber }}</h4>
+                        <span [ngClass]="getBillStatusBadgeClass(bill.status)" class="ml-3 px-2 py-1 rounded text-xs font-semibold">
+                          {{ bill.status.replace('_', ' ') }}
+                        </span>
+                        <span *ngIf="isOverdue(bill.dueDate)" class="ml-2 px-2 py-1 bg-red-500 text-white rounded text-xs font-semibold">
+                          {{ getDaysOverdue(bill.dueDate) }} Days Overdue
+                        </span>
+                      </div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ bill.description || 'No description' }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-lg font-bold text-gray-900 dark:text-white">{{ formatCurrency(bill.balanceAmount) }}</p>
+                      <p class="text-sm text-gray-500 dark:text-gray-400">Balance</p>
+                    </div>
+                  </div>
+
+                  <!-- Bill Metadata -->
+                  <div class="grid grid-cols-3 gap-4 mt-4 text-sm">
+                    <div>
+                      <span class="text-gray-600 dark:text-gray-400">Bill Date:</span>
+                      <span class="ml-2 font-medium text-gray-900 dark:text-white">{{ formatDate(bill.billDate) }}</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600 dark:text-gray-400">Due Date:</span>
+                      <span class="ml-2 font-medium" [ngClass]="isOverdue(bill.dueDate) ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'">
+                        {{ formatDate(bill.dueDate) }}
+                      </span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600 dark:text-gray-400">Amount:</span>
+                      <span class="ml-2 font-medium text-gray-900 dark:text-white">{{ formatCurrency(bill.netAmount) }}</span>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-3 gap-4 mt-2 text-sm">
+                    <div>
+                      <span class="text-gray-600 dark:text-gray-400">Paid:</span>
+                      <span class="ml-2 font-medium text-green-600 dark:text-green-400">{{ formatCurrency(bill.paidAmount) }}</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600 dark:text-gray-400">Reference:</span>
+                      <span class="ml-2 font-medium text-gray-900 dark:text-white">{{ bill.referenceNumber || 'N/A' }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Payments -->
+                  <div *ngIf="bill.payments && bill.payments.length > 0" class="mt-4">
+                    <button
+                      (click)="toggleBillExpanded(bill.id)"
+                      class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center"
+                    >
+                      <svg class="w-4 h-4 mr-1" [class.transform]="isBillExpanded(bill.id)" [class.rotate-180]="isBillExpanded(bill.id)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                      {{ bill.payments.length }} Payment(s)
+                    </button>
+
+                    <div *ngIf="isBillExpanded(bill.id)" class="mt-3 bg-gray-50 dark:bg-slate-900/50 rounded-lg p-3 space-y-2">
+                      <div *ngFor="let payment of bill.payments" class="flex justify-between text-sm">
+                        <div>
+                          <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(payment.paymentDate) }}</span>
+                          <span class="ml-2 text-gray-600 dark:text-gray-400">{{ formatPaymentMethod(payment.paymentMethod) }}</span>
+                          <span *ngIf="payment.transactionCode" class="ml-2 text-gray-500 dark:text-gray-500">({{ payment.transactionCode }})</span>
+                        </div>
+                        <span class="font-semibold text-green-600 dark:text-green-400">{{ formatCurrency(payment.amount) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="supplierStatement.unpaidBills.length === 0" class="text-center py-12 bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-gray-700">
+            <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">All bills are paid</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No outstanding bills for this supplier.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paid Bills Tab -->
+      <div *ngIf="activeTab === 'paid'" class="p-6">
+        <div class="space-y-3">
+          <div
+            *ngFor="let bill of supplierStatement.paidBills"
+            class="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center">
+                  <h4 class="text-lg font-semibold text-gray-900 dark:text-white">{{ bill.billNumber }}</h4>
+                  <span class="ml-3 px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-400 rounded text-xs font-semibold">
+                    PAID
+                  </span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ bill.description || 'No description' }}</p>
+
+                <div class="grid grid-cols-4 gap-4 mt-4 text-sm">
+                  <div>
+                    <span class="text-gray-600 dark:text-gray-400">Bill Date:</span>
+                    <span class="ml-2 font-medium text-gray-900 dark:text-white">{{ formatDate(bill.billDate) }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-600 dark:text-gray-400">Due Date:</span>
+                    <span class="ml-2 font-medium text-gray-900 dark:text-white">{{ formatDate(bill.dueDate) }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-600 dark:text-gray-400">Amount:</span>
+                    <span class="ml-2 font-medium text-gray-900 dark:text-white">{{ formatCurrency(bill.netAmount) }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-600 dark:text-gray-400">Paid:</span>
+                    <span class="ml-2 font-medium text-green-600 dark:text-green-400">{{ formatCurrency(bill.paidAmount) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="supplierStatement.paidBills.length === 0" class="text-center py-12 bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-gray-700">
+            <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No paid bills</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No paid bills found for this period.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aging Analysis Tab -->
+      <div *ngIf="activeTab === 'aging'" class="p-6">
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Aging Analysis</h3>
+            <div class="space-y-4">
+              <div class="flex justify-between items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">Current (Not Yet Due)</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Bills not yet due</p>
+                </div>
+                <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ formatCurrency(supplierStatement.aging.current) }}</p>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">1-30 Days</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Overdue by 1-30 days</p>
+                </div>
+                <p class="text-xl font-bold text-yellow-600 dark:text-yellow-400">{{ formatCurrency(supplierStatement.aging.days1to30) }}</p>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">31-60 Days</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Overdue by 31-60 days</p>
+                </div>
+                <p class="text-xl font-bold text-orange-600 dark:text-orange-400">{{ formatCurrency(supplierStatement.aging.days31to60) }}</p>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">61-90 Days</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Overdue by 61-90 days</p>
+                </div>
+                <p class="text-xl font-bold text-red-600 dark:text-red-400">{{ formatCurrency(supplierStatement.aging.days61to90) }}</p>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">Over 90 Days</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Overdue by more than 90 days</p>
+                </div>
+                <p class="text-xl font-bold text-red-700 dark:text-red-500">{{ formatCurrency(supplierStatement.aging.over90Days) }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Payment Footer (only shown on unpaid tab) -->
+    <div *ngIf="activeTab === 'unpaid' && selectedBills.length > 0 && !isLoading && !error" class="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900/50 p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Payment Form -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Process Payment</h3>
+
+          <!-- Payment Amount -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Payment Amount
+            </label>
+            <input
+              type="number"
+              [(ngModel)]="paymentAmount"
+              [max]="calculateSelectedTotal()"
+              min="0"
+              step="0.01"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+            />
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Max: {{ formatCurrency(calculateSelectedTotal()) }}
+            </p>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Payment Method
+            </label>
+            <select
+              [(ngModel)]="paymentMethod"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+            >
+              <option value="CASH">Cash</option>
+              <option value="MPESA">M-PESA</option>
+              <option value="BANK_TRANSFER">Bank Transfer</option>
+            </select>
+          </div>
+
+          <!-- Transaction Code (for MPESA and Bank Transfer) -->
+          <div *ngIf="paymentMethod !== 'CASH'" class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Transaction Code
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="transactionCode"
+              placeholder="Enter transaction code"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+            />
+          </div>
+
+          <!-- Reference Number -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Reference Number (Optional)
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="referenceNumber"
+              placeholder="Enter reference number"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+            />
+          </div>
+
+          <!-- Notes -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Notes (Optional)
+            </label>
+            <textarea
+              [(ngModel)]="notes"
+              rows="2"
+              placeholder="Enter payment notes"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Payment Summary -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Summary</h3>
+          <div class="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <div class="space-y-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Selected Bills:</span>
+                <span class="font-semibold text-gray-900 dark:text-white">{{ selectedBills.length }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Total Amount Due:</span>
+                <span class="font-semibold text-gray-900 dark:text-white">{{ formatCurrency(calculateSelectedTotal()) }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Payment Amount:</span>
+                <span class="font-semibold text-indigo-600 dark:text-indigo-400">{{ formatCurrency(paymentAmount) }}</span>
+              </div>
+              <div class="flex justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+                <span class="font-bold text-gray-900 dark:text-white">Remaining:</span>
+                <span class="font-bold text-lg" [ngClass]="{
+                  'text-red-600 dark:text-red-400': (calculateSelectedTotal() - paymentAmount) > 0,
+                  'text-green-600 dark:text-green-400': (calculateSelectedTotal() - paymentAmount) === 0
+                }">
+                  {{ formatCurrency(calculateSelectedTotal() - paymentAmount) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Process Payment Button -->
+            <button
+              (click)="processPayment()"
+              [disabled]="!canProcessPayment() || isProcessing"
+              class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+            >
+              <svg *ngIf="!isProcessing" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div *ngIf="isProcessing" class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              {{ isProcessing ? 'Processing...' : 'Process Payment' }}
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

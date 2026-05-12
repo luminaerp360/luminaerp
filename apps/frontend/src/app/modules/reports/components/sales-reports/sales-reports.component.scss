@@ -1,0 +1,191 @@
+/* comprehensive-reports.component.scss */
+
+/* Custom Scrollbar for Webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #1e293b;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+  
+  /* Custom date input styling */
+  input[type="date"] {
+    color-scheme: dark;
+  }
+  
+  /* Card hover effects */
+  .card-hover-effect {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  /* Animation for chart loading */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .chart-animation {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  /* Progress bar animations */
+  .progress-bar {
+    transition: width 1s ease-in-out;
+  }
+  
+  /* Custom styles for data tables */
+  .data-table {
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 1px 0 0 #334155;
+    }
+    
+    tbody tr {
+      transition: background-color 0.2s ease;
+      
+      &:hover {
+        background-color: rgba(51, 65, 85, 0.5);
+      }
+    }
+  }
+  
+  /* Card gradient backgrounds */
+  .bg-gradient-card-1 {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  }
+  
+  .bg-gradient-card-2 {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+  }
+  
+  .bg-gradient-card-3 {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+  }
+  
+  .bg-gradient-card-4 {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+  
+  /* SVG Icons with glow effect */
+  .svg-icon-glow {
+    filter: drop-shadow(0 0 5px currentColor);
+  }
+  
+  /* Tab transitions */
+  .tab-content {
+    transition: opacity 0.3s ease;
+  }
+  
+  .tab-enter {
+    opacity: 0;
+  }
+  
+  .tab-enter-active {
+    opacity: 1;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .responsive-card {
+      grid-column: span 12 / span 12;
+    }
+    
+    .chart-container {
+      height: 300px !important;
+    }
+  }
+  
+  /* Custom chart tooltip styling */
+  :host ::ng-deep .apexcharts-tooltip {
+    background: #1e293b !important;
+    border: 1px solid #475569 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    
+    .apexcharts-tooltip-title {
+      background: #334155 !important;
+      border-bottom: 1px solid #475569 !important;
+    }
+  }
+  
+  /* Custom legend styling */
+  :host ::ng-deep .apexcharts-legend-text {
+    color: #e2e8f0 !important;
+  }
+  
+  /* Custom data label styling */
+  :host ::ng-deep .apexcharts-datalabel {
+    fill: #e2e8f0 !important;
+  }
+  
+  /* Grid line styling */
+  :host ::ng-deep .apexcharts-grid line {
+    stroke: #334155 !important;
+    stroke-width: 1 !important;
+    stroke-dasharray: 3 !important;
+  }
+  
+  /* Axis label styling */
+  :host ::ng-deep .apexcharts-xaxis-label,
+  :host ::ng-deep .apexcharts-yaxis-label {
+    fill: #94a3b8 !important;
+  }
+  
+  /* Improve accessibility for form elements */
+  :host ::ng-deep input:focus, 
+  :host ::ng-deep select:focus, 
+  :host ::ng-deep button:focus {
+    outline: 2px solid #8b5cf6 !important;
+    outline-offset: 2px;
+  }
+  
+  /* Loading animation */
+  .loading-pulse {
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  
+  /* Print-friendly styles */
+  @media print {
+    body {
+      background: white !important;
+      color: black !important;
+    }
+    
+    .no-print {
+      display: none !important;
+    }
+    
+    .print-break-inside-avoid {
+      break-inside: avoid !important;
+    }
+  }

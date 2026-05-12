@@ -1,0 +1,200 @@
+﻿<!-- Role-based Dashboards -->
+<div *ngIf="showRoleDashboard">
+  <app-admin-dashboard
+    *ngIf="currentUserRole === 'admin'"
+  ></app-admin-dashboard>
+  <app-sales-dashboard
+    *ngIf="currentUserRole === 'sales'"
+  ></app-sales-dashboard>
+  <app-accountant-dashboard
+    *ngIf="currentUserRole === 'accountant'"
+  ></app-accountant-dashboard>
+</div>
+
+<!-- Default Dashboard -->
+<div
+  *ngIf="!showRoleDashboard && dataLoading"
+  class="bg-white dark:bg-slate-900 text-gray-900 dark:text-white min-h-screen p-6"
+>
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold mb-1">Dashboard</h1>
+    <p class="text-gray-600 dark:text-slate-400">
+      Overview of your business performance
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Sales Summary Card -->
+    <div
+      class="bg-gray-50 dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
+    >
+      <h2
+        class="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2"
+      >
+        <span class="text-green-500">📈</span> Sales
+      </h2>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 dark:text-gray-400 text-sm">Today</span>
+          <span class="text-lg font-bold text-gray-900 dark:text-white"
+            >KSH {{ todaySales?.toLocaleString() || "0" }}</span
+          >
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 dark:text-gray-400 text-sm"
+            >This Week</span
+          >
+          <span class="text-lg font-bold text-gray-900 dark:text-white"
+            >KSH {{ thisWeekSales?.toLocaleString() || "0" }}</span
+          >
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 dark:text-gray-400 text-sm"
+            >This Month</span
+          >
+          <span class="text-lg font-bold text-gray-900 dark:text-white"
+            >KSH {{ thisMonthSales?.toLocaleString() || "0" }}</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Finance Summary Card -->
+    <div
+      class="bg-gray-50 dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
+    >
+      <h2
+        class="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2"
+      >
+        <span class="text-red-500">💳</span> Expenses
+      </h2>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 dark:text-gray-400 text-sm">Today</span>
+          <span class="text-lg font-bold text-red-600 dark:text-red-400"
+            >KSH {{ todayExpenses?.toLocaleString() || "0" }}</span
+          >
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 dark:text-gray-400 text-sm"
+            >This Week</span
+          >
+          <span class="text-lg font-bold text-red-600 dark:text-red-400"
+            >KSH {{ thisWeekExpenses?.toLocaleString() || "0" }}</span
+          >
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 dark:text-gray-400 text-sm"
+            >This Month</span
+          >
+          <span class="text-lg font-bold text-red-600 dark:text-red-400"
+            >KSH {{ thisMonthExpenses?.toLocaleString() || "0" }}</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Net Income & Inventory -->
+    <div
+      class="bg-gray-50 dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
+    >
+      <h2
+        class="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2"
+      >
+        <span class="text-blue-500">💰</span> Net Income
+      </h2>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 dark:text-gray-400 text-sm">Today</span>
+          <span
+            class="text-lg font-bold"
+            [class]="
+              (netIncomeToday || 0) >= 0
+                ? 'text-green-600 dark:text-green-400'
+                : 'text-red-600 dark:text-red-400'
+            "
+          >
+            KSH {{ netIncomeToday?.toLocaleString() || "0" }}
+          </span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 dark:text-gray-400 text-sm"
+            >This Week</span
+          >
+          <span
+            class="text-lg font-bold"
+            [class]="
+              (netIncomeThisWeek || 0) >= 0
+                ? 'text-green-600 dark:text-green-400'
+                : 'text-red-600 dark:text-red-400'
+            "
+          >
+            KSH {{ netIncomeThisWeek?.toLocaleString() || "0" }}
+          </span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 dark:text-gray-400 text-sm"
+            >This Month</span
+          >
+          <span
+            class="text-lg font-bold"
+            [class]="
+              (netIncomeThisMonth || 0) >= 0
+                ? 'text-green-600 dark:text-green-400'
+                : 'text-red-600 dark:text-red-400'
+            "
+          >
+            KSH {{ netIncomeThisMonth?.toLocaleString() || "0" }}
+          </span>
+        </div>
+      </div>
+      <hr class="my-3 border-gray-200 dark:border-slate-600" />
+      <div class="flex justify-between items-center text-sm">
+        <span class="text-gray-600 dark:text-gray-400">⚠️ Low Stock</span>
+        <span class="font-semibold text-orange-600 dark:text-orange-400"
+          >{{ lowStockItems || 0 }} items</span
+        >
+      </div>
+      <div class="flex justify-between items-center text-sm mt-1">
+        <span class="text-gray-600 dark:text-gray-400">🚫 Out of Stock</span>
+        <span class="font-semibold text-red-600 dark:text-red-400"
+          >{{ outOfStockItems || 0 }} items</span
+        >
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div
+      class="bg-gray-50 dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
+    >
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        Payment Distribution (Today)
+      </h3>
+      <div class="flex justify-center">
+        <app-pie-chart [data]="pieChartData"></app-pie-chart>
+      </div>
+    </div>
+    <div
+      class="bg-gray-50 dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
+    >
+      <apx-chart
+        [series]="salesChartOptions.series"
+        [chart]="salesChartOptions.chart"
+        [xaxis]="salesChartOptions.xaxis"
+        [dataLabels]="salesChartOptions.dataLabels"
+        [grid]="salesChartOptions.grid"
+        [stroke]="salesChartOptions.stroke"
+        [title]="salesChartOptions.title"
+      ></apx-chart>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="!showRoleDashboard && !dataLoading"
+  class="flex justify-center items-center min-h-screen"
+>
+  <app-loader></app-loader>
+</div>

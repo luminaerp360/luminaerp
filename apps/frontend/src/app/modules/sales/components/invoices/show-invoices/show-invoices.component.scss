@@ -1,0 +1,81 @@
+.dropdown-menu {
+  z-index: 1050;
+}
+
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.table {
+  font-size: 0.9rem;
+
+  td {
+    vertical-align: middle;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+  }
+}
+
+/* Allow dropdowns to overlay the table frame */
+.overflow-x-auto {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  padding-bottom: 500px !important; /* Increased to ensure all actions are visible */
+  margin-bottom: -500px !important;
+  min-height: 550px;
+}
+
+/* Ensure the wrapper doesn't clip either */
+.bg-white.dark\:bg-gray-800.rounded-xl {
+  overflow: visible !important;
+}
+
+/* Force table to not clip */
+table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+}
+
+/* Ensure the row doesn't create a clipping context */
+tr {
+  position: static !important;
+}
+
+td.sticky.right-0, th.sticky.right-0 {
+  overflow: visible !important;
+  z-index: 50 !important;
+}
+
+.dropdown-container {
+  overflow: visible !important;
+  position: relative;
+  
+  div.absolute {
+    z-index: 9999 !important; /* Extremely high z-index to stay on top of everything */
+    pointer-events: auto;
+    /* Ensure it doesn't get clipped by any parent */
+    position: absolute;
+  }
+}
+
+.progress {
+  background-color: #e9ecef;
+  border-radius: 0.25rem;
+  overflow: hidden;
+
+  .progress-bar {
+    transition: width 0.6s ease;
+  }
+}
+
+.btn-group .dropdown-menu {
+  margin-top: 0.5rem;
+}

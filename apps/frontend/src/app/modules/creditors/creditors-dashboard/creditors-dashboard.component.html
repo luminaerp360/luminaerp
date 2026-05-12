@@ -1,0 +1,181 @@
+<div class="container-fluid p-4">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Creditors Aging Analysis</h1>
+    <p class="text-gray-600 mt-1">Track supplier bills and payments</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex justify-center items-center py-12">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"
+    ></div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div
+    *ngIf="!loading && agingData"
+    class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"
+  >
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6">
+      <div class="text-sm text-gray-500 mb-1">Total Outstanding</div>
+      <div class="text-3xl font-bold text-red-600">
+        KES {{ agingData.summary.totalOutstanding | number: "1.2-2" }}
+      </div>
+      <div class="text-sm text-gray-500 mt-2">
+        {{ agingData.summary.totalBills }} bills
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6">
+      <div class="text-sm text-gray-500 mb-1">Suppliers with Bills</div>
+      <div class="text-3xl font-bold text-gray-900">
+        {{ agingData.summary.totalSuppliers }}
+      </div>
+      <div class="text-sm text-gray-500 mt-2">Active suppliers</div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6">
+      <div class="text-sm text-gray-500 mb-1">Total Bills</div>
+      <div class="text-3xl font-bold text-blue-600">
+        {{ agingData.summary.totalBills }}
+      </div>
+      <div class="text-sm text-gray-500 mt-2">Pending payment</div>
+    </div>
+  </div>
+
+  <!-- Aging Buckets -->
+  <div
+    *ngIf="!loading && agingData"
+    class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6"
+  >
+    <!-- Current -->
+    <div
+      class="bg-green-50 border-2 border-green-200 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow"
+      (click)="viewBillsInBucket('CURRENT')"
+    >
+      <div class="text-xs font-medium text-green-600 mb-2">
+        CURRENT (Not Due)
+      </div>
+      <div class="text-2xl font-bold text-green-700">
+        KES {{ agingData.aging.CURRENT.amount | number: "1.0-0" }}
+      </div>
+      <div class="text-xs text-green-600 mt-2">
+        {{ agingData.aging.CURRENT.bills.length }} bills
+      </div>
+    </div>
+
+    <!-- 1-30 Days -->
+    <div
+      class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow"
+      (click)="viewBillsInBucket('DAYS_1_30')"
+    >
+      <div class="text-xs font-medium text-blue-600 mb-2">1-30 DAYS</div>
+      <div class="text-2xl font-bold text-blue-700">
+        KES {{ agingData.aging.DAYS_1_30.amount | number: "1.0-0" }}
+      </div>
+      <div class="text-xs text-blue-600 mt-2">
+        {{ agingData.aging.DAYS_1_30.bills.length }} bills
+      </div>
+    </div>
+
+    <!-- 31-60 Days -->
+    <div
+      class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow"
+      (click)="viewBillsInBucket('DAYS_31_60')"
+    >
+      <div class="text-xs font-medium text-yellow-600 mb-2">31-60 DAYS</div>
+      <div class="text-2xl font-bold text-yellow-700">
+        KES {{ agingData.aging.DAYS_31_60.amount | number: "1.0-0" }}
+      </div>
+      <div class="text-xs text-yellow-600 mt-2">
+        {{ agingData.aging.DAYS_31_60.bills.length }} bills
+      </div>
+    </div>
+
+    <!-- 61-90 Days -->
+    <div
+      class="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow"
+      (click)="viewBillsInBucket('DAYS_61_90')"
+    >
+      <div class="text-xs font-medium text-orange-600 mb-2">61-90 DAYS</div>
+      <div class="text-2xl font-bold text-orange-700">
+        KES {{ agingData.aging.DAYS_61_90.amount | number: "1.0-0" }}
+      </div>
+      <div class="text-xs text-orange-600 mt-2">
+        {{ agingData.aging.DAYS_61_90.bills.length }} bills
+      </div>
+    </div>
+
+    <!-- Over 90 Days -->
+    <div
+      class="bg-red-50 border-2 border-red-200 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow"
+      (click)="viewBillsInBucket('OVER_90')"
+    >
+      <div class="text-xs font-medium text-red-600 mb-2">OVER 90 DAYS</div>
+      <div class="text-2xl font-bold text-red-700">
+        KES {{ agingData.aging.OVER_90.amount | number: "1.0-0" }}
+      </div>
+      <div class="text-xs text-red-600 mt-2">
+        {{ agingData.aging.OVER_90.bills.length }} bills
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <button
+      (click)="navigateToSuppliers()"
+      class="bg-white dark:bg-slate-900 border-2 border-blue-200 rounded-lg p-6 hover:bg-blue-50 dark:hover:bg-slate-900/70 transition-colors text-left"
+    >
+      <div class="flex items-center">
+        <svg
+          class="w-8 h-8 text-blue-600 mr-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+        <div>
+          <div class="text-lg font-semibold text-gray-900">
+            View All Suppliers
+          </div>
+          <div class="text-sm text-gray-600">
+            Manage supplier list and statements
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button
+      (click)="navigateToPaymentHistory()"
+      class="bg-white dark:bg-slate-900 border-2 border-green-200 rounded-lg p-6 hover:bg-green-50 dark:hover:bg-slate-900/70 transition-colors text-left"
+    >
+      <div class="flex items-center">
+        <svg
+          class="w-8 h-8 text-green-600 mr-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+        <div>
+          <div class="text-lg font-semibold text-gray-900">Payment History</div>
+          <div class="text-sm text-gray-600">View all bill payments</div>
+        </div>
+      </div>
+    </button>
+  </div>
+</div>

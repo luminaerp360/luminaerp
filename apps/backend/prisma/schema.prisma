@@ -1,0 +1,2755 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Subscription {
+  id              Int                @id @default(autoincrement())
+  organizationId  Int                @unique
+  plan            SubscriptionPlan   @default(BASIC)
+  status          SubscriptionStatus @default(TRIAL)
+  startDate       DateTime
+  endDate         DateTime
+  maxDevices      Int                @default(1)
+  maxUsers        Int                @default(2)
+  maxLocations    Int                @default(1)
+  licenseKey      String             @unique
+  lastBillingDate DateTime?
+  price           Float
+  autoRenew       Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  devices         Device[]
+  organization    Organization       @relation(fields: [organizationId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Device {
+  id             Int          @id @default(autoincrement())
+  subscriptionId Int
+  deviceId       String       @unique
+  deviceName     String
+  lastActive     DateTime?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@map("devices")
+}
+
+model OfflineSubscription {
+  id                  Int                @id @default(autoincrement())
+  organizationName    String
+  organizationAddress String?
+  organizationContact String?
+  plan                SubscriptionPlan   @default(BASIC)
+  status              SubscriptionStatus @default(ACTIVE)
+  licenseKey          String             @unique
+  startDate           DateTime
+  endDate             DateTime
+  durationDays        Int
+  maxDevices          Int                @default(1)
+  maxUsers            Int                @default(2)
+  maxLocations        Int                @default(1)
+  initialCheckpoint   String
+  remarks             String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  createdBy           String?
+  lastValidatedAt     DateTime?
+  devices             OfflineDevice[]
+
+  @@map("offline_subscriptions")
+}
+
+model OfflineDevice {
+  id                    Int                 @id @default(autoincrement())
+  offlineSubscriptionId Int
+  deviceId              String
+  deviceName            String?
+  firstRegistered       DateTime            @default(now())
+  lastActive            DateTime?
+  isActive              Boolean             @default(true)
+  validationCount       Int                 @default(0)
+  offlineSubscription   OfflineSubscription @relation(fields: [offlineSubscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([offlineSubscriptionId, deviceId])
+  @@map("offline_devices")
+}
+
+model Organization {
+  id                        Int                        @id @default(autoincrement())
+  name                      String
+  address                   String?
+  contact                   String?
+  complementaryMessage      String?
+  stations                  Json?
+  bankDetails               Json?
+  mpesaDetails              Json?
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+  logoUrl                   String?                    @default("")
+  billPayments              BillPayment[]
+  bills                     Bill[]
+  blogs                     Blog[]
+  careers                   Careers[]
+  categories                Category[]
+  chartOfAccounts           ChartOfAccount[]
+  clientPayment             ClientPayment[]
+  commissionPayments        CommissionPayment[]
+  commissionRecords         CommissionRecord[]
+  creditSalesPayments       CreditSalePayment[]
+  creditSales               CreditSale[]
+  customers                 Customer[]
+  departments               Department[]
+  storeCategories           StoreCategory[]
+  storeProducts             StoreProduct[]
+  storePurchases            StorePurchase[]
+  requisitions              Requisition[]
+  documentCounters          DocumentCounter[]
+  expenses                  Expense[]
+  inventories               Inventory[]
+  batches                   InventoryBatch[]
+  movements                 InventoryMovement[]
+  inventoryValuations       InventoryValuation[]
+  invoices                  Invoice[]
+  localPurchaseOrders       LocalPurchaseOrder[]
+  locations                 Location[]
+  mpesaTransactions         MpesaTransaction[]
+  news                      News[]
+  notifications             Notification[]
+  orders                    Order[]
+  settings                  OrganizationSettings?
+  paymentTransactions       PaymentTransaction[]
+  printingJob               PrintingJob[]
+  products                  Product[]
+  qualityInspections        QualityInspection[]
+  quotations                Quotation[]
+  receivablePayments        ReceivablePayment[]
+  receivables               Receivable[]
+  recurringInvoiceTemplates RecurringInvoiceTemplate[]
+  reorderRules              ReorderRule[]
+  serialNumbers             SerialNumber[]
+  stockAdjustments          StockAdjustment[]
+  stockTakes                StockTake[]
+  stockReservations         StockReservation[]
+  transfersFrom             StockTransfer[]            @relation("TransfersFrom")
+  transfersTo               StockTransfer[]            @relation("TransfersTo")
+  subscription              Subscription?
+  suppliers                 Supplier[]
+  systemLogs                SystemLog[]
+  teams                     Team[]
+  tenders                   Tenders[]
+  tickets                   Ticket[]
+  userProductCommissions    UserProductCommission[]
+  users                     User[]
+  warehouseLocations        WarehouseLocation[]
+  productAttributes         ProductAttribute[]
+  productTags               ProductTag[]
+  unitOfMeasures            UnitOfMeasure[]
+  priceTiers                PriceTier[]
+  productUnits              ProductUnit[]
+  productAssets             ProductAsset[]
+  orderSoldUnits            OrderSoldUnit[]
+  taxRates                  TaxRate[]
+  walletTransactions        CustomerWalletTransaction[]
+
+  @@map("organizations")
+}
+
+model Location {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  address            String?
+  contact            String?
+  organizationId     Int
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  inventories        Inventory[]
+  organization       Organization        @relation(fields: [organizationId], references: [id])
+  orders             Order[]
+  products           Product[]
+  transfersFrom      StockTransfer[]     @relation("TransfersFromLocation")
+  transfersTo        StockTransfer[]     @relation("TransfersToLocation")
+  users              User[]
+  warehouseLocations WarehouseLocation[]
+
+  @@map("locations")
+}
+
+model User {
+  id                            Int                        @id @default(autoincrement())
+  organizationId                Int
+  locationId                    Int?
+  email                         String                     @unique
+  password                      String
+  fullName                      String
+  username                      String
+  phone                         String                     @default("")
+  status                        String                     @default("Active")
+  role                          String                     @default("Admin")
+  createdBy                     String                     @default("")
+  photoURL                      String                     @default("https://res.cloudinary.com/dfsd8beyu/image/upload/v1720257318/defaultUser_f7bvpx.webp")
+  permissions                   Json                       @default("{}")
+  googleId                      String?                    @unique
+  googleEmail                   String?
+  authProvider                  String                     @default("email")
+  isEmailVerified               Boolean                    @default(false)
+  emailVerifiedAt               DateTime?
+  createdAt                     DateTime                   @default(now())
+  updatedAt                     DateTime                   @updatedAt
+  Blog                          Blog[]
+  Careers                       Careers[]
+  commissionPayments            CommissionPayment[]
+  commissionRecords             CommissionRecord[]
+  salesPersonInvoices           Invoice[]                  @relation("SalesPersonInvoices")
+  News                          News[]
+  notifications                 Notification[]
+  salesPersonOrders             Order[]                    @relation("SalesPersonOrders")
+  Order                         Order[]
+  salesPersonRecurringTemplates RecurringInvoiceTemplate[] @relation("SalesPersonRecurringTemplates")
+  systemLogs                    SystemLog[]
+  Tenders                       Tenders[]
+  tickets                       Ticket[]
+  userProductCommissions        UserProductCommission[]
+  approvedPurchases             StorePurchase[]            @relation("PurchaseApprover")
+  createdPurchases              StorePurchase[]            @relation("PurchaseCreator")
+  rejectedPurchases             StorePurchase[]            @relation("PurchaseRejector")
+  receivedPurchases             StorePurchaseReceive[]     @relation("PurchaseReceiver")
+  approvedRequisitions          Requisition[]              @relation("RequisitionApprover")
+  rejectedRequisitions          Requisition[]              @relation("RequisitionRejector")
+  issuedRequisitions            Requisition[]              @relation("RequisitionIssuer")
+  requestedRequisitions         Requisition[]              @relation("RequisitionRequester")
+  productStatusChanges          ProductStatusHistory[]
+  productAssets                 ProductAsset[]
+  location                      Location?                  @relation(fields: [locationId], references: [id])
+  organization                  Organization               @relation(fields: [organizationId], references: [id])
+
+  @@map("users")
+}
+
+model UserOrganizationAccess {
+  id             Int       @id @default(autoincrement())
+  userId         Int
+  organizationId Int
+  role           String    @default("User")
+  permissions    Json      @default("{}")
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  lastAccessedAt DateTime?
+
+  @@unique([userId, organizationId])
+  @@map("user_organization_access")
+}
+
+model EmailVerificationToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  email     String
+  userId    Int
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@map("email_verification_tokens")
+}
+
+model Product {
+  id                     Int                     @id @default(autoincrement())
+  organizationId         Int
+  locationId             Int?
+  name                   String
+  description            String?
+  pictureUrl             String?
+  productIdNumber        String
+  reorderLevel           Int?
+  availability           Boolean?                @default(true)
+  quantity               Int?
+  storeQuantity          Int?
+  countable              Boolean?                @default(true)
+  isService              Boolean?                @default(false)
+  price                  Float?                  @default(0)
+  expiryDate             DateTime?
+  categoryId             Int
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  buyingPrice            Float?                  @default(0)
+  wholesalePrice         Float?                  @default(0)
+  defaultCommissionType  String?                 @default("PERCENTAGE")
+  defaultCommissionValue Float?                  @default(0)
+  isCommissionable       Boolean                 @default(true)
+  // New modern product features
+  status                 ProductStatus           @default(ACTIVE)
+  statusReason           String?
+  discontinuedAt         DateTime?
+  archivedAt             DateTime?
+  taxRateId              Int?
+  isTaxable              Boolean                 @default(true)
+  taxInclusive           Boolean                 @default(false)
+  minOrderQuantity       Int?
+  maxOrderQuantity       Int?
+  tags                   String[]                @default([])
+  sku                    String?
+  weight                 Float?
+  weightUnit             String?                 @default("kg")
+  dimensions             Json? // {length, width, height, unit}
+  hasVariants            Boolean                 @default(false)
+  trackingMode           ProductTrackingMode     @default(NONE)
+  requiresUniqueIdentifiers Boolean              @default(false)
+  requiredAssetTypes     ProductAssetType[]      @default([])
+  batchTracking          Boolean                 @default(false)
+  // Relations
+  commissionRecords      CommissionRecord[]
+  batches                InventoryBatch[]
+  movements              InventoryMovement[]
+  valuations             InventoryValuation[]
+  category               Category                @relation(fields: [categoryId], references: [id])
+  location               Location?               @relation(fields: [locationId], references: [id])
+  organization           Organization            @relation(fields: [organizationId], references: [id])
+  reorderRules           ReorderRule[]
+  serialNumbers          SerialNumber[]
+  productUnits           ProductUnit[]
+  assets                 ProductAsset[]
+  soldUnits              OrderSoldUnit[]
+  reservations           StockReservation[]
+  userCommissionRates    UserProductCommission[]
+  // New relations
+  taxRate                TaxRate?                @relation(fields: [taxRateId], references: [id])
+  variants               ProductVariant[]
+  images                 ProductImage[]
+  tagMappings            ProductTagMapping[]
+  pricing                ProductPricing[]
+  uoms                   ProductUOM[]
+  suppliers              ProductSupplier[]
+  bundles                ProductBundle[]
+  bundleComponents       BundleComponent[]
+  statusHistory          ProductStatusHistory[]
+  stockTakeItems         StockTakeItem[]
+
+  @@unique([organizationId, productIdNumber])
+  @@unique([organizationId, name])
+  @@index([status])
+  @@index([organizationId, status])
+  @@map("products")
+}
+
+model Category {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  name           String
+  description    String
+  pictureUrl     String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  Product        Product[]
+
+  @@unique([organizationId, name])
+  @@map("categories")
+}
+
+model Order {
+  id                 Int                @id @default(autoincrement())
+  organizationId     Int
+  locationId         Int?
+  items              Json
+  total              Float
+  cashPaid           Float
+  mpesaPaid          Float
+  bankPaid           Float
+  totalAmountPaid    Float
+  taxAmount          Float
+  discountAmount     Float
+  customerId         Int                @default(0)
+  customer_name      String             @default("")
+  printerIp          String
+  isVoided           Boolean
+  voidedBy           Int                @default(0)
+  userId             Int
+  created_by         String             @default("")
+  mpesaTransactionId String             @default("")
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  customerEmail      String             @default("")
+  receiptNumber      String?
+  salesPersonId      Int?
+  commissionRecords  CommissionRecord[]
+  MpesaTransaction   MpesaTransaction[]
+  payments           OrderPayment[]
+  directSoldUnits    ProductUnit[]      @relation("DirectUnitOrder")
+  soldUnits          OrderSoldUnit[]
+  location           Location?          @relation(fields: [locationId], references: [id])
+  organization       Organization       @relation(fields: [organizationId], references: [id])
+  salesPerson        User?              @relation("SalesPersonOrders", fields: [salesPersonId], references: [id])
+  user               User               @relation(fields: [userId], references: [id])
+  Refund             Refund[]
+
+  @@index([organizationId, receiptNumber])
+  @@map("orders")
+}
+
+model OrderPayment {
+  id                Int                  @id @default(autoincrement())
+  orderId           Int
+  organizationId    Int
+  paymentMethodId   Int?
+  paymentMethodCode String
+  paymentMethodName String
+  amount            Float
+  transactionCode   String?
+  paymentDate       DateTime             @default(now())
+  notes             String?
+  recordedBy        String
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  order             Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentMethod     PaymentMethodConfig? @relation(fields: [paymentMethodId], references: [id])
+
+  @@index([orderId])
+  @@index([paymentMethodId])
+  @@index([paymentDate])
+  @@map("order_payments")
+}
+
+model Blog {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  title          String
+  body           String
+  pictureUrl     String?
+  slug           String?
+  userId         Int
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@map("blogs")
+}
+
+model News {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  title          String
+  body           String
+  pictureUrl     String?
+  slug           String?
+  userId         Int
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@map("news")
+}
+
+model Team {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  fullName       String
+  position       String
+  email          String
+  phone          String
+  is_active      Boolean
+  pictureUrl     String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("team")
+}
+
+model Tenders {
+  id                 Int          @id @default(autoincrement())
+  organizationId     Int
+  title              String
+  slug               String?
+  description        String
+  aplicationDateLine String
+  is_open            Boolean
+  fileUrl            String?
+  pictureUrl         String?
+  userId             Int
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  organization       Organization @relation(fields: [organizationId], references: [id])
+  user               User         @relation(fields: [userId], references: [id])
+
+  @@map("tenders")
+}
+
+model Careers {
+  id                 Int          @id @default(autoincrement())
+  organizationId     Int
+  title              String
+  slug               String?
+  description        String
+  requirements       String
+  aplicationDateLine String
+  is_open            Boolean
+  fileUrl            String?
+  pictureUrl         String?
+  userId             Int
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  organization       Organization @relation(fields: [organizationId], references: [id])
+  user               User         @relation(fields: [userId], references: [id])
+
+  @@map("careers")
+}
+
+model MpesaTransaction {
+  id                 Int           @id @default(autoincrement())
+  organizationId     Int?
+  merchantRequestID  String
+  checkoutRequestID  String
+  resultCode         Int
+  resultDesc         String
+  amount             Float?
+  mpesaReceiptNumber String?
+  transactionDate    DateTime?
+  phoneNumber        String?
+  orderId            Int?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  order              Order?        @relation(fields: [orderId], references: [id])
+  organization       Organization? @relation(fields: [organizationId], references: [id])
+
+  @@map("mpesa_transactions")
+}
+
+model Quotation {
+  id              Int          @id @default(autoincrement())
+  organizationId  Int
+  referenceNumber String
+  customerId      Int?
+  items           Json
+  totalAmount     Float
+  status          String
+  created_by      String       @default("")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  sendEmail       Boolean      @default(false)
+  totalTax        Float        @default(0)
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  customer        Customer?    @relation(fields: [customerId], references: [id])
+
+  @@unique([organizationId, referenceNumber])
+  @@map("quotations")
+}
+
+model LocalPurchaseOrder {
+  id                  Int          @id @default(autoincrement())
+  organizationId      Int
+  referenceNumber     String
+  supplierId          Int
+  items               Json
+  totalAmount         Float
+  subtotal            Float        @default(0)
+  taxAmount           Float        @default(0)
+  discountAmount      Float        @default(0)
+  shippingCost        Float        @default(0)
+  deliveryDate        DateTime?
+  paymentTerms        String?
+  shippingAddress     String?
+  notes               String?
+  priority            String       @default("MEDIUM")
+  created_by          String       @default("")
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  isApproved          Boolean      @default(false)
+  approvedBy          Int?
+  approvedAt          DateTime?
+  approvalNotes       String?
+  isPurchaseConverted Boolean      @default(false)
+  purchaseConvertedBy Int?
+  purchaseConvertedAt DateTime?
+  purchaseReference   String?
+  isRejected          Boolean      @default(false)
+  rejectedBy          Int?
+  rejectedAt          DateTime?
+  rejectionReason     String?
+  status              LpoStatus    @default(PENDING)
+  organization        Organization @relation(fields: [organizationId], references: [id])
+  supplier            Supplier     @relation(fields: [supplierId], references: [id])
+
+  @@unique([organizationId, referenceNumber])
+  @@index([status])
+  @@index([isApproved])
+  @@index([isPurchaseConverted])
+  @@map("local_purchase_orders")
+}
+
+model Supplier {
+  id                   Int                  @id @default(autoincrement())
+  organizationId       Int
+  name                 String
+  phone                String
+  totalUnpaidSuppliers Int
+  deleted              Boolean
+  bills                Bill[]
+  Inventory            Inventory[]
+  inventoryBatches     InventoryBatch[]
+  LocalPurchaseOrder   LocalPurchaseOrder[]
+  reorderRules         ReorderRule[]
+  storePurchases       StorePurchase[]
+  productSuppliers     ProductSupplier[]
+  organization         Organization         @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, phone])
+  @@map("suppliers")
+}
+
+model Customer {
+  id                        Int                        @id @default(autoincrement())
+  organizationId            Int
+  fullName                  String
+  phoneNumber               String
+  dueCredit                 Float?
+  walletBalance             Float                      @default(0)
+  isActive                  Boolean?
+  customerType              CustomerType               @default(INDIVIDUAL)
+  kraPin                    String?
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+  email                     String                     @default("")
+  organization              Organization               @relation(fields: [organizationId], references: [id])
+  invoices                  Invoice[]
+  quotations                Quotation[]
+  receivables               Receivable[]
+  recurringInvoiceTemplates RecurringInvoiceTemplate[]
+  serialNumbers             SerialNumber[]
+  walletTransactions        CustomerWalletTransaction[]
+
+  @@unique([organizationId, phoneNumber])
+  @@map("customers")
+}
+
+model Invoice {
+  id                  Int                       @id @default(autoincrement())
+  organizationId      Int
+  invoiceNumber       String
+  invoiceType         InvoiceType               @default(CREDIT_SALE)
+  referenceNumber     String?
+  customerId          Int
+  customerName        String
+  customerPhone       String?
+  customerEmail       String?
+  customerAddress     String?
+  customerTaxId       String?
+  issueDate           DateTime                  @default(now())
+  dueDate             DateTime
+  orderDate           DateTime?
+  subtotal            Float
+  taxAmount           Float                     @default(0)
+  discountAmount      Float                     @default(0)
+  totalAmount         Float
+  amountPaid          Float                     @default(0)
+  balanceDue          Float
+  paymentTerms        String                    @default("Net 30")
+  paymentTermsDays    Int                       @default(30)
+  lateFeePercentage   Float                     @default(0)
+  lateFeeAmount       Float                     @default(0)
+  status              InvoiceStatus             @default(DRAFT)
+  fullyPaid           Boolean                   @default(false)
+  sentAt              DateTime?
+  viewedAt            DateTime?
+  paidAt              DateTime?
+  taxRate             Float                     @default(0)
+  taxType             String?
+  organizationTaxId   String?
+  notes               String?
+  termsAndConditions  String?
+  footerText          String?
+  createdBy           String
+  shiftId             Int?
+  publicToken         String?                   @unique
+  qrCodeData          String?
+  emailSent           Boolean                   @default(false)
+  emailSentAt         DateTime?
+  emailOpenedAt       DateTime?
+  oldCreditSaleId     Int?                      @unique
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  recurringTemplateId Int?
+  salesPersonId       Int?
+  orderId             Int?
+  commissionRecords   CommissionRecord[]
+  items               InvoiceItem[]
+  payments            InvoicePayment[]
+  customer            Customer                  @relation(fields: [customerId], references: [id])
+  organization        Organization              @relation(fields: [organizationId], references: [id])
+  recurringTemplate   RecurringInvoiceTemplate? @relation("RecurringInvoices", fields: [recurringTemplateId], references: [id])
+  salesPerson         User?                     @relation("SalesPersonInvoices", fields: [salesPersonId], references: [id])
+
+  @@unique([organizationId, invoiceNumber])
+  @@index([customerId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([recurringTemplateId])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id                 Int      @id @default(autoincrement())
+  invoiceId          Int
+  productId          Int?
+  productName        String
+  description        String?
+  sku                String?
+  quantity           Float
+  unitPrice          Float
+  subtotal           Float
+  taxRate            Float    @default(0)
+  taxAmount          Float    @default(0)
+  discountPercentage Float    @default(0)
+  discountAmount     Float    @default(0)
+  totalAmount        Float
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  invoice            Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+model InvoicePayment {
+  id                  Int                  @id @default(autoincrement())
+  invoiceId           Int
+  organizationId      Int
+  amount              Float
+  paymentMethod       PaymentMethod
+  transactionCode     String?
+  paymentDate         DateTime             @default(now())
+  notes               String?
+  recordedBy          String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  paymentMethodCode   String?
+  paymentMethodId     Int?
+  paymentMethodName   String?
+  invoice             Invoice              @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  paymentMethodConfig PaymentMethodConfig? @relation(fields: [paymentMethodId], references: [id])
+
+  @@index([invoiceId])
+  @@index([paymentMethodId])
+  @@index([paymentDate])
+  @@map("invoice_payments")
+}
+
+model RecurringInvoiceTemplate {
+  id                     Int                    @id @default(autoincrement())
+  organizationId         Int
+  templateName           String
+  templateCode           String                 @unique
+  customerId             Int
+  frequency              RecurrenceFrequency
+  intervalCount          Int                    @default(1)
+  startDate              DateTime
+  endDate                DateTime?
+  nextInvoiceDate        DateTime
+  dayOfMonth             Int?
+  dayOfWeek              Int?
+  paymentTermsDays       Int                    @default(30)
+  taxRate                Float                  @default(0)
+  discountAmount         Float                  @default(0)
+  notes                  String?
+  termsAndConditions     String?
+  footerText             String?
+  status                 RecurringStatus        @default(ACTIVE)
+  totalGenerated         Int                    @default(0)
+  lastGeneratedDate      DateTime?
+  lastGeneratedInvoiceId Int?
+  autoSendEmail          Boolean                @default(true)
+  emailRecipients        String?
+  createdBy              String
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  salesPersonId          Int?
+  generatedInvoices      Invoice[]              @relation("RecurringInvoices")
+  items                  RecurringInvoiceItem[]
+  customer               Customer               @relation(fields: [customerId], references: [id])
+  organization           Organization           @relation(fields: [organizationId], references: [id])
+  salesPerson            User?                  @relation("SalesPersonRecurringTemplates", fields: [salesPersonId], references: [id])
+
+  @@index([organizationId, status, nextInvoiceDate])
+  @@index([customerId])
+  @@map("recurring_invoice_templates")
+}
+
+model RecurringInvoiceItem {
+  id             Int                      @id @default(autoincrement())
+  templateId     Int
+  productId      Int?
+  productName    String
+  description    String?
+  quantity       Float
+  unitPrice      Float
+  taxRate        Float                    @default(0)
+  discountAmount Float                    @default(0)
+  sortOrder      Int                      @default(0)
+  template       RecurringInvoiceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@map("recurring_invoice_items")
+}
+
+model CreditSale {
+  id                      Int                 @id @default(autoincrement())
+  organizationId          Int
+  customer_id             Int
+  order_id                Int?
+  items                   Json                @default("[]")
+  credit_amount           Float
+  order_date              DateTime?
+  payment_date            DateTime?
+  amount_paid             Float?
+  fully_paid              Float?
+  customer_name           String
+  created_by              String
+  shift_id                Int?
+  phone_number            String?
+  order_remarks           String?
+  national_id             String?
+  confirm_delete          Boolean?
+  cash_paid               Float?
+  mpesa_paid              Float?
+  bank_paid               Float?
+  mpesa_confirmation_code String?
+  bank_confirmation_code  String?
+  balance                 Float?
+  complementary_of        String?
+  complimentary_amount    Float?
+  voucher_code            String?
+  voucher_amount          Float?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  discount_amount         Float?              @default(0)
+  vat_amount              Float?              @default(0)
+  sendEmail               Boolean             @default(false)
+  payment_terms           String?             @default("")
+  CreditSalePayment       CreditSalePayment[]
+  organization            Organization        @relation(fields: [organizationId], references: [id])
+
+  @@map("credit_sales")
+}
+
+model Refund {
+  id                  Int      @id @default(autoincrement())
+  orderId             Int
+  refundItems         Json
+  totalRefund         Float
+  refundPaymentMethod String
+  refundedBy          String
+  createdAt           DateTime @default(now())
+  order               Order    @relation(fields: [orderId], references: [id])
+
+  @@map("refunds")
+}
+
+model Inventory {
+  id              Int              @id @default(autoincrement())
+  organizationId  Int
+  locationId      Int?
+  batchNumber     Int              @default(1)
+  items           Json             @default("[]")
+  totalAmount     Float            @default(0)
+  supplierId      Int              @default(1)
+  added_by        String
+  deleted         Boolean
+  status          PurchaseStatus   @default(PENDING)
+  approvedBy      String?
+  approvedAt      DateTime?
+  receivedBy      String?
+  receivedAt      DateTime?
+  paymentStatus   PaymentStatus    @default(UNPAID)
+  paidAmount      Float            @default(0)
+  remainingAmount Float            @default(0)
+  createdAt       DateTime         @default(now())
+  location        Location?        @relation(fields: [locationId], references: [id])
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  supplier        Supplier         @relation(fields: [supplierId], references: [id])
+  batches         InventoryBatch[]
+  payments        Payment[]
+
+  @@map("inventory")
+}
+
+model InventoryBatch {
+  id                Int                 @id @default(autoincrement())
+  organizationId    Int
+  productId         Int
+  inventoryId       Int?
+  batchNumber       String
+  lotNumber         String?
+  receivedDate      DateTime            @default(now())
+  expiryDate        DateTime?
+  manufacturingDate DateTime?
+  quantity          Int
+  initialQuantity   Int
+  reservedQuantity  Int                 @default(0)
+  availableQuantity Int                 @default(0)
+  status            BatchStatus         @default(ACTIVE)
+  unitCost          Float
+  supplierId        Int
+  warehouseLocation String?
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  inventory         Inventory?          @relation(fields: [inventoryId], references: [id])
+  organization      Organization        @relation(fields: [organizationId], references: [id])
+  product           Product             @relation(fields: [productId], references: [id])
+  supplier          Supplier            @relation(fields: [supplierId], references: [id])
+  movements         InventoryMovement[]
+  inspections       QualityInspection[]
+  serialNumbers     SerialNumber[]
+  reservations      StockReservation[]
+
+  @@unique([organizationId, batchNumber])
+  @@index([productId])
+  @@index([status])
+  @@index([expiryDate])
+  @@map("inventory_batches")
+}
+
+model SerialNumber {
+  id              Int                @id @default(autoincrement())
+  organizationId  Int
+  productId       Int
+  batchId         Int?
+  serialNumber    String
+  status          SerialNumberStatus @default(IN_STOCK)
+  purchaseDate    DateTime           @default(now())
+  soldDate        DateTime?
+  customerId      Int?
+  orderId         Int?
+  warrantyExpiry  DateTime?
+  notes           String?
+  currentLocation String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  batch           InventoryBatch?    @relation(fields: [batchId], references: [id])
+  customer        Customer?          @relation(fields: [customerId], references: [id])
+  organization    Organization       @relation(fields: [organizationId], references: [id])
+  product         Product            @relation(fields: [productId], references: [id])
+
+  @@unique([organizationId, serialNumber])
+  @@index([productId])
+  @@index([status])
+  @@map("serial_numbers")
+}
+
+model InventoryMovement {
+  id              Int             @id @default(autoincrement())
+  organizationId  Int
+  productId       Int
+  batchId         Int?
+  movementType    MovementType
+  quantityBefore  Int
+  quantityChange  Int
+  quantityAfter   Int
+  fromLocation    String?
+  toLocation      String?
+  referenceType   String?
+  referenceId     Int?
+  unitCost        Float?
+  totalValue      Float?
+  performedBy     Int
+  performedByName String
+  reason          String?
+  notes           String?
+  timestamp       DateTime        @default(now())
+  batch           InventoryBatch? @relation(fields: [batchId], references: [id])
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  product         Product         @relation(fields: [productId], references: [id])
+
+  @@index([organizationId])
+  @@index([productId])
+  @@index([batchId])
+  @@index([movementType])
+  @@index([timestamp])
+  @@map("inventory_movements")
+}
+
+model WarehouseLocation {
+  id               Int          @id @default(autoincrement())
+  organizationId   Int
+  locationId       Int?
+  code             String
+  name             String
+  zone             String?
+  aisle            String?
+  rack             String?
+  shelf            String?
+  bin              String?
+  capacity         Int?
+  currentOccupancy Int          @default(0)
+  isActive         Boolean      @default(true)
+  notes            String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  location         Location?    @relation(fields: [locationId], references: [id])
+  organization     Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, code])
+  @@index([zone])
+  @@map("warehouse_locations")
+}
+
+model ReorderRule {
+  id              Int          @id @default(autoincrement())
+  organizationId  Int
+  productId       Int
+  minStock        Int
+  maxStock        Int
+  reorderQuantity Int
+  leadTimeDays    Int          @default(0)
+  safetyStock     Int          @default(0)
+  enabled         Boolean      @default(true)
+  supplierId      Int?
+  lastTriggered   DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  product         Product      @relation(fields: [productId], references: [id])
+  supplier        Supplier?    @relation(fields: [supplierId], references: [id])
+
+  @@unique([organizationId, productId])
+  @@index([enabled])
+  @@map("reorder_rules")
+}
+
+model StockAdjustment {
+  id                 Int              @id @default(autoincrement())
+  organizationId     Int
+  adjustmentNumber   String           @unique
+  type               AdjustmentType
+  status             AdjustmentStatus @default(DRAFT)
+  scheduledDate      DateTime?
+  completedDate      DateTime?
+  items              Json
+  totalVarianceValue Float            @default(0)
+  totalVarianceQty   Int              @default(0)
+  createdBy          Int
+  createdByName      String
+  approvedBy         Int?
+  approvedByName     String?
+  approvedAt         DateTime?
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  organization       Organization     @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([type])
+  @@map("stock_adjustments")
+}
+
+model StockTake {
+  id                 Int              @id @default(autoincrement())
+  organizationId     Int
+  stockTakeNumber    String           @unique
+  status             StockTakeStatus  @default(DRAFT)
+  type               AdjustmentType   @default(PHYSICAL_COUNT)
+  notes              String?
+  totalItems         Int              @default(0)
+  totalVarianceQty   Int              @default(0)
+  totalVarianceValue Float            @default(0)
+  createdBy          Int
+  createdByName      String
+  completedBy        Int?
+  completedByName    String?
+  completedAt        DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  organization       Organization     @relation(fields: [organizationId], references: [id])
+  items              StockTakeItem[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("stock_takes")
+}
+
+model StockTakeItem {
+  id               Int       @id @default(autoincrement())
+  stockTakeId      Int
+  productId        Int
+  productName      String
+  systemQuantity   Int
+  countedQuantity  Int
+  varianceQty      Int
+  varianceValue    Float     @default(0)
+  unitCost         Float     @default(0)
+  reason           String?
+  notes            String?
+  createdAt        DateTime  @default(now())
+  stockTake        StockTake @relation(fields: [stockTakeId], references: [id], onDelete: Cascade)
+  product          Product   @relation(fields: [productId], references: [id])
+
+  @@index([stockTakeId])
+  @@index([productId])
+  @@map("stock_take_items")
+}
+
+enum StockTakeStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model QualityInspection {
+  id               Int               @id @default(autoincrement())
+  organizationId   Int
+  inspectionNumber String            @unique
+  type             InspectionType
+  inventoryId      Int?
+  batchId          Int?
+  status           InspectionStatus  @default(PENDING)
+  items            Json
+  totalInspected   Int               @default(0)
+  totalPassed      Int               @default(0)
+  totalFailed      Int               @default(0)
+  inspectedBy      Int
+  inspectedByName  String
+  inspectionDate   DateTime          @default(now())
+  notes            String?
+  actionTaken      InspectionAction?
+  photos           Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  batch            InventoryBatch?   @relation(fields: [batchId], references: [id])
+  organization     Organization      @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([type])
+  @@map("quality_inspections")
+}
+
+model StockReservation {
+  id              Int               @id @default(autoincrement())
+  organizationId  Int
+  productId       Int
+  batchId         Int?
+  quantity        Int
+  reservedFor     ReservationType
+  referenceId     Int
+  referenceNumber String?
+  status          ReservationStatus @default(ACTIVE)
+  reservedBy      Int
+  reservedByName  String
+  expiresAt       DateTime?
+  fulfilledAt     DateTime?
+  cancelledAt     DateTime?
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  batch           InventoryBatch?   @relation(fields: [batchId], references: [id])
+  organization    Organization      @relation(fields: [organizationId], references: [id])
+  product         Product           @relation(fields: [productId], references: [id])
+
+  @@index([organizationId])
+  @@index([productId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("stock_reservations")
+}
+
+model InventoryValuation {
+  id              Int             @id @default(autoincrement())
+  organizationId  Int
+  productId       Int
+  method          ValuationMethod @default(WEIGHTED_AVERAGE)
+  currentQuantity Int
+  currentValue    Float
+  averageCost     Float
+  costLayers      Json?
+  calculatedAt    DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  product         Product         @relation(fields: [productId], references: [id])
+
+  @@unique([organizationId, productId])
+  @@index([calculatedAt])
+  @@map("inventory_valuations")
+}
+
+model Payment {
+  id          Int           @id @default(autoincrement())
+  inventoryId Int
+  amount      Float
+  method      PaymentMethod
+  createdAt   DateTime      @default(now())
+  inventory   Inventory     @relation(fields: [inventoryId], references: [id])
+
+  @@map("payments")
+}
+
+model CreditSalePayment {
+  id              Int           @id @default(autoincrement())
+  organizationId  Int           @default(1)
+  creditSaleId    Int
+  amount          Float
+  paymentMethod   PaymentMethod
+  transactionCode String?
+  paymentDate     DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  creditSale      CreditSale    @relation(fields: [creditSaleId], references: [id])
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+
+  @@map("credit_sale_payments")
+}
+
+model Expense {
+  id               Int             @id @default(autoincrement())
+  organizationId   Int
+  title            String
+  amount           Float
+  description      String?
+  category         String
+  expenseDate      DateTime        @default(now())
+  paidBy           String
+  paymentMethod    PaymentMethod
+  receiptUrl       String?
+  createdBy        Int
+  status           String          @default("Approved")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  chartOfAccountId Int?
+  expenseType      String?
+  paidAmount       Float           @default(0)
+  paymentReference String?
+  transactionCode  String?
+  attachments      Json?
+  departmentId     Int?
+  dueDate          DateTime?
+  invoiceNumber    String?
+  isBillable       Boolean?        @default(false)
+  isRecurring      Boolean?        @default(false)
+  isReimbursable   Boolean?        @default(false)
+  notes            String?
+  projectId        Int?
+  recurrenceRule   Json?
+  tags             Json?
+  taxAmount        Float?          @default(0)
+  taxRate          Float?          @default(0)
+  vendor           String?
+  chartOfAccount   ChartOfAccount? @relation(fields: [chartOfAccountId], references: [id])
+  organization     Organization    @relation(fields: [organizationId], references: [id])
+
+  @@map("expenses")
+}
+
+model PaymentTransaction {
+  id              Int             @id @default(autoincrement())
+  transactionType TransactionType
+  organizationId  Int?
+  amount          Float
+  method          PaymentMethod
+  status          PaymentStatus   @default(PAID)
+  transactionCode String?
+  remarks         String?
+  paidBy          String
+  paidTo          String
+  description     String
+  receiptUrl      String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  organization    Organization?   @relation(fields: [organizationId], references: [id])
+
+  @@map("payment_transactions")
+}
+
+model ClientPayment {
+  id              Int             @id @default(autoincrement())
+  transactionType TransactionType @default(SALE)
+  paymentType     PaymentType     @default(INCOME)
+  organizationId  Int?
+  amount          Float
+  method          PaymentMethod
+  status          PaymentStatus   @default(PAID)
+  transactionCode String?
+  remarks         String?
+  paidBy          String
+  paidTo          String
+  description     String
+  receiptUrl      String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  organization    Organization?   @relation(fields: [organizationId], references: [id])
+
+  @@map("client_payments")
+}
+
+model PrintingJob {
+  id             Int               @id @default(autoincrement())
+  organizationId Int
+  type           PrintingJobType
+  referenceId    Int
+  printerIp      String?
+  status         PrintingJobStatus
+  failureReason  String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  organization   Organization      @relation(fields: [organizationId], references: [id])
+
+  @@map("printing_jobs")
+}
+
+model StockTransfer {
+  id                 Int                 @id @default(autoincrement())
+  transferNumber     String              @unique
+  fromOrganizationId Int
+  toOrganizationId   Int
+  fromLocationId     Int?
+  toLocationId       Int?
+  items              Json
+  totalValue         Float
+  status             StockTransferStatus @default(PENDING)
+  transferredBy      Int
+  transferredByName  String
+  approvedBy         Int?
+  approvedByName     String?
+  approvedAt         DateTime?
+  completedAt        DateTime?
+  notes              String?
+  rejectionReason    String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  fromLocation       Location?           @relation("TransfersFromLocation", fields: [fromLocationId], references: [id])
+  fromOrganization   Organization        @relation("TransfersFrom", fields: [fromOrganizationId], references: [id])
+  toLocation         Location?           @relation("TransfersToLocation", fields: [toLocationId], references: [id])
+  toOrganization     Organization        @relation("TransfersTo", fields: [toOrganizationId], references: [id])
+
+  @@map("stock_transfers")
+}
+
+model ChartOfAccount {
+  id              Int              @id @default(autoincrement())
+  organizationId  Int
+  accountCode     String
+  accountName     String
+  accountType     AccountType
+  accountCategory AccountCategory
+  balanceType     BalanceType
+  description     String?
+  parentAccountId Int?
+  currentBalance  Float            @default(0)
+  isActive        Boolean          @default(true)
+  isSystem        Boolean          @default(false)
+  taxCode         String?
+  bankDetails     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  billItems       BillItem[]
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  parentAccount   ChartOfAccount?  @relation("AccountHierarchy", fields: [parentAccountId], references: [id])
+  childAccounts   ChartOfAccount[] @relation("AccountHierarchy")
+  expenses        Expense[]
+  journalEntries  JournalEntry[]
+
+  @@unique([organizationId, accountCode])
+  @@map("chart_of_accounts")
+}
+
+model JournalEntry {
+  id              Int            @id @default(autoincrement())
+  organizationId  Int
+  accountId       Int
+  journalId       String
+  transactionDate DateTime
+  description     String
+  reference       String?
+  debitAmount     Float          @default(0)
+  creditAmount    Float          @default(0)
+  balance         Float
+  createdBy       String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  account         ChartOfAccount @relation(fields: [accountId], references: [id])
+
+  @@index([organizationId, accountId])
+  @@index([journalId])
+  @@index([transactionDate])
+  @@map("journal_entries")
+}
+
+model Bill {
+  id                 Int           @id @default(autoincrement())
+  organizationId     Int
+  supplierId         Int
+  billNumber         String
+  billDate           DateTime
+  dueDate            DateTime
+  description        String?
+  totalAmount        Float
+  taxAmount          Float         @default(0)
+  discountAmount     Float         @default(0)
+  netAmount          Float
+  paidAmount         Float         @default(0)
+  balanceAmount      Float
+  status             BillStatus    @default(DRAFT)
+  referenceNumber    String?
+  notes              String?
+  createdBy          Int
+  approvedBy         Int?
+  approvedAt         DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  subtotal           Float         @default(0)
+  termsAndConditions String?
+  items              BillItem[]
+  payments           BillPayment[]
+  organization       Organization  @relation(fields: [organizationId], references: [id])
+  supplier           Supplier      @relation(fields: [supplierId], references: [id])
+
+  @@unique([organizationId, billNumber])
+  @@index([organizationId, supplierId])
+  @@index([organizationId, status])
+  @@index([organizationId, dueDate])
+  @@map("bills")
+}
+
+model BillItem {
+  id               Int             @id @default(autoincrement())
+  billId           Int
+  description      String
+  quantity         Float           @default(1)
+  unitPrice        Float
+  subtotal         Float
+  taxRate          Float           @default(0)
+  taxAmount        Float           @default(0)
+  discountAmount   Float           @default(0)
+  totalAmount      Float
+  expenseAccountId Int?
+  productId        Int?
+  productName      String?
+  sku              String?
+  sortOrder        Int             @default(0)
+  notes            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  bill             Bill            @relation(fields: [billId], references: [id], onDelete: Cascade)
+  expenseAccount   ChartOfAccount? @relation(fields: [expenseAccountId], references: [id])
+
+  @@index([billId])
+  @@index([expenseAccountId])
+  @@map("bill_items")
+}
+
+model BillPayment {
+  id              Int               @id @default(autoincrement())
+  organizationId  Int
+  billId          Int
+  paymentDate     DateTime
+  amount          Float
+  paymentMethod   PaymentMethod
+  referenceNumber String?
+  transactionCode String?
+  notes           String?
+  status          BillPaymentStatus @default(PENDING)
+  createdBy       Int
+  processedBy     Int?
+  processedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  bill            Bill              @relation(fields: [billId], references: [id])
+  organization    Organization      @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, billId])
+  @@index([organizationId, paymentDate])
+  @@index([organizationId, status])
+  @@map("bill_payments")
+}
+
+model Receivable {
+  id               Int                 @id @default(autoincrement())
+  organizationId   Int
+  customerId       Int
+  receivableNumber String
+  receivableDate   DateTime
+  dueDate          DateTime
+  description      String?
+  totalAmount      Float
+  taxAmount        Float               @default(0)
+  discountAmount   Float               @default(0)
+  netAmount        Float
+  receivedAmount   Float               @default(0)
+  balanceAmount    Float
+  status           ReceivableStatus    @default(DRAFT)
+  referenceNumber  String?
+  notes            String?
+  createdBy        Int
+  approvedBy       Int?
+  approvedAt       DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  payments         ReceivablePayment[]
+  customer         Customer            @relation(fields: [customerId], references: [id])
+  organization     Organization        @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, receivableNumber])
+  @@index([organizationId, customerId])
+  @@index([organizationId, status])
+  @@index([organizationId, dueDate])
+  @@map("receivables")
+}
+
+model ReceivablePayment {
+  id              Int                     @id @default(autoincrement())
+  organizationId  Int
+  receivableId    Int
+  paymentDate     DateTime
+  amount          Float
+  paymentMethod   PaymentMethod
+  referenceNumber String?
+  transactionCode String?
+  notes           String?
+  status          ReceivablePaymentStatus @default(PENDING)
+  createdBy       Int
+  processedBy     Int?
+  processedAt     DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  organization    Organization            @relation(fields: [organizationId], references: [id])
+  receivable      Receivable              @relation(fields: [receivableId], references: [id])
+
+  @@index([organizationId, receivableId])
+  @@index([organizationId, paymentDate])
+  @@index([organizationId, status])
+  @@map("receivable_payments")
+}
+
+model OrganizationSettings {
+  id                         Int                   @id @default(autoincrement())
+  organizationId             Int                   @unique
+  paymentMethods             Json                  @default("{\"bank\": true, \"cash\": true, \"mpesa\": true, \"credit\": true}")
+  enableTax                  Boolean               @default(true)
+  defaultTaxRate             Float                 @default(16)
+  taxName                    String                @default("VAT")
+  taxNumber                  String?
+  includeTaxInPrice          Boolean               @default(false)
+  currency                   String                @default("KES")
+  currencySymbol             String                @default("KSh")
+  timeZone                   String                @default("Africa/Nairobi")
+  dateFormat                 String                @default("DD/MM/YYYY")
+  timeFormat                 String                @default("HH:mm")
+  decimalPlaces              Int                   @default(2)
+  invoicePrefix              String                @default("INV")
+  salePrefix                 String                @default("SALE")
+  quotationPrefix            String                @default("QUO")
+  lpoPrefix                  String                @default("LPO")
+  paymentPrefix              String                @default("PAY")
+  expensePrefix              String                @default("EXP")
+  creditSalePrefix           String                @default("CS")
+  defaultViewMode            ViewMode              @default(LIST)
+  itemsPerPage               Int                   @default(50)
+  showProductImages          Boolean               @default(true)
+  compactMode                Boolean               @default(false)
+  fiscalYearStart            Int                   @default(1)
+  fiscalYearEnd              Int                   @default(12)
+  reportingPeriodStart       Int                   @default(1)
+  reportingPeriodEnd         Int                   @default(31)
+  recurringInvoiceTime       String                @default("09:00")
+  recurringInvoiceDaysBefore Int                   @default(0)
+  lowStockAlertEnabled       Boolean               @default(true)
+  autoDeductInventory        Boolean               @default(true)
+  allowNegativeStock         Boolean               @default(false)
+  emailNotifications         Boolean               @default(true)
+  smsNotifications           Boolean               @default(false)
+  lowStockNotifications      Boolean               @default(true)
+  showCompanyLogo            Boolean               @default(true)
+  showBankDetails            Boolean               @default(true)
+  showMpesaDetails           Boolean               @default(true)
+  receiptFooterText          String?
+  invoiceTerms               String?
+  invoiceNotes               String?
+  requireCustomerForCredit   Boolean               @default(true)
+  allowDiscounts             Boolean               @default(true)
+  maxDiscountPercentage      Float                 @default(100)
+  createdAt                  DateTime              @default(now())
+  updatedAt                  DateTime              @updatedAt
+  jwtAccessTokenExpiry       String                @default("1h")
+  jwtRefreshTokenExpiry      String                @default("7d")
+  lockoutDuration            Int                   @default(900)
+  maxLoginAttempts           Int                   @default(5)
+  sessionTimeout             Int                   @default(3600)
+  invoiceFooterText          String?
+  quotationFooterText        String?
+  quotationNotes             String?
+  quotationTerms             String?
+  invoiceDocSettings         Json?
+  saleDocSettings            Json?
+  quotationDocSettings       Json?
+  organization               Organization          @relation(fields: [organizationId], references: [id])
+  paymentMethods_rel         PaymentMethodConfig[]
+
+  @@map("organization_settings")
+}
+
+model PaymentMethodConfig {
+  id                Int                  @id @default(autoincrement())
+  organizationId    Int
+  settingsId        Int
+  name              String
+  code              String
+  displayName       String
+  description       String?
+  icon              String?
+  enabled           Boolean              @default(true)
+  sortOrder         Int                  @default(0)
+  requiresReference Boolean              @default(false)
+  autoReconcile     Boolean              @default(false)
+  accountNumber     String?
+  providerName      String?
+  providerConfig    Json?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  invoicePayments   InvoicePayment[]
+  orderPayments     OrderPayment[]
+  settings          OrganizationSettings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+
+  @@unique([settingsId, code])
+  @@map("payment_methods")
+}
+
+model DocumentCounter {
+  id              Int          @id @default(autoincrement())
+  organizationId  Int
+  documentType    String
+  year            Int          @default(0)
+  month           Int          @default(0)
+  currentValue    Int          @default(0)
+  lastIncremented DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, documentType, year, month])
+  @@index([organizationId, documentType])
+  @@map("document_counters")
+}
+
+model UserProductCommission {
+  id              Int          @id @default(autoincrement())
+  organizationId  Int
+  userId          Int
+  productId       Int
+  commissionType  String
+  commissionValue Float
+  createdBy       String       @default("")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product         Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([organizationId, userId])
+  @@index([organizationId, productId])
+  @@map("user_product_commissions")
+}
+
+model CommissionRecord {
+  id               Int          @id @default(autoincrement())
+  organizationId   Int
+  userId           Int
+  sourceType       String
+  sourceId         Int
+  orderId          Int?
+  invoiceId        Int?
+  productId        Int
+  productName      String
+  quantitySold     Float
+  unitPrice        Float
+  totalSaleAmount  Float
+  commissionType   String
+  commissionRate   Float
+  commissionAmount Float
+  status           String       @default("PENDING")
+  paidAt           DateTime?
+  paidBy           String?
+  paymentReference String?
+  notes            String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  invoice          Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  order            Order?       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  product          Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([organizationId, status])
+  @@index([sourceType, sourceId])
+  @@index([userId, status])
+  @@map("commission_records")
+}
+
+model CommissionPayment {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  batchNumber    String
+  userId         Int
+  totalAmount    Float
+  paymentMethod  String
+  paymentDate    DateTime
+  commissionIds  Json
+  paidBy         String
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+  @@index([batchNumber])
+  @@map("commission_payments")
+}
+
+model SystemLog {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  userId         Int
+  action         LogAction
+  module         LogModule
+  description    String
+  entityType     String?
+  entityId       Int?
+  metadata       Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([module, action])
+  @@index([organizationId, module])
+  @@map("system_logs")
+}
+
+model Ticket {
+  id             Int              @id @default(autoincrement())
+  organizationId Int
+  userId         Int
+  title          String
+  description    String
+  priority       TicketPriority   @default(MEDIUM)
+  status         TicketStatus     @default(OPEN)
+  category       TicketCategory   @default(OTHER)
+  assignedToId   Int?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  resolvedAt     DateTime?
+  responses      TicketResponse[]
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@map("tickets")
+}
+
+model TicketResponse {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  userId    Int
+  message   String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@map("ticket_responses")
+}
+
+model Notification {
+  id             Int              @id @default(autoincrement())
+  organizationId Int
+  userId         Int?
+  type           NotificationType @default(INFO)
+  title          String
+  message        String
+  link           String?
+  icon           String?
+  isRead         Boolean          @default(false)
+  readAt         DateTime?
+  data           Json?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model Department {
+  id             Int            @id @default(autoincrement())
+  organizationId Int
+  name           String
+  description    String?
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  storeProducts  StoreProduct[]
+  requisitions   Requisition[]
+
+  @@map("departments")
+}
+
+model StoreCategory {
+  id             Int            @id @default(autoincrement())
+  organizationId Int
+  name           String
+  description    String?
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  storeProducts  StoreProduct[]
+
+  @@map("store_categories")
+}
+
+model StoreProduct {
+  id                Int                 @id @default(autoincrement())
+  organizationId    Int
+  productName       String
+  sku               String?
+  description       String?
+  storeCategoryId   Int
+  departmentId      Int
+  unitOfMeasurement String
+  buyingPrice       Float
+  quantity          Int                 @default(0)
+  reorderLevel      Int                 @default(0)
+  maxStock          Int?
+  location          String?
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  organization      Organization        @relation(fields: [organizationId], references: [id])
+  storeCategory     StoreCategory       @relation(fields: [storeCategoryId], references: [id])
+  department        Department          @relation(fields: [departmentId], references: [id])
+  purchaseItems     StorePurchaseItem[]
+  requisitionItems  RequisitionItem[]
+
+  @@map("store_products")
+}
+
+model StorePurchase {
+  id              Int                 @id @default(autoincrement())
+  organizationId  Int
+  purchaseNumber  String
+  supplierId      Int?
+  totalAmount     Float               @default(0)
+  status          PurchaseStatus      @default(PENDING)
+  notes           String?
+  deliveryDate    DateTime?
+  receivedBy      String?
+  createdBy       Int?
+  approvedBy      Int?
+  approvedAt      DateTime?
+  rejectedBy      Int?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  receivedAt      DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  organization    Organization        @relation(fields: [organizationId], references: [id])
+  supplier        Supplier?           @relation(fields: [supplierId], references: [id])
+  creator         User?               @relation("PurchaseCreator", fields: [createdBy], references: [id])
+  approver        User?               @relation("PurchaseApprover", fields: [approvedBy], references: [id])
+  rejector        User?               @relation("PurchaseRejector", fields: [rejectedBy], references: [id])
+  items           StorePurchaseItem[]
+  receives        StorePurchaseReceive[]
+
+  @@unique([organizationId, purchaseNumber])
+  @@map("store_purchases")
+}
+
+model StorePurchaseItem {
+  id               Int                        @id @default(autoincrement())
+  storePurchaseId  Int
+  storeProductId   Int
+  quantity         Int
+  receivedQuantity Int                        @default(0)
+  unitPrice        Float
+  totalPrice       Float
+  createdAt        DateTime                   @default(now())
+  storePurchase    StorePurchase              @relation(fields: [storePurchaseId], references: [id], onDelete: Cascade)
+  storeProduct     StoreProduct               @relation(fields: [storeProductId], references: [id])
+  receiveItems     StorePurchaseReceiveItem[]
+
+  @@map("store_purchase_items")
+}
+
+model StorePurchaseReceive {
+  id              Int                        @id @default(autoincrement())
+  storePurchaseId Int
+  grnNumber       String
+  receivedById    Int?
+  notes           String?
+  receivedAt      DateTime                   @default(now())
+  createdAt       DateTime                   @default(now())
+  storePurchase   StorePurchase              @relation(fields: [storePurchaseId], references: [id], onDelete: Cascade)
+  receivedBy      User?                      @relation("PurchaseReceiver", fields: [receivedById], references: [id])
+  items           StorePurchaseReceiveItem[]
+
+  @@map("store_purchase_receives")
+}
+
+model StorePurchaseReceiveItem {
+  id                     Int                   @id @default(autoincrement())
+  storePurchaseReceiveId Int
+  storePurchaseItemId    Int
+  receivedQuantity       Int
+  createdAt              DateTime              @default(now())
+  storePurchaseReceive   StorePurchaseReceive  @relation(fields: [storePurchaseReceiveId], references: [id], onDelete: Cascade)
+  storePurchaseItem      StorePurchaseItem     @relation(fields: [storePurchaseItemId], references: [id])
+
+  @@map("store_purchase_receive_items")
+}
+
+model Requisition {
+  id                Int                 @id @default(autoincrement())
+  organizationId    Int
+  requisitionNumber String
+  departmentId      Int?
+  priority          RequisitionPriority @default(MEDIUM)
+  status            RequisitionStatus   @default(PENDING)
+  purpose           String?
+  notes             String?
+  requestedBy       Int
+  approvedBy        Int?
+  approvedAt        DateTime?
+  rejectedBy        Int?
+  rejectedAt        DateTime?
+  rejectionReason   String?
+  issuedBy          Int?
+  issuedAt          DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  organization      Organization        @relation(fields: [organizationId], references: [id])
+  department        Department?         @relation(fields: [departmentId], references: [id])
+  requester         User                @relation("RequisitionRequester", fields: [requestedBy], references: [id])
+  approver          User?               @relation("RequisitionApprover", fields: [approvedBy], references: [id])
+  rejector          User?               @relation("RequisitionRejector", fields: [rejectedBy], references: [id])
+  issuer            User?               @relation("RequisitionIssuer", fields: [issuedBy], references: [id])
+  items             RequisitionItem[]
+
+  @@unique([organizationId, requisitionNumber])
+  @@map("requisitions")
+}
+
+model RequisitionItem {
+  id                Int          @id @default(autoincrement())
+  requisitionId     Int
+  storeProductId    Int
+  quantityRequested Int
+  quantityApproved  Int?
+  quantityIssued    Int?
+  notes             String?
+  createdAt         DateTime     @default(now())
+  requisition       Requisition  @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  storeProduct      StoreProduct @relation(fields: [storeProductId], references: [id])
+
+  @@map("requisition_items")
+}
+
+enum PurchaseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+enum RequisitionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PARTIALLY_ISSUED
+  ISSUED
+  CANCELLED
+}
+
+enum RequisitionPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  SUSPENDED
+  TRIAL
+}
+
+enum SubscriptionPlan {
+  BASIC
+  STANDARD
+  PREMIUM
+  ENTERPRISE
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum InvoiceType {
+  CREDIT_SALE
+  STANDARD_INVOICE
+  PROFORMA_INVOICE
+  RECURRING_INVOICE
+  QUOTE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  SENT
+  VIEWED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUALLY
+  YEARLY
+}
+
+enum RecurringStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum BatchStatus {
+  ACTIVE
+  QUARANTINE
+  EXPIRED
+  DEPLETED
+  RECALLED
+}
+
+enum LpoStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CONVERTED_TO_PURCHASE
+  CANCELLED
+}
+
+enum SerialNumberStatus {
+  IN_STOCK
+  RESERVED
+  SOLD
+  RETURNED
+  WARRANTY
+  DEFECTIVE
+  LOST
+}
+
+enum MovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT_INCREASE
+  ADJUSTMENT_DECREASE
+  TRANSFER_IN
+  TRANSFER_OUT
+  RETURN_FROM_CUSTOMER
+  RETURN_TO_SUPPLIER
+  DAMAGE
+  THEFT
+  PRODUCTION_IN
+  PRODUCTION_OUT
+  SAMPLE
+  EXPIRED
+}
+
+enum AdjustmentType {
+  PHYSICAL_COUNT
+  CYCLE_COUNT
+  DAMAGE
+  THEFT
+  CORRECTION
+  WRITE_OFF
+  FOUND
+  LOSS
+}
+
+enum AdjustmentStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum InspectionType {
+  INCOMING
+  IN_PROCESS
+  OUTGOING
+  RANDOM
+  CUSTOMER_COMPLAINT
+}
+
+enum InspectionStatus {
+  PENDING
+  IN_PROGRESS
+  PASSED
+  FAILED
+  PARTIAL
+}
+
+enum InspectionAction {
+  ACCEPT
+  REJECT
+  RETURN_TO_SUPPLIER
+  QUARANTINE
+  REWORK
+}
+
+enum ReservationType {
+  ORDER
+  QUOTATION
+  PRODUCTION
+  TRANSFER
+  MANUAL
+}
+
+enum ReservationStatus {
+  ACTIVE
+  FULFILLED
+  CANCELLED
+  EXPIRED
+}
+
+enum ValuationMethod {
+  FIFO
+  LIFO
+  WEIGHTED_AVERAGE
+  STANDARD_COST
+}
+
+enum PaymentStatus {
+  PAID
+  PARTIAL
+  UNPAID
+}
+
+enum PaymentMethod {
+  CASH
+  MPESA
+  BANK_TRANSFER
+  CREDIT
+}
+
+enum TransactionType {
+  SUBSCRIPTION
+  EXPENSE
+  SALE
+  CREDIT_SALE
+  INVENTORY
+}
+
+enum PaymentType {
+  EXPENSE
+  INCOME
+}
+
+enum PrintingJobType {
+  ORDER
+  CREDIT_SALE
+}
+
+enum PrintingJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum StockTransferStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum AccountCategory {
+  CURRENT_ASSET
+  FIXED_ASSET
+  INTANGIBLE_ASSET
+  CURRENT_LIABILITY
+  LONG_TERM_LIABILITY
+  EQUITY
+  OPERATING_REVENUE
+  NON_OPERATING_REVENUE
+  COST_OF_SALES
+  OPERATING_EXPENSE
+  FINANCIAL_EXPENSE
+  TAX_EXPENSE
+}
+
+enum BalanceType {
+  DEBIT
+  CREDIT
+}
+
+enum BillStatus {
+  DRAFT
+  APPROVED
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum BillPaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ReceivableStatus {
+  DRAFT
+  APPROVED
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum ReceivablePaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ViewMode {
+  LIST
+  GRID
+  CARDS
+}
+
+enum LogAction {
+  CREATE
+  UPDATE
+  DELETE
+  VIEW
+  APPROVE
+  REJECT
+  LOGIN
+  LOGOUT
+  EXPORT
+  IMPORT
+  PAYMENT
+  TRANSFER
+  PRINT
+}
+
+enum LogModule {
+  AUTH
+  USERS
+  PRODUCTS
+  CATEGORIES
+  INVENTORY
+  CUSTOMERS
+  SUPPLIERS
+  ORDERS
+  SALES
+  QUOTATIONS
+  LPO
+  CREDIT_SALES
+  EXPENSES
+  REPORTS
+  ACCOUNTS_PAYABLE
+  ACCOUNTS_RECEIVABLE
+  CHART_OF_ACCOUNTS
+  INVOICES
+  STOCK_TRANSFER
+  SETTINGS
+  ORGANIZATION
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  DISCONTINUED
+  ARCHIVED
+}
+
+enum ProductTrackingMode {
+  NONE
+  SERIAL
+  IMEI
+  REGISTRATION
+}
+
+enum ProductUnitStatus {
+  IN_STOCK
+  RESERVED
+  SOLD
+}
+
+enum ProductAssetType {
+  IMAGE
+  DOCUMENT
+  LOGBOOK
+  INSURANCE
+  WARRANTY
+  OTHER
+}
+
+// ===== MODERN PRODUCT MANAGEMENT MODELS =====
+
+model ProductUnit {
+  id              Int                @id @default(autoincrement())
+  organizationId  Int
+  productId       Int
+  identifierType  ProductTrackingMode
+  identifierValue String
+  status          ProductUnitStatus  @default(IN_STOCK)
+  metadata        Json?
+  soldAt          DateTime?
+  orderId         Int?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  order        Order?        @relation("DirectUnitOrder", fields: [orderId], references: [id])
+  assets       ProductAsset[]
+  soldLinks    OrderSoldUnit[]
+
+  @@unique([organizationId, identifierValue])
+  @@index([productId])
+  @@index([status])
+  @@index([orderId])
+  @@map("product_units")
+}
+
+model ProductAsset {
+  id            Int              @id @default(autoincrement())
+  organizationId Int
+  productId     Int?
+  productUnitId Int?
+  assetType     ProductAssetType @default(DOCUMENT)
+  fileUrl       String
+  fileName      String?
+  mimeType      String?
+  uploadedBy    Int?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  product      Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productUnit  ProductUnit? @relation(fields: [productUnitId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [uploadedBy], references: [id])
+
+  @@index([productId])
+  @@index([productUnitId])
+  @@index([assetType])
+  @@map("product_assets")
+}
+
+model OrderSoldUnit {
+  id            Int      @id @default(autoincrement())
+  organizationId Int
+  orderId       Int
+  productId     Int
+  productUnitId Int
+  createdAt     DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  order        Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productUnit  ProductUnit  @relation(fields: [productUnitId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, productUnitId])
+  @@index([orderId])
+  @@index([productId])
+  @@index([productUnitId])
+  @@map("order_sold_units")
+}
+
+model ProductVariant {
+  id              Int      @id @default(autoincrement())
+  productId       Int
+  sku             String   @unique
+  variantName     String
+  attributeValues Json // { "size": "Small", "color": "Red" }
+  price           Float?
+  cost            Float?
+  quantity        Int      @default(0)
+  barcode         String?
+  imageUrl        String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, sku])
+  @@index([productId])
+  @@index([sku])
+  @@map("product_variants")
+}
+
+model ProductAttribute {
+  id             Int      @id @default(autoincrement())
+  organizationId Int
+  name           String // e.g., "Size", "Color"
+  displayName    String?
+  values         String[] // e.g., ["Small", "Medium", "Large"]
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("product_attributes")
+}
+
+model ProductImage {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  url       String
+  publicId  String? // Cloudinary public ID
+  isPrimary Boolean  @default(false)
+  sortOrder Int      @default(0)
+  caption   String?
+  altText   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([productId, isPrimary])
+  @@map("product_images")
+}
+
+model ProductTag {
+  id             Int      @id @default(autoincrement())
+  organizationId Int
+  name           String
+  color          String? // Hex color for UI
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id])
+  products     ProductTagMapping[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("product_tags")
+}
+
+model ProductTagMapping {
+  productId Int
+  tagId     Int
+  addedAt   DateTime @default(now())
+
+  product Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag     ProductTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([productId, tagId])
+  @@index([productId])
+  @@index([tagId])
+  @@map("product_tag_mappings")
+}
+
+model UnitOfMeasure {
+  id             Int      @id @default(autoincrement())
+  organizationId Int
+  name           String // e.g., "Box", "Carton", "Kilogram"
+  abbreviation   String // e.g., "box", "ctn", "kg"
+  type           String // QUANTITY, WEIGHT, VOLUME, LENGTH
+  description    String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  productUOMs  ProductUOM[]
+
+  @@unique([organizationId, name])
+  @@unique([organizationId, abbreviation])
+  @@index([organizationId])
+  @@map("unit_of_measures")
+}
+
+model ProductUOM {
+  id             Int      @id @default(autoincrement())
+  productId      Int
+  uomId          Int
+  conversionRate Float // How many base units in this UOM
+  price          Float?
+  cost           Float?
+  barcode        String?
+  isBaseUnit     Boolean  @default(false)
+  isPurchaseUnit Boolean  @default(false)
+  isSalesUnit    Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  product Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  uom     UnitOfMeasure @relation(fields: [uomId], references: [id])
+
+  @@unique([productId, uomId])
+  @@index([productId])
+  @@map("product_uoms")
+}
+
+model PriceTier {
+  id              Int      @id @default(autoincrement())
+  organizationId  Int
+  name            String // "Retail", "Wholesale", "VIP"
+  description     String?
+  isDefault       Boolean  @default(false)
+  sortOrder       Int      @default(0)
+  discountPercent Float?   @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization  Organization     @relation(fields: [organizationId], references: [id])
+  productPrices ProductPricing[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("price_tiers")
+}
+
+model ProductPricing {
+  id          Int       @id @default(autoincrement())
+  productId   Int
+  tierId      Int
+  price       Float
+  minQuantity Int       @default(1)
+  maxQuantity Int?
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  product Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tier    PriceTier @relation(fields: [tierId], references: [id])
+
+  @@index([productId])
+  @@index([tierId])
+  @@index([productId, tierId])
+  @@map("product_pricing")
+}
+
+model TaxRate {
+  id             Int      @id @default(autoincrement())
+  organizationId Int
+  name           String // "VAT 16%", "Zero Rated"
+  rate           Float // 16.0 for 16%
+  description    String?
+  isDefault      Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  products     Product[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("tax_rates")
+}
+
+model ProductSupplier {
+  id                Int      @id @default(autoincrement())
+  productId         Int
+  supplierId        Int
+  supplierSKU       String?
+  cost              Float?
+  minOrderQuantity  Int?
+  leadTimeDays      Int?
+  isPrimarySupplier Boolean  @default(false)
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@unique([productId, supplierId])
+  @@index([productId])
+  @@index([supplierId])
+  @@map("product_suppliers")
+}
+
+model ProductBundle {
+  id          Int      @id @default(autoincrement())
+  productId   Int // The bundle product
+  name        String
+  description String?
+  price       Float? // Override price or sum of components
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product    Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  components BundleComponent[]
+
+  @@index([productId])
+  @@map("product_bundles")
+}
+
+model BundleComponent {
+  id        Int      @id @default(autoincrement())
+  bundleId  Int
+  productId Int // Component product
+  quantity  Float    @default(1)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  bundle  ProductBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id])
+
+  @@index([bundleId])
+  @@index([productId])
+  @@map("bundle_components")
+}
+
+model ProductStatusHistory {
+  id        Int           @id @default(autoincrement())
+  productId Int
+  oldStatus ProductStatus
+  newStatus ProductStatus
+  reason    String?
+  changedBy Int
+  changedAt DateTime      @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [changedBy], references: [id])
+
+  @@index([productId])
+  @@index([productId, changedAt])
+  @@map("product_status_history")
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketCategory {
+  BUG
+  FEATURE_REQUEST
+  QUESTION
+  TECHNICAL_ISSUE
+  BILLING
+  OTHER
+}
+
+enum NotificationType {
+  SYSTEM
+  SALE
+  INVOICE
+  PAYMENT
+  INVENTORY
+  USER
+  TICKET
+  ALERT
+  INFO
+  WARNING
+  ERROR
+}
+
+enum WalletTransactionType {
+  DEPOSIT
+  OVERPAYMENT
+  PAYMENT_APPLIED
+  REFUND
+  ADJUSTMENT
+}
+
+model CustomerWalletTransaction {
+  id              Int                   @id @default(autoincrement())
+  organizationId  Int
+  customerId      Int
+  type            WalletTransactionType
+  amount          Float
+  balanceAfter    Float
+  referenceType   String?               // INVOICE, MANUAL_DEPOSIT, BULK_PAYMENT, etc.
+  referenceId     Int?                  // invoice ID or payment ID if applicable
+  description     String
+  recordedBy      String
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  customer        Customer              @relation(fields: [customerId], references: [id])
+  organization    Organization          @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, customerId])
+  @@index([customerId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("customer_wallet_transactions")
+}

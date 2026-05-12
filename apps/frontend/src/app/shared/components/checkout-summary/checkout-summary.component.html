@@ -1,0 +1,558 @@
+﻿<div class="checkout-summary">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
+    <!-- Left Column - Customer Information -->
+    <div class="space-y-4 lg:space-y-8">
+      <!-- Customer Information -->
+      <div
+        class="bg-white dark:bg-slate-900/90 rounded-xl lg:rounded-2xl p-4 sm:p-6 lg:p-8 border-2 border-gray-200 dark:border-slate-700 shadow-sm dark:shadow-2xl"
+      >
+        <div class="flex items-center mb-4 lg:mb-6">
+          <div
+            [class]="
+              'p-2.5 lg:p-3 rounded-xl mr-3 lg:mr-4 bg-' + themeColor + '-600'
+            "
+          >
+            <i class="bi bi-person-check text-white text-lg lg:text-xl"></i>
+          </div>
+          <div>
+            <h3
+              class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white"
+            >
+              Customer Information
+            </h3>
+            <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+              {{
+                mode === "cash"
+                  ? "Who are we serving today?"
+                  : mode === "credit"
+                    ? "Select customer for credit sale"
+                    : "Customer details for quotation"
+              }}
+            </p>
+          </div>
+        </div>
+
+        <div class="space-y-4 lg:space-y-6">
+          <!-- Customer Selection -->
+          <div class="relative">
+            <label
+              class="block text-xs sm:text-sm font-semibold mb-2 lg:mb-3 text-gray-600 dark:text-slate-300"
+            >
+              <i
+                [class]="'bi bi-person-circle mr-2 text-' + themeColor + '-400'"
+              ></i>
+              Select Customer {{ mode === "credit" ? "*" : "" }}
+            </label>
+            <div class="relative">
+              <select
+                [value]="selectedCustomerId"
+                (change)="
+                  onCustomerSelect(
+                    $any($event.target).value
+                      ? +$any($event.target).value
+                      : null
+                  )
+                "
+                [class]="
+                  'w-full bg-gray-50 dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-700 rounded-xl px-3 sm:px-4 py-3 lg:py-4 focus:outline-none focus:ring-2 focus:ring-' +
+                  themeColor +
+                  '-500 focus:border-' +
+                  themeColor +
+                  '-500 appearance-none text-gray-900 dark:text-white transition-all text-sm lg:text-base'
+                "
+              >
+                <option [value]="null">
+                  {{
+                    mode === "cash"
+                      ? "Walk-in Customer"
+                      : "-- Select Customer --"
+                  }}
+                </option>
+                <option
+                  *ngFor="let customer of customers"
+                  [value]="customer.id"
+                >
+                  {{ customer.fullName }} -
+                  {{ customer.phoneNumber || "No phone" }}
+                  <span
+                    *ngIf="
+                      mode === 'credit' &&
+                      customer.dueCredit &&
+                      customer.dueCredit > 0
+                    "
+                  >
+                    (Due: {{ currencySymbol }}
+                    {{ customer.dueCredit | number: "1.0-0" }})
+                  </span>
+                </option>
+              </select>
+              <i
+                class="bi bi-chevron-down absolute right-4 top-5 text-gray-400 pointer-events-none"
+              ></i>
+            </div>
+          </div>
+
+          <!-- Customer Details -->
+          <div class="grid grid-cols-1 gap-4 lg:gap-6">
+            <div class="relative">
+              <label
+                class="block text-xs sm:text-sm font-semibold mb-2 lg:mb-3 text-gray-600 dark:text-slate-300"
+              >
+                <i
+                  [class]="'bi bi-person mr-2 text-' + themeColor + '-400'"
+                ></i>
+                Full Name *
+              </label>
+              <input
+                type="text"
+                [value]="customerName"
+                (input)="customerNameChange.emit($any($event.target).value)"
+                placeholder="Enter customer name"
+                [class]="
+                  'w-full bg-gray-50 dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-700 rounded-xl px-3 sm:px-4 py-3 lg:py-4 focus:outline-none focus:ring-2 focus:ring-' +
+                  themeColor +
+                  '-500 focus:border-' +
+                  themeColor +
+                  '-500 placeholder-gray-400 text-gray-900 dark:text-white transition-all text-sm lg:text-base'
+                "
+              />
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+              <div class="relative">
+                <label
+                  class="block text-xs sm:text-sm font-semibold mb-2 lg:mb-3 text-gray-600 dark:text-slate-300"
+                >
+                  <i
+                    [class]="'bi bi-envelope mr-2 text-' + themeColor + '-400'"
+                  ></i>
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  [value]="customerEmail"
+                  (input)="customerEmailChange.emit($any($event.target).value)"
+                  placeholder="customer@email.com"
+                  [class]="
+                    'w-full bg-gray-50 dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 focus:outline-none focus:ring-2 focus:ring-' +
+                    themeColor +
+                    '-500 focus:border-' +
+                    themeColor +
+                    '-500 placeholder-gray-400 text-gray-900 dark:text-white transition-all text-sm'
+                  "
+                />
+              </div>
+
+              <div class="relative">
+                <label
+                  class="block text-xs sm:text-sm font-semibold mb-2 lg:mb-3 text-gray-600 dark:text-slate-300"
+                >
+                  <i
+                    [class]="'bi bi-phone mr-2 text-' + themeColor + '-400'"
+                  ></i>
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  [value]="customerPhone"
+                  (input)="customerPhoneChange.emit($any($event.target).value)"
+                  placeholder="+254712345678"
+                  [class]="
+                    'w-full bg-gray-50 dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 focus:outline-none focus:ring-2 focus:ring-' +
+                    themeColor +
+                    '-500 focus:border-' +
+                    themeColor +
+                    '-500 placeholder-gray-400 text-gray-900 dark:text-white transition-all text-sm'
+                  "
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer Type & KRA PIN (read-only, shown when a registered customer is selected) -->
+          <div
+            *ngIf="getSelectedCustomer() as selCustomer"
+            class="grid grid-cols-2 gap-3"
+          >
+            <!-- Customer Type Badge -->
+            <div
+              class="bg-gray-50 dark:bg-slate-800/60 rounded-xl px-4 py-3 border border-gray-200 dark:border-slate-700"
+            >
+              <p
+                class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1.5"
+              >
+                <i class="bi bi-tag mr-1"></i>Customer Type
+              </p>
+              <span
+                *ngIf="
+                  selCustomer.customerType === 'BUSINESS';
+                  else individualBadge
+                "
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-xs font-bold border border-purple-200 dark:border-purple-700"
+              >
+                <i class="bi bi-building text-[11px]"></i>Business
+              </span>
+              <ng-template #individualBadge>
+                <span
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold border border-blue-200 dark:border-blue-700"
+                >
+                  <i class="bi bi-person text-[11px]"></i>Individual
+                </span>
+              </ng-template>
+            </div>
+
+            <!-- KRA PIN -->
+            <div
+              class="bg-gray-50 dark:bg-slate-800/60 rounded-xl px-4 py-3 border border-gray-200 dark:border-slate-700"
+            >
+              <p
+                class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1.5"
+              >
+                <i class="bi bi-shield-check mr-1"></i>KRA PIN
+              </p>
+              <span
+                *ngIf="selCustomer.kraPin; else noPinTemplate"
+                class="font-mono text-sm font-bold text-gray-900 dark:text-white tracking-widest"
+                >{{ selCustomer.kraPin }}</span
+              >
+              <ng-template #noPinTemplate>
+                <span class="text-xs text-gray-400 dark:text-slate-500 italic"
+                  >Not provided</span
+                >
+              </ng-template>
+            </div>
+          </div>
+
+          <button
+            (click)="addCustomer.emit()"
+            class="w-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 border-2 border-gray-200 dark:border-slate-500 px-4 sm:px-6 py-3 lg:py-4 rounded-xl transition-all duration-200 font-semibold shadow-md dark:shadow-lg text-gray-700 dark:text-white text-sm lg:text-base"
+          >
+            <i class="bi bi-person-plus mr-2"></i>Add New Customer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Order Summary & Payment -->
+    <div class="space-y-4 lg:space-y-8">
+      <!-- Order Summary -->
+      <div
+        class="bg-white dark:bg-slate-900/90 rounded-xl lg:rounded-2xl p-4 sm:p-6 border-2 border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-2xl"
+      >
+        <div class="flex items-center mb-3 lg:mb-4">
+          <div
+            [class]="
+              'p-2.5 rounded-xl mr-3 bg-' +
+              themeColor +
+              '-600 shadow-lg shadow-' +
+              themeColor +
+              '-500/20'
+            "
+          >
+            <i class="bi bi-receipt text-white text-lg"></i>
+          </div>
+          <div>
+            <h3
+              class="text-lg lg:text-xl font-bold text-gray-900 dark:text-white"
+            >
+              {{
+                mode === "cash"
+                  ? "Order Summary"
+                  : mode === "credit"
+                    ? "Credit Sale Summary"
+                    : "Quotation Summary"
+              }}
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-slate-400">
+              Review your order details
+            </p>
+          </div>
+        </div>
+
+        <!-- Customer Info Summary -->
+        <div
+          class="mb-4 p-3 bg-gray-50 dark:bg-slate-900/50 rounded-xl border-2 border-gray-200 dark:border-slate-700"
+        >
+          <h4
+            [class]="
+              'font-bold text-xs mb-1 uppercase tracking-wider text-' +
+              themeColor +
+              '-600 dark:text-' +
+              themeColor +
+              '-400'
+            "
+          >
+            Customer
+          </h4>
+          <p class="text-gray-900 dark:text-white font-semibold text-sm">
+            {{
+              customerName ||
+                (mode === "cash" ? "Walk-in Customer" : "No customer selected")
+            }}
+          </p>
+          <div class="flex gap-3 mt-1">
+            <p
+              class="text-gray-500 dark:text-slate-400 text-xs"
+              *ngIf="customerEmail"
+            >
+              <i class="bi bi-envelope mr-1"></i>{{ customerEmail }}
+            </p>
+            <p
+              class="text-gray-500 dark:text-slate-400 text-xs"
+              *ngIf="customerPhone"
+            >
+              <i class="bi bi-phone mr-1"></i>{{ customerPhone }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Items Summary -->
+        <div class="mb-4 lg:mb-6">
+          <app-selected-products
+            [products]="selectedProducts"
+            [currencySymbol]="currencySymbol"
+            (remove)="removeProduct.emit($event)"
+            (changeQty)="updateProductQty.emit($event)"
+            (priceChange)="priceChange.emit($event)"
+            (priceTypeChange)="priceTypeChange.emit($event)"
+            (taxTypeChange)="taxTypeChange.emit($event)"
+          >
+          </app-selected-products>
+        </div>
+
+        <!-- Financial Summary -->
+        <div
+          [class]="
+            'rounded-xl p-3 sm:p-5 border-2 transition-all ' +
+            'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-600'
+          "
+        >
+          <div class="space-y-3">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-gray-500 dark:text-slate-400"
+                >Total Items:</span
+              >
+              <span class="text-gray-900 dark:text-white font-bold">{{
+                selectedProducts.length
+              }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500 dark:text-slate-400">Subtotal:</span>
+              <span class="text-gray-900 dark:text-white font-bold"
+                >{{ currencySymbol }}
+                {{ calculateSubtotal() | number: "1.0-0" }}</span
+              >
+            </div>
+            <div
+              class="flex justify-between text-red-600 dark:text-red-400 font-bold text-sm"
+              *ngIf="calculateTotalDiscount() > 0"
+            >
+              <span>Discounts:</span>
+              <span
+                >-{{ currencySymbol }}
+                {{ calculateTotalDiscount() | number: "1.0-0" }}</span
+              >
+            </div>
+            <div
+              class="flex justify-between text-yellow-600 dark:text-yellow-400 font-bold text-sm"
+              *ngIf="calculateTotalVat() > 0"
+            >
+              <span>Tax (16%):</span>
+              <span
+                >{{ currencySymbol }}
+                {{ calculateTotalVat() | number: "1.0-0" }}</span
+              >
+            </div>
+            <hr class="border-gray-200 dark:border-slate-700 my-1" />
+            <div
+              [class]="
+                'flex justify-between text-xl sm:text-2xl font-black tracking-tight text-' +
+                themeColor +
+                '-600 dark:text-' +
+                themeColor +
+                '-400'
+              "
+            >
+              <span>{{
+                mode === "credit" ? "Credit Total:" : "Grand Total:"
+              }}</span>
+              <span
+                >{{ currencySymbol }}
+                {{ calculateTotal() | number: "1.0-0" }}</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Details (Cash Sales Only) -->
+      <div
+        *ngIf="mode === 'cash'"
+        class="bg-white dark:bg-slate-900/90 rounded-2xl p-4 border-2 border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-2xl"
+      >
+        <!-- Payment Details (injected from parent) -->
+        <div class="mb-4">
+          <ng-content select="[payment-details]"></ng-content>
+        </div>
+
+        <!-- Payment Summary -->
+        <div
+          class="bg-blue-50/50 dark:bg-blue-900/20 rounded-xl p-3 border border-blue-100 dark:border-blue-500/30"
+        >
+          <h4
+            class="font-bold mb-2 text-blue-600 dark:text-blue-400 text-xs flex items-center"
+          >
+            <i class="bi bi-receipt mr-1.5"></i>Payment Summary
+          </h4>
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-gray-600 dark:text-slate-300">Cash:</span>
+              <span class="text-green-600 dark:text-green-400 font-bold"
+                >{{ currencySymbol }}
+                {{ paymentMethods.cash | number: "1.0-0" }}</span
+              >
+            </div>
+            <div class="flex justify-between text-[11px]">
+              <span class="text-gray-600 dark:text-slate-300">M-Pesa:</span>
+              <span class="text-green-600 dark:text-green-400 font-bold"
+                >{{ currencySymbol }}
+                {{ paymentMethods.mpesa | number: "1.0-0" }}</span
+              >
+            </div>
+            <div class="flex justify-between text-[11px]">
+              <span class="text-gray-600 dark:text-slate-300"
+                >Bank Transfer:</span
+              >
+              <span class="text-green-600 dark:text-green-400 font-bold"
+                >{{ currencySymbol }}
+                {{ paymentMethods.bank | number: "1.0-0" }}</span
+              >
+            </div>
+            <hr class="border-gray-200 dark:border-slate-700 my-1" />
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-gray-900 dark:text-white">Total Paid:</span>
+              <span class="text-green-600 dark:text-green-400"
+                >{{ currencySymbol }}
+                {{ calculateAmountPaid() | number: "1.0-0" }}</span
+              >
+            </div>
+            <div
+              [class]="
+                'flex justify-between text-[11px] ' +
+                (getRemainingAmount() > 0 && !isPaymentComplete()
+                  ? 'text-red-600'
+                  : 'text-green-600 dark:text-green-400')
+              "
+            >
+              <span class="font-bold">{{
+                isPaymentComplete() ? "Change:" : "Balance Due:"
+              }}</span>
+              <span class="font-black"
+                >{{ currencySymbol }}
+                {{ getRemainingAmount() | number: "1.0-0" }}</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credit Terms (Credit Sales Only) -->
+      <div
+        *ngIf="mode === 'credit' && creditTerms"
+        class="bg-white dark:bg-slate-900/90 rounded-2xl p-4 border-2 border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-2xl"
+      >
+        <ng-content select="[credit-terms]"></ng-content>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="space-y-3 lg:space-y-4">
+        <button
+          (click)="backToProducts.emit()"
+          class="w-full bg-white dark:bg-slate-900/80 hover:bg-gray-50 dark:hover:bg-slate-900/60 border-2 border-gray-200 dark:border-slate-700 px-4 sm:px-6 py-3 lg:py-4 rounded-xl transition-all font-bold text-base lg:text-lg text-gray-700 dark:text-white shadow-sm dark:shadow-lg"
+        >
+          <i class="bi bi-arrow-left mr-2 font-black"></i>Back to Products
+        </button>
+
+        <button
+          (click)="submit.emit()"
+          [disabled]="!canSubmit()"
+          [class]="
+            'w-full py-4 lg:py-6 rounded-xl font-bold text-lg lg:text-xl transition-all duration-300 shadow-xl ' +
+            (canSubmit()
+              ? 'bg-gradient-to-r from-' +
+                themeColor +
+                '-600 to-' +
+                themeColor +
+                '-700 hover:from-' +
+                themeColor +
+                '-700 hover:to-' +
+                themeColor +
+                '-800 text-white hover:shadow-' +
+                themeColor +
+                '-500/40 transform hover:scale-[1.02] active:scale-95'
+              : 'bg-gray-200 dark:bg-slate-900/50 text-gray-400 dark:text-slate-500 cursor-not-allowed shadow-none')
+          "
+        >
+          <div *ngIf="!posting" class="flex items-center justify-center">
+            <i class="bi bi-check-circle-fill mr-3 text-2xl"></i>
+            <span
+              >{{ isUpdateMode ? "Update " : "Complete "
+              }}{{
+                mode === "cash"
+                  ? "Sale"
+                  : mode === "credit"
+                    ? "Credit Sale"
+                    : "Quotation"
+              }}</span
+            >
+          </div>
+          <div *ngIf="posting" class="flex items-center justify-center">
+            <i class="bi bi-arrow-repeat animate-spin mr-3 text-2xl"></i>
+            <span>Processing...</span>
+          </div>
+        </button>
+
+        <!-- Validation Messages -->
+        <div
+          *ngIf="!customerName.trim()"
+          class="text-center text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-xl p-4 shadow-sm"
+        >
+          <i class="bi bi-info-circle-fill mr-2"></i>
+          Please enter customer name
+        </div>
+        <div
+          *ngIf="customerName.trim() && selectedProducts.length === 0"
+          class="text-center text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-xl p-4 shadow-sm"
+        >
+          <i class="bi bi-info-circle-fill mr-2"></i>
+          Please add products to cart
+        </div>
+        <div
+          *ngIf="
+            mode === 'cash' &&
+            customerName.trim() &&
+            selectedProducts.length > 0 &&
+            !isPaymentComplete()
+          "
+          class="text-center text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-xl p-4 shadow-sm"
+        >
+          <i class="bi bi-info-circle-fill mr-2"></i>
+          Insufficient payment. Due: {{ currencySymbol }}
+          {{ getRemainingAmount() | number: "1.0-0" }}
+        </div>
+        <div
+          *ngIf="
+            mode === 'credit' &&
+            customerName.trim() &&
+            selectedProducts.length > 0 &&
+            !creditTerms?.dueDate
+          "
+          class="text-center text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-xl p-4 shadow-sm"
+        >
+          <i class="bi bi-info-circle-fill mr-2"></i>
+          Please set due date for credit sale
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

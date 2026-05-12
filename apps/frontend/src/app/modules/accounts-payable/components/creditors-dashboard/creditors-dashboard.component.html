@@ -1,0 +1,232 @@
+<div class="p-6 bg-gray-50 dark:bg-slate-900 min-h-screen">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Creditors Dashboard</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-1">Manage supplier bills and payments</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <!-- Total Outstanding -->
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-red-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Outstanding</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+            {{ formatCurrency(totalOutstanding) }}
+          </p>
+        </div>
+        <div class="p-3 bg-red-100 dark:bg-red-900/20 rounded-full">
+          <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Suppliers -->
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-blue-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Suppliers</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ totalSuppliers }}</p>
+        </div>
+        <div class="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-full">
+          <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suppliers with Overdue -->
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-orange-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">With Overdue</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ suppliersWithOverdue }}</p>
+        </div>
+        <div class="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-full">
+          <svg class="w-8 h-8 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Overdue Bills -->
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-yellow-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Overdue Bills</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ totalOverdueBills }}</p>
+        </div>
+        <div class="p-3 bg-yellow-100 dark:bg-yellow-900/20 rounded-full">
+          <svg class="w-8 h-8 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Search -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Search Supplier
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Search by name, email, or phone..."
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+        />
+      </div>
+
+      <!-- Date Range -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Start Date
+        </label>
+        <input
+          type="date"
+          [(ngModel)]="startDate"
+          (change)="onDateRangeChange()"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          End Date
+        </label>
+        <input
+          type="date"
+          [(ngModel)]="endDate"
+          (change)="onDateRangeChange()"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
+        />
+      </div>
+    </div>
+
+    <!-- Overdue Filter Toggle -->
+    <div class="mt-4">
+      <label class="inline-flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          [(ngModel)]="showOnlyOverdue"
+          (change)="toggleOverdueFilter()"
+          class="form-checkbox h-5 w-5 text-indigo-600 dark:text-indigo-400 rounded border-gray-300 dark:border-gray-600 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+        />
+        <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+          Show only suppliers with overdue bills
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+    <p class="text-red-800 dark:text-red-400">{{ error }}</p>
+  </div>
+
+  <!-- Supplier List -->
+  <div *ngIf="!loading && !error" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div
+      *ngFor="let summary of filteredSummaries"
+      [ngClass]="getStatusColor(summary)"
+      class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border p-6 cursor-pointer hover:shadow-md transition-shadow duration-200"
+      (click)="openSupplierStatement(summary)"
+    >
+      <!-- Supplier Header -->
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center">
+          <div class="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+            {{ getSupplierInitials(summary.supplier.name) }}
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900 dark:text-white">
+              {{ summary.supplier.name }}
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400" *ngIf="summary.supplier.phone">
+              {{ summary.supplier.phone }}
+            </p>
+          </div>
+        </div>
+        <span [ngClass]="getStatusBadgeClass(summary)" class="px-3 py-1 rounded-full text-xs font-semibold">
+          {{ getStatusText(summary) }}
+        </span>
+      </div>
+
+      <!-- Supplier Details -->
+      <div class="space-y-2">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600 dark:text-gray-400">Total Bills:</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{ summary.totalBills }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600 dark:text-gray-400">Unpaid Bills:</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{ summary.unpaidBillsCount }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600 dark:text-gray-400">Total Amount:</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{ formatCurrency(summary.totalAmount) }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600 dark:text-gray-400">Total Paid:</span>
+          <span class="font-medium text-green-600 dark:text-green-400">{{ formatCurrency(summary.totalPaid) }}</span>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+          <div class="flex justify-between">
+            <span class="font-semibold text-gray-700 dark:text-gray-300">Outstanding:</span>
+            <span class="font-bold text-lg" [ngClass]="{
+              'text-red-600 dark:text-red-400': summary.overdueCount > 0,
+              'text-yellow-600 dark:text-yellow-400': summary.outstandingBalance > 0 && summary.overdueCount === 0,
+              'text-green-600 dark:text-green-400': summary.outstandingBalance === 0
+            }">
+              {{ formatCurrency(summary.outstandingBalance) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overdue Warning -->
+      <div *ngIf="summary.overdueCount > 0" class="mt-4 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded px-3 py-2">
+        <p class="text-sm text-red-800 dark:text-red-400 font-medium">
+          ?? {{ summary.overdueCount }} overdue bill{{ summary.overdueCount > 1 ? 's' : '' }}
+        </p>
+      </div>
+
+      <!-- View Statement Button -->
+      <button
+        class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+        (click)="openSupplierStatement(summary); $event.stopPropagation()"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        View Statement & Pay
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && filteredSummaries.length === 0" class="text-center py-12">
+    <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No suppliers found</h3>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      {{ showOnlyOverdue ? 'No suppliers with overdue bills found.' : 'Try adjusting your filters or date range.' }}
+    </p>
+  </div>
+</div>

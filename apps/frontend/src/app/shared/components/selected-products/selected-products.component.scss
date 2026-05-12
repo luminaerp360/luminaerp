@@ -1,0 +1,379 @@
+.selected-products {
+  .empty-cart {
+    text-align: center;
+  }
+
+  // Table styling
+  table {
+    font-size: 0.75rem;
+    width: 100%;
+
+    th {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      font-size: 0.65rem;
+      padding: 8px 4px;
+      @apply text-gray-500 dark:text-gray-400;
+    }
+
+    td {
+      padding: 8px 4px;
+      vertical-align: middle;
+    }
+
+    // Hover effects for rows
+    tbody tr {
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        @apply bg-gray-100 dark:bg-gray-700/50;
+      }
+    }
+  }
+
+  // Quantity input and buttons
+  .qty-input {
+    width: 35px;
+    height: 26px;
+    @apply bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600;
+    border-radius: 4px;
+    padding: 2px;
+    @apply text-gray-900 dark:text-white;
+    text-align: center;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      @apply border-blue-500 dark:border-blue-400;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  }
+
+  .qty-btn {
+    width: 24px;
+    height: 24px;
+    @apply bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600;
+    border-radius: 4px;
+    @apply text-gray-600 dark:text-gray-400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-weight: 700;
+
+    &:hover:not(:disabled) {
+      @apply bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white border-gray-400 dark:border-gray-500;
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    &.qty-btn-minus:hover:not(:disabled) {
+      @apply bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-500/60 text-red-600 dark:text-red-400;
+    }
+
+    &.qty-btn-plus:hover:not(:disabled) {
+      @apply bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-500/60 text-green-600 dark:text-green-400;
+    }
+  }
+
+  // Remove button
+  .remove-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    i {
+      @apply text-gray-400 dark:text-gray-500;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    &:hover {
+      @apply bg-red-100 dark:bg-red-900/20;
+      transform: scale(1.1);
+
+      i {
+        @apply text-red-600 dark:text-red-400;
+      }
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  // Price editing
+  .price-input {
+    width: 70px;
+    height: 26px;
+    @apply bg-white dark:bg-gray-700 border-2 border-blue-500 dark:border-blue-400;
+    border-radius: 4px;
+    padding: 3px 6px;
+    @apply text-gray-900 dark:text-white;
+    text-align: right;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      @apply border-blue-600 dark:border-blue-300;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    // Remove spinner buttons
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  }
+
+  // Direct price input (always visible)
+  .price-input-direct {
+    width: 65px;
+    height: 28px;
+    @apply bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600;
+    border-radius: 4px;
+    padding: 2px 4px;
+    @apply text-gray-900 dark:text-white;
+    text-align: right;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+
+    &:hover {
+      @apply border-gray-400 dark:border-gray-500;
+    }
+
+    &:focus {
+      outline: none;
+      @apply border-blue-500 dark:border-blue-400;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+      @apply bg-blue-50/50 dark:bg-blue-900/10;
+    }
+
+    // Remove spinner buttons
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+  }
+
+  .edit-price-btn {
+    padding: 3px 5px;
+    @apply bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-600/50;
+    border-radius: 4px;
+    @apply text-blue-600 dark:text-blue-400;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      @apply bg-blue-200 dark:bg-blue-900/50 border-blue-400 dark:border-blue-500 text-blue-700 dark:text-blue-300;
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  // Enhanced price toggle buttons
+  .price-toggle-enhanced {
+    display: flex;
+    gap: 2px;
+    @apply bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600;
+    border-radius: 4px;
+    padding: 1px;
+
+    .toggle-btn {
+      padding: 2px 4px;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 3px;
+      background: transparent;
+      @apply text-gray-600 dark:text-gray-400;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        @apply bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white;
+      }
+
+      &.active {
+        @apply bg-green-500 dark:bg-green-600 text-white shadow-sm;
+      }
+    }
+  }
+
+  // Old price toggle (keeping for backward compatibility)
+  .price-toggle-mini {
+    display: flex;
+    gap: 2px;
+    @apply bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600;
+    border-radius: 3px;
+    padding: 1px;
+
+    .toggle-btn {
+      padding: 1px 4px;
+      font-size: 9px;
+      font-weight: 600;
+      border-radius: 2px;
+      background: transparent;
+      @apply text-gray-600 dark:text-gray-400;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      min-width: 16px;
+
+      &:hover {
+        @apply bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white;
+      }
+
+      &.active {
+        @apply bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-400 dark:border-green-500/50;
+      }
+    }
+  }
+
+  // Enhanced tax type selector
+  .tax-type-selector-enhanced {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    justify-content: center;
+
+    .tax-btn {
+      padding: 2px 4px;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 4px;
+      @apply bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600;
+      @apply text-gray-600 dark:text-gray-400;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      text-transform: uppercase;
+
+      span {
+        display: none; // Hide text, keep icons/initials
+      }
+
+      &:hover {
+        @apply bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white border-gray-400 dark:border-gray-500;
+        transform: translateY(-1px);
+      }
+
+      &.active {
+        @apply bg-yellow-500 dark:bg-yellow-600 text-white border-yellow-600 dark:border-yellow-500 shadow-sm;
+        font-weight: 800;
+        transform: scale(1.05);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+
+  // Old tax type selector (keeping for backward compatibility)
+  .tax-type-selector {
+    display: flex;
+    gap: 2px;
+    @apply bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600;
+    border-radius: 3px;
+    padding: 1px;
+
+    .tax-btn {
+      padding: 1px 3px;
+      font-size: 8px;
+      font-weight: 700;
+      border-radius: 2px;
+      background: transparent;
+      @apply text-gray-600 dark:text-gray-400;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      min-width: 14px;
+      text-transform: uppercase;
+
+      &:hover {
+        @apply bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white;
+      }
+
+      &.active {
+        @apply bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-400 dark:border-yellow-500/50;
+      }
+    }
+  }
+
+  // Scrollbar styling for webkit browsers
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-200 dark:bg-gray-800/50;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 dark:bg-gray-600/50;
+    border-radius: 3px;
+
+    &:hover {
+      @apply bg-gray-500 dark:bg-gray-600/70;
+    }
+  }
+}
+

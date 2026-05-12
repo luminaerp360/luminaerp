@@ -1,0 +1,405 @@
+<!-- Header -->
+<div class="mb-6 print:mb-4">
+  <div
+    class="bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-lg shadow-lg p-6 print:bg-white print:shadow-none print:border print:border-gray-300"
+  >
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-white print:text-gray-800">
+          Customer Statement
+        </h1>
+        <p class="text-indigo-100 mt-1 print:text-gray-600" *ngIf="statement">
+          {{ statement.customer.fullName }} -
+          {{ statement.customer.phoneNumber }}
+        </p>
+      </div>
+      <div class="flex gap-3 print:hidden">
+        <button
+          (click)="viewOutstandingInvoices()"
+          class="px-4 py-2 bg-white dark:bg-slate-900 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors flex items-center gap-2 font-medium"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
+          </svg>
+          Outstanding Invoices
+        </button>
+        <button
+          (click)="exportToCSV()"
+          class="px-4 py-2 bg-white dark:bg-slate-900 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors flex items-center gap-2 font-medium"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          Export CSV
+        </button>
+        <button
+          (click)="printStatement()"
+          class="px-4 py-2 bg-white dark:bg-slate-900 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors flex items-center gap-2 font-medium"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+            />
+          </svg>
+          Print
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white dark:bg-slate-900 rounded-lg shadow p-4 mb-6 print:hidden">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2"
+        >Start Date</label
+      >
+      <input
+        type="date"
+        [(ngModel)]="startDate"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+      />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2"
+        >End Date</label
+      >
+      <input
+        type="date"
+        [(ngModel)]="endDate"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+      />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Format</label>
+      <select
+        [(ngModel)]="format"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+      >
+        <option value="summary">Summary</option>
+        <option value="detailed">Detailed</option>
+      </select>
+    </div>
+    <div class="flex items-end">
+      <button
+        (click)="applyFilters()"
+        class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+      >
+        Apply Filters
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="loading" class="flex justify-center items-center py-20">
+  <div
+    class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-600"
+  ></div>
+</div>
+
+<!-- Content -->
+<div *ngIf="!loading && statement" class="space-y-6">
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-indigo-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 font-medium">Total Invoiced</p>
+          <p class="text-2xl font-bold text-gray-800">
+            {{ formatCurrency(statement.totals.totalInvoiced) }}
+          </p>
+        </div>
+        <div class="bg-indigo-100 p-3 rounded-lg">
+          <svg
+            class="w-6 h-6 text-indigo-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-green-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 font-medium">Total Paid</p>
+          <p class="text-2xl font-bold text-gray-800">
+            {{ formatCurrency(statement.totals.totalPaid) }}
+          </p>
+        </div>
+        <div class="bg-green-100 p-3 rounded-lg">
+          <svg
+            class="w-6 h-6 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-red-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 font-medium">Outstanding</p>
+          <p class="text-2xl font-bold text-gray-800">
+            {{ formatCurrency(statement.totals.totalOutstanding) }}
+          </p>
+        </div>
+        <div class="bg-red-100 p-3 rounded-lg">
+          <svg
+            class="w-6 h-6 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-blue-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 font-medium">Total Invoices</p>
+          <p class="text-2xl font-bold text-gray-800">
+            {{ statement.totals.invoiceCount }}
+          </p>
+        </div>
+        <div class="bg-blue-100 p-3 rounded-lg">
+          <svg
+            class="w-6 h-6 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Breakdown -->
+  <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Status Breakdown</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="text-center p-4 bg-green-50 rounded-lg">
+        <p class="text-3xl font-bold text-green-600">
+          {{ statement.statusBreakdown.paid }}
+        </p>
+        <p class="text-sm text-gray-600 mt-1">Paid</p>
+      </div>
+      <div class="text-center p-4 bg-yellow-50 rounded-lg">
+        <p class="text-3xl font-bold text-yellow-600">
+          {{ statement.statusBreakdown.partiallyPaid }}
+        </p>
+        <p class="text-sm text-gray-600 mt-1">Partially Paid</p>
+      </div>
+      <div class="text-center p-4 bg-blue-50 rounded-lg">
+        <p class="text-3xl font-bold text-blue-600">
+          {{ statement.statusBreakdown.unpaid }}
+        </p>
+        <p class="text-sm text-gray-600 mt-1">Unpaid</p>
+      </div>
+      <div class="text-center p-4 bg-red-50 rounded-lg">
+        <p class="text-3xl font-bold text-red-600">
+          {{ statement.statusBreakdown.overdue }}
+        </p>
+        <p class="text-sm text-gray-600 mt-1">Overdue</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoices Table -->
+  <div class="bg-white dark:bg-slate-900 rounded-lg shadow overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800">Invoice History</h3>
+      <p class="text-sm text-gray-600 mt-1">
+        Period: {{ formatDate(statement.period.startDate) }} to
+        {{ formatDate(statement.period.endDate) }}
+      </p>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50 dark:bg-slate-900">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Invoice #
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Issue Date
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Due Date
+            </th>
+            <th
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Total Amount
+            </th>
+            <th
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Amount Paid
+            </th>
+            <th
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Balance Due
+            </th>
+            <th
+              class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Status
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200">
+          <tr
+            *ngFor="let invoice of statement.invoices"
+            class="hover:bg-gray-50 dark:hover:bg-slate-900/50"
+          >
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="text-sm font-medium text-gray-900">{{
+                invoice.invoiceNumber
+              }}</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ formatDate(invoice.issueDate) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ formatDate(invoice.dueDate) }}
+            </td>
+            <td
+              class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900"
+            >
+              {{ formatCurrency(invoice.totalAmount) }}
+            </td>
+            <td
+              class="px-6 py-4 whitespace-nowrap text-right text-sm text-green-600 font-medium"
+            >
+              {{ formatCurrency(invoice.amountPaid) }}
+            </td>
+            <td
+              class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold"
+              [class.text-red-600]="invoice.balanceDue > 0"
+              [class.text-green-600]="invoice.balanceDue === 0"
+            >
+              {{ formatCurrency(invoice.balanceDue) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <span
+                class="px-2 py-1 text-xs font-semibold rounded-full"
+                [ngClass]="getStatusBadgeClass(invoice.status)"
+              >
+                {{ getStatusLabel(invoice.status) }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="statement.invoices.length === 0">
+            <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+              No invoices found for this period
+            </td>
+          </tr>
+        </tbody>
+        <tfoot class="bg-gray-100 font-bold">
+          <tr>
+            <td colspan="3" class="px-6 py-4 text-sm text-gray-900">TOTALS</td>
+            <td class="px-6 py-4 text-right text-sm text-gray-900">
+              {{ formatCurrency(statement.totals.totalInvoiced) }}
+            </td>
+            <td class="px-6 py-4 text-right text-sm text-gray-900">
+              {{ formatCurrency(statement.totals.totalPaid) }}
+            </td>
+            <td class="px-6 py-4 text-right text-sm text-gray-900">
+              {{ formatCurrency(statement.totals.totalOutstanding) }}
+            </td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- No Data State -->
+<div *ngIf="!loading && !statement" class="text-center py-20">
+  <svg
+    class="mx-auto h-12 w-12 text-gray-400"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+    />
+  </svg>
+  <h3 class="mt-2 text-sm font-medium text-gray-900">No data available</h3>
+  <p class="mt-1 text-sm text-gray-500">Unable to load customer statement.</p>
+</div>

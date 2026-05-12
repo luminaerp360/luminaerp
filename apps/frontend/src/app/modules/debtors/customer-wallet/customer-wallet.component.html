@@ -1,0 +1,475 @@
+<!-- Customer Wallet Component -->
+
+<!-- Header -->
+<div class="mb-6">
+  <div class="bg-gradient-to-r from-emerald-600 to-emerald-800 rounded-lg shadow-lg p-6">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-white">
+          Customer Wallet
+        </h1>
+        <p class="text-emerald-100 mt-1" *ngIf="walletData">
+          {{ walletData.customer.fullName }} - {{ walletData.customer.phoneNumber }}
+        </p>
+      </div>
+      <div class="flex gap-3">
+        <button
+          (click)="goBack()"
+          class="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors flex items-center gap-2 font-medium"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back
+        </button>
+        <button
+          (click)="viewStatement()"
+          class="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors flex items-center gap-2 font-medium"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Statement
+        </button>
+        <button
+          (click)="viewOutstanding()"
+          class="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors flex items-center gap-2 font-medium"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Outstanding
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="flex justify-center items-center py-20">
+  <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-emerald-600"></div>
+</div>
+
+<!-- Content -->
+<div *ngIf="!loading && walletData" class="space-y-6">
+
+  <!-- Wallet Balance Card -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Main Balance -->
+    <div class="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-emerald-100 text-sm font-medium">Wallet Balance</p>
+          <p class="text-3xl font-bold mt-2">{{ formatCurrency(walletData.walletBalance) }}</p>
+          <p class="text-emerald-100 text-sm mt-2">Available for invoice payment</p>
+        </div>
+        <div class="bg-white/20 p-4 rounded-lg">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-4 flex gap-2">
+        <button
+          (click)="openDepositModal()"
+          class="flex-1 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
+        >
+          + Add Deposit
+        </button>
+        <button
+          (click)="openApplyModal()"
+          [disabled]="walletData.walletBalance <= 0"
+          [class]="walletData.walletBalance > 0 ? 'flex-1 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors' : 'flex-1 px-3 py-2 bg-white/10 rounded-lg text-sm font-medium opacity-50 cursor-not-allowed'"
+        >
+          Apply to Invoices
+        </button>
+      </div>
+    </div>
+
+    <!-- Outstanding Debt -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow p-6 border-l-4 border-red-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-gray-500 dark:text-slate-400 text-sm">Outstanding Debt</p>
+          <p class="text-2xl font-bold text-red-600 mt-2">{{ formatCurrency(walletData.outstandingDebt) }}</p>
+        </div>
+        <div class="bg-red-100 p-3 rounded-lg">
+          <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Net Position -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow p-6 border-l-4"
+         [class.border-green-500]="walletData.walletBalance - walletData.outstandingDebt >= 0"
+         [class.border-orange-500]="walletData.walletBalance - walletData.outstandingDebt < 0">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-gray-500 dark:text-slate-400 text-sm">Net Position</p>
+          <p class="text-2xl font-bold mt-2"
+             [class.text-green-600]="walletData.walletBalance - walletData.outstandingDebt >= 0"
+             [class.text-orange-600]="walletData.walletBalance - walletData.outstandingDebt < 0">
+            {{ formatCurrency(walletData.walletBalance - walletData.outstandingDebt) }}
+          </p>
+          <p class="text-xs text-gray-400 mt-1">
+            {{ walletData.walletBalance >= walletData.outstandingDebt ? 'Customer has credit' : 'Customer owes' }}
+          </p>
+        </div>
+        <div class="p-3 rounded-lg"
+             [class.bg-green-100]="walletData.walletBalance - walletData.outstandingDebt >= 0"
+             [class.bg-orange-100]="walletData.walletBalance - walletData.outstandingDebt < 0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+               [class.text-green-600]="walletData.walletBalance - walletData.outstandingDebt >= 0"
+               [class.text-orange-600]="walletData.walletBalance - walletData.outstandingDebt < 0">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-4">
+      <p class="text-xs text-gray-500 dark:text-slate-400">Total Deposits</p>
+      <p class="text-lg font-bold text-green-600">{{ formatCurrency(walletData.summary.totalDeposits) }}</p>
+    </div>
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-4">
+      <p class="text-xs text-gray-500 dark:text-slate-400">Total Overpayments</p>
+      <p class="text-lg font-bold text-blue-600">{{ formatCurrency(walletData.summary.totalOverpayments) }}</p>
+    </div>
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-4">
+      <p class="text-xs text-gray-500 dark:text-slate-400">Applied to Invoices</p>
+      <p class="text-lg font-bold text-orange-600">{{ formatCurrency(walletData.summary.totalApplied) }}</p>
+    </div>
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-4">
+      <p class="text-xs text-gray-500 dark:text-slate-400">Refunds</p>
+      <p class="text-lg font-bold text-purple-600">{{ formatCurrency(walletData.summary.totalRefunds) }}</p>
+    </div>
+  </div>
+
+  <!-- Transaction Filter -->
+  <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-4">
+    <div class="flex items-center gap-4">
+      <label class="text-sm font-medium text-gray-700 dark:text-slate-300">Filter by type:</label>
+      <select
+        [(ngModel)]="filterType"
+        (ngModelChange)="onFilterChange()"
+        class="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800"
+      >
+        <option value="">All Transactions</option>
+        <option value="DEPOSIT">Deposits</option>
+        <option value="OVERPAYMENT">Overpayments</option>
+        <option value="PAYMENT_APPLIED">Applied to Invoices</option>
+        <option value="REFUND">Refunds</option>
+        <option value="ADJUSTMENT">Adjustments</option>
+      </select>
+      <span class="text-sm text-gray-500">{{ total }} transaction(s)</span>
+    </div>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="bg-white dark:bg-slate-900 rounded-lg shadow overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-slate-700">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Wallet Transactions</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+        <thead class="bg-gray-50 dark:bg-slate-800">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Balance After</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recorded By</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-slate-700">
+          <tr *ngFor="let tx of transactions" class="hover:bg-gray-50 dark:hover:bg-slate-800">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-slate-300">
+              {{ tx.createdAt | date:'medium' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getTransactionTypeColor(tx.type)">
+                {{ getTransactionTypeLabel(tx.type) }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-600 dark:text-slate-300 max-w-xs truncate">
+              {{ tx.description }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-right"
+                [class.text-green-600]="isCredit(tx.type)"
+                [class.text-red-600]="!isCredit(tx.type)">
+              {{ isCredit(tx.type) ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700 dark:text-slate-200 font-medium">
+              {{ formatCurrency(tx.balanceAfter) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
+              {{ tx.recordedBy }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="transactions.length === 0" class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+      </svg>
+      <p class="mt-2 text-sm text-gray-500">No wallet transactions yet</p>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="px-6 py-4 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between">
+      <button
+        (click)="loadTransactions(currentPage - 1)"
+        [disabled]="currentPage <= 1"
+        class="px-4 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+      >
+        Previous
+      </button>
+      <span class="text-sm text-gray-600 dark:text-slate-400">
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
+      <button
+        (click)="loadTransactions(currentPage + 1)"
+        [disabled]="currentPage >= totalPages"
+        class="px-4 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================
+     DEPOSIT MODAL
+     ============================ -->
+<div
+  *ngIf="showDepositModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+  (click)="closeDepositModal()"
+>
+  <div
+    class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 w-full max-w-lg shadow-xl"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-slate-700">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white">Record Customer Deposit</h3>
+      <button (click)="closeDepositModal()" class="text-gray-500 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <!-- Current Balance -->
+      <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3">
+        <p class="text-sm text-emerald-600 dark:text-emerald-400">
+          Current Wallet Balance: <span class="font-bold">{{ formatCurrency(walletData?.walletBalance || 0) }}</span>
+        </p>
+      </div>
+
+      <!-- Amount -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Deposit Amount *</label>
+        <input
+          type="number"
+          [(ngModel)]="depositAmount"
+          min="0.01"
+          step="0.01"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 bg-white dark:bg-slate-800"
+          placeholder="0.00"
+        />
+      </div>
+
+      <!-- Payment Method -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Payment Method *</label>
+        <select
+          [(ngModel)]="selectedPaymentMethod"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800"
+        >
+          <option [ngValue]="null">Select payment method</option>
+          <option *ngFor="let method of paymentMethods" [ngValue]="method">
+            {{ method.displayName || method.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Transaction Code -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Transaction Code</label>
+        <input
+          type="text"
+          [(ngModel)]="depositTransactionCode"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800"
+          placeholder="e.g. MPESA code"
+        />
+      </div>
+
+      <!-- Date -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Payment Date</label>
+        <input
+          type="date"
+          [(ngModel)]="depositDate"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800"
+        />
+      </div>
+
+      <!-- Notes -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Notes</label>
+        <textarea
+          [(ngModel)]="depositNotes"
+          rows="2"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800"
+          placeholder="Optional notes..."
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-3">
+      <button (click)="closeDepositModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+        Cancel
+      </button>
+      <button
+        (click)="submitDeposit()"
+        [disabled]="depositAmount <= 0 || !selectedPaymentMethod"
+        class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+      >
+        Record Deposit
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================
+     APPLY TO INVOICES MODAL
+     ============================ -->
+<div
+  *ngIf="showApplyModal"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+  (click)="closeApplyModal()"
+>
+  <div
+    class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 w-full max-w-3xl max-h-[85vh] flex flex-col shadow-xl"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-slate-700 flex-shrink-0">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white">Apply Wallet to Invoices</h3>
+      <button (click)="closeApplyModal()" class="text-gray-500 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="overflow-y-auto flex-1 p-6">
+      <!-- Wallet Balance Info -->
+      <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 mb-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-sm text-emerald-600 dark:text-emerald-400">
+              Available Balance: <span class="font-bold text-lg">{{ formatCurrency(walletData?.walletBalance || 0) }}</span>
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-gray-600">Allocating: <span class="font-bold text-orange-600">{{ formatCurrency(getTotalWalletAllocation()) }}</span></p>
+            <p class="text-sm text-gray-600">Remaining: <span class="font-bold text-emerald-600">{{ formatCurrency(getRemainingWalletForAllocation()) }}</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loadingOutstanding" class="flex justify-center py-8">
+        <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-600"></div>
+      </div>
+
+      <!-- Outstanding Invoices List -->
+      <div *ngIf="!loadingOutstanding && outstandingData">
+        <p *ngIf="outstandingData.invoices.length === 0" class="text-center text-gray-500 py-8">
+          No outstanding invoices found
+        </p>
+
+        <div class="space-y-3" *ngIf="outstandingData.invoices.length > 0">
+          <div
+            *ngFor="let invoice of outstandingData.invoices"
+            class="border border-gray-200 dark:border-slate-700 rounded-lg p-4 hover:border-emerald-300 transition-colors"
+            [class.border-emerald-500]="selectedInvoicesForWallet.has(invoice.id)"
+            [class.bg-emerald-50]="selectedInvoicesForWallet.has(invoice.id)"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  [checked]="selectedInvoicesForWallet.has(invoice.id)"
+                  (change)="toggleInvoiceForWallet(invoice)"
+                  class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
+                />
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">{{ invoice.invoiceNumber }}</p>
+                  <p class="text-sm text-gray-500">Due: {{ invoice.dueDate | date:'mediumDate' }}</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-4">
+                <div class="text-right">
+                  <p class="text-sm text-gray-500">Balance Due</p>
+                  <p class="font-semibold text-red-600">{{ formatCurrency(invoice.balanceDue) }}</p>
+                </div>
+
+                <div *ngIf="selectedInvoicesForWallet.has(invoice.id)" class="w-32">
+                  <label class="text-xs text-gray-500">Pay Amount</label>
+                  <input
+                    type="number"
+                    [value]="selectedInvoicesForWallet.get(invoice.id)"
+                    (input)="updateWalletPaymentAmount(invoice.id, $any($event.target).value)"
+                    [max]="invoice.balanceDue"
+                    min="0.01"
+                    step="0.01"
+                    class="w-full px-2 py-1 border border-emerald-300 rounded text-sm bg-white dark:bg-slate-800 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 border-t border-gray-200 dark:border-slate-700 flex-shrink-0">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-sm text-gray-600">
+            {{ selectedInvoicesForWallet.size }} invoice(s) selected
+          </p>
+          <p class="text-lg font-bold text-emerald-600">
+            Total: {{ formatCurrency(getTotalWalletAllocation()) }}
+          </p>
+        </div>
+        <div class="flex gap-3">
+          <button (click)="closeApplyModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+            Cancel
+          </button>
+          <button
+            (click)="submitApplyWallet()"
+            [disabled]="selectedInvoicesForWallet.size === 0 || getTotalWalletAllocation() > (walletData?.walletBalance || 0)"
+            class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          >
+            Apply Wallet Balance
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

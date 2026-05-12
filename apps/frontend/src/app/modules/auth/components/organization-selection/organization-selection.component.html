@@ -1,0 +1,187 @@
+﻿<div
+  class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-blue-900 p-4"
+>
+  <div
+    *ngIf="!savedOrg"
+    class="w-full max-w-md transform transition-all animate-fadeIn"
+  >
+    <!-- Logo/Header Section -->
+    <div class="text-center mb-8">
+      <div class="mb-6">
+        <svg
+          class="w-16 h-16 mx-auto text-blue-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"
+          ></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
+          ></path>
+        </svg>
+      </div>
+      <h1 class="text-4xl font-bold text-white mb-2">DasaDove POS</h1>
+      <div class="h-1 w-20 bg-blue-500 mx-auto rounded-full mb-4"></div>
+      <p class="text-gray-300 text-lg">Activate your point of sale systemsss</p>
+    </div>
+
+    <!-- License Input Form -->
+    <div
+      class="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm bg-opacity-10 dark:bg-opacity-30 border border-gray-700/50"
+    >
+      <div class="space-y-6">
+        <!-- License Input -->
+        <div>
+          <label
+            for="license"
+            class="block text-base font-medium text-white mb-2"
+          >
+            License Key
+          </label>
+          <div class="relative">
+            <input
+              [(ngModel)]="licenseKey"
+              id="license"
+              type="text"
+              class="w-full px-4 py-3.5 rounded-lg bg-gray-700/70 border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+              placeholder="XXXX-XXXX-XXXX-XXXX"
+              [class.opacity-50]="isLoading"
+              [disabled]="isLoading"
+            />
+            <div
+              *ngIf="licenseKey"
+              class="absolute right-3 top-3.5 cursor-pointer"
+              (click)="licenseKey = ''"
+            >
+              <svg
+                class="w-5 h-5 text-gray-400 hover:text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </div>
+          </div>
+          <p class="mt-2 text-sm text-blue-300">
+            Enter the license key provided with your purchase
+          </p>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          (click)="verifyLicense()"
+          class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 flex items-center justify-center space-x-2 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 shadow-lg"
+          [disabled]="isLoading || !licenseKey.trim()"
+          [ngClass]="{
+            'opacity-70 cursor-not-allowed': isLoading || !licenseKey.trim(),
+            'hover:bg-blue-700': licenseKey.trim() && !isLoading,
+          }"
+        >
+          <span *ngIf="!isLoading" class="flex items-center">
+            <svg
+              *ngIf="licenseKey.trim()"
+              class="w-5 h-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
+            </svg>
+            <svg
+              *ngIf="!licenseKey.trim()"
+              class="w-5 h-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            Activate License
+          </span>
+          <span *ngIf="isLoading" class="flex items-center">
+            <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+                fill="none"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            Verifying...
+          </span>
+        </button>
+
+        <!-- Help Text -->
+        <div class="text-sm text-gray-300 text-center mt-6 space-y-2">
+          <p>
+            Need help with activation?
+            <a
+              href="mailto:support@dasadove.com"
+              class="text-blue-400 hover:text-blue-300 underline"
+              >Contact support</a
+            >
+          </p>
+          <p>
+            Don't have a license?
+            <a
+              href="https://dasadove.com/pricing"
+              target="_blank"
+              class="text-blue-400 hover:text-blue-300 underline"
+              >Purchase one here</a
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-8 text-gray-400 text-sm">
+      &copy; {{ currentYear }} DasaDove. All rights reserved.
+    </div>
+  </div>
+
+  <div *ngIf="savedOrg && loadingLogin" class="text-center animate-fadeIn">
+    <div
+      class="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto mb-6"
+    ></div>
+    <h2 class="text-2xl font-semibold text-white mb-2">Loading your account</h2>
+    <p class="text-gray-300">Please wait while we redirect you...</p>
+  </div>
+
+  <!-- Login Component -->
+  <div *ngIf="savedOrg && !loadingLogin" class="animate-fadeIn w-full">
+    <app-login></app-login>
+  </div>
+</div>

@@ -1,0 +1,526 @@
+<div class="min-h-screen bg-gray-50 dark:bg-slate-900 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+            {{ isEditMode ? "Edit Bill" : "Create New Bill" }}
+          </h1>
+          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Create a detailed bill with line items and expense tracking
+          </p>
+        </div>
+        <button
+          type="button"
+          (click)="cancel()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+        >
+          <i class="fas fa-times mr-2"></i>Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="billForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Bill Details Card -->
+      <div class="bg-white dark:bg-slate-900 rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <i class="fas fa-file-invoice text-blue-600 mr-2"></i>Bill Information
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Supplier -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Supplier <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="supplierId"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+              [class.border-red-500]="isFieldInvalid('supplierId')"
+            >
+              <option value="">Select Supplier</option>
+              <option *ngFor="let supplier of suppliers" [value]="supplier.id">
+                {{ supplier.name }}
+              </option>
+            </select>
+            <p
+              *ngIf="isFieldInvalid('supplierId')"
+              class="mt-1 text-sm text-red-600"
+            >
+              Supplier is required
+            </p>
+          </div>
+
+          <!-- Bill Number -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Bill Number <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="billNumber"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+              [class.border-red-500]="isFieldInvalid('billNumber')"
+              placeholder="BILL-2026-0001"
+            />
+            <p
+              *ngIf="isFieldInvalid('billNumber')"
+              class="mt-1 text-sm text-red-600"
+            >
+              Bill number is required
+            </p>
+          </div>
+
+          <!-- Bill Date -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Bill Date <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              formControlName="billDate"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+              [class.border-red-500]="isFieldInvalid('billDate')"
+            />
+          </div>
+
+          <!-- Due Date -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Due Date <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              formControlName="dueDate"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+              [class.border-red-500]="isFieldInvalid('dueDate')"
+            />
+          </div>
+
+          <!-- Reference Number -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Reference Number
+            </label>
+            <input
+              type="text"
+              formControlName="referenceNumber"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+              placeholder="PO-123 or Invoice #"
+            />
+          </div>
+
+          <!-- Description -->
+          <div class="md:col-span-2 lg:col-span-3">
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Description
+            </label>
+            <textarea
+              formControlName="description"
+              rows="2"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+              placeholder="Brief description of the bill..."
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Items Card -->
+      <div class="bg-white dark:bg-slate-900 rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            <i class="fas fa-list text-green-600 mr-2"></i>Line Items
+          </h2>
+          <button
+            type="button"
+            (click)="addItem()"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            <i class="fas fa-plus mr-2"></i>Add Item
+          </button>
+        </div>
+
+        <!-- Items Table -->
+        <div class="overflow-x-auto">
+          <div formArrayName="items" class="space-y-4">
+            <div
+              *ngFor="let item of items.controls; let i = index"
+              [formGroupName]="i"
+              class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-slate-900 hover:shadow-md transition-shadow"
+            >
+              <!-- Item Header -->
+              <div class="flex items-center justify-between mb-3">
+                <span
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Item #{{ i + 1 }}
+                </span>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    (click)="duplicateItem(i)"
+                    class="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    title="Duplicate item"
+                  >
+                    <i class="fas fa-copy"></i>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="removeItem(i)"
+                    class="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                    title="Remove item"
+                    [disabled]="items.length === 1"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-12 gap-4">
+                <!-- Description -->
+                <div class="col-span-12 lg:col-span-4">
+                  <label
+                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Description <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    formControlName="description"
+                    class="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                    [class.border-red-500]="isFieldInvalid('description', i)"
+                    placeholder="Item description"
+                  />
+                </div>
+
+                <!-- Quantity -->
+                <div class="col-span-6 lg:col-span-2">
+                  <label
+                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Quantity <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    formControlName="quantity"
+                    step="0.01"
+                    min="0"
+                    class="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                    [class.border-red-500]="isFieldInvalid('quantity', i)"
+                  />
+                </div>
+
+                <!-- Unit Price -->
+                <div class="col-span-6 lg:col-span-2">
+                  <label
+                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Unit Price <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    formControlName="unitPrice"
+                    step="0.01"
+                    min="0"
+                    class="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                    [class.border-red-500]="isFieldInvalid('unitPrice', i)"
+                  />
+                </div>
+
+                <!-- Subtotal (calculated) -->
+                <div class="col-span-6 lg:col-span-2">
+                  <label
+                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Subtotal
+                  </label>
+                  <div
+                    class="px-3 py-2 text-sm bg-gray-100 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-right font-semibold text-gray-900 dark:text-white"
+                  >
+                    {{
+                      calculateItemSubtotal(i)
+                        | currency: "KES" : "symbol" : "1.2-2"
+                    }}
+                  </div>
+                </div>
+
+                <!-- Tax Rate -->
+                <div class="col-span-6 lg:col-span-2">
+                  <label
+                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Tax %
+                  </label>
+                  <input
+                    type="number"
+                    formControlName="taxRate"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    class="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                    placeholder="16"
+                  />
+                </div>
+
+                <!-- Discount -->
+                <div class="col-span-6 lg:col-span-2">
+                  <label
+                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Discount
+                  </label>
+                  <input
+                    type="number"
+                    formControlName="discountAmount"
+                    step="0.01"
+                    min="0"
+                    class="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+
+                <!-- Item Total -->
+                <div class="col-span-12 lg:col-span-2">
+                  <label
+                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Total
+                  </label>
+                  <div
+                    class="px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-lg text-right font-bold text-blue-900 dark:text-blue-300"
+                  >
+                    {{
+                      calculateItemTotal(i)
+                        | currency: "KES" : "symbol" : "1.2-2"
+                    }}
+                  </div>
+                </div>
+
+                <!-- Expense Account -->
+                <div class="col-span-12 lg:col-span-6">
+                  <label
+                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Expense Account
+                  </label>
+                  <select
+                    formControlName="expenseAccountId"
+                    class="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                  >
+                    <option [value]="null">Select account (optional)</option>
+                    <option
+                      *ngFor="let account of expenseAccounts"
+                      [value]="account.id"
+                    >
+                      {{ account.accountCode }} - {{ account.accountName }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Notes -->
+                <div class="col-span-12 lg:col-span-6">
+                  <label
+                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                  >
+                    Notes
+                  </label>
+                  <input
+                    type="text"
+                    formControlName="notes"
+                    class="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                    placeholder="Additional notes for this item"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Fields & Summary -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Additional Information -->
+        <div
+          class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-lg shadow-md p-6"
+        >
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <i class="fas fa-info-circle text-purple-600 mr-2"></i>Additional
+            Information
+          </h2>
+
+          <div class="space-y-4">
+            <!-- Bill-level Tax -->
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Additional Tax Amount
+              </label>
+              <input
+                type="number"
+                formControlName="taxAmount"
+                step="0.01"
+                min="0"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                placeholder="0.00"
+              />
+              <p class="text-xs text-gray-500 mt-1">
+                Additional tax not included in line items
+              </p>
+            </div>
+
+            <!-- Bill-level Discount -->
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Additional Discount Amount
+              </label>
+              <input
+                type="number"
+                formControlName="discountAmount"
+                step="0.01"
+                min="0"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                placeholder="0.00"
+              />
+              <p class="text-xs text-gray-500 mt-1">
+                Overall discount applied to entire bill
+              </p>
+            </div>
+
+            <!-- Notes -->
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Notes
+              </label>
+              <textarea
+                formControlName="notes"
+                rows="3"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                placeholder="Internal notes about this bill..."
+              ></textarea>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Terms & Conditions
+              </label>
+              <textarea
+                formControlName="termsAndConditions"
+                rows="3"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-gray-600 dark:text-white"
+                placeholder="Payment terms, delivery terms, etc..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-md p-6 h-fit sticky top-4"
+        >
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <i class="fas fa-calculator text-yellow-600 mr-2"></i>Summary
+          </h2>
+
+          <div class="space-y-3">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Subtotal:</span>
+              <span class="font-semibold text-gray-900 dark:text-white">
+                {{ calculateSubtotal() | currency: "KES" : "symbol" : "1.2-2" }}
+              </span>
+            </div>
+
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Total Tax:</span>
+              <span class="font-semibold text-gray-900 dark:text-white">
+                {{ calculateTotalTax() | currency: "KES" : "symbol" : "1.2-2" }}
+              </span>
+            </div>
+
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-400"
+                >Total Discount:</span
+              >
+              <span class="font-semibold text-red-600 dark:text-red-400">
+                -
+                {{
+                  calculateTotalDiscount()
+                    | currency: "KES" : "symbol" : "1.2-2"
+                }}
+              </span>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-3">
+              <div class="flex justify-between">
+                <span class="text-lg font-bold text-gray-900 dark:text-white"
+                  >Grand Total:</span
+                >
+                <span
+                  class="text-lg font-bold text-blue-600 dark:text-blue-400"
+                >
+                  {{
+                    calculateGrandTotal() | currency: "KES" : "symbol" : "1.2-2"
+                  }}
+                </span>
+              </div>
+            </div>
+
+            <div class="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p class="text-xs text-blue-800 dark:text-blue-300">
+                <i class="fas fa-info-circle mr-1"></i>
+                This is the total amount payable to the supplier
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div
+        class="flex justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700"
+      >
+        <button
+          type="button"
+          (click)="cancel()"
+          class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-900 transition-colors font-medium"
+          [disabled]="submitting"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          [disabled]="submitting || billForm.invalid"
+        >
+          <span *ngIf="!submitting">
+            <i class="fas fa-save mr-2"></i
+            >{{ isEditMode ? "Update Bill" : "Create Bill" }}
+          </span>
+          <span *ngIf="submitting">
+            <i class="fas fa-spinner fa-spin mr-2"></i>Saving...
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

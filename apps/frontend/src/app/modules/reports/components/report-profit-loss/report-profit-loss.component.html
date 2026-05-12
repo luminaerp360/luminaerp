@@ -1,0 +1,285 @@
+<div
+  class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-200"
+>
+  <div
+    class="px-3 sm:px-4 py-4 sm:py-6 md:px-8 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div
+      class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <h1
+          class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 flex-shrink-0 text-emerald-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+          </svg>
+          Profit & Loss Report
+        </h1>
+        <p class="text-sm sm:text-base text-gray-600 dark:text-slate-400 mt-1">
+          Revenue, expenses, gross/net profit, and margins
+        </p>
+      </div>
+      <a
+        routerLink="/reports-hub"
+        class="text-purple-600 dark:text-purple-400 hover:underline text-sm flex items-center mt-2 md:mt-0"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 mr-1"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M15 19l-7-7 7-7"></path></svg
+        >Back to Reports Hub</a
+      >
+    </div>
+  </div>
+
+  <div
+    class="px-3 sm:px-4 py-3 sm:py-4 md:px-8 bg-gray-100 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 sm:gap-4">
+      <div class="flex flex-wrap gap-1.5 sm:gap-2">
+        <button
+          *ngFor="let r of ['today', 'week', 'month', 'quarter', 'year']"
+          (click)="setDateRange(r)"
+          type="button"
+          [ngClass]="{
+            'bg-purple-600 text-white': currentDateRange === r,
+            'bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300':
+              currentDateRange !== r,
+          }"
+          class="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 capitalize"
+        >
+          {{ r }}
+        </button>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <input
+          type="date"
+          [(ngModel)]="startDate"
+          class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+        />
+        <span class="text-gray-500">to</span>
+        <input
+          type="date"
+          [(ngModel)]="endDate"
+          class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+        />
+        <button
+          (click)="fetchReport()"
+          class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="flex items-center justify-center py-20">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"
+    ></div>
+  </div>
+  <div
+    *ngIf="errorMessage && !loading"
+    class="max-w-7xl mx-auto px-4 md:px-8 mt-4"
+  >
+    <div
+      class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 p-4 rounded-lg flex justify-between items-center"
+    >
+      <span>{{ errorMessage }}</span
+      ><button
+        (click)="fetchReport()"
+        class="text-white bg-red-700 px-3 py-1 rounded text-sm"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <div
+    *ngIf="data && !loading"
+    class="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6"
+  >
+    <!-- Main P&L Statement -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-xl p-4 sm:p-6 md:p-8 border border-gray-200 dark:border-slate-700 shadow-sm"
+    >
+      <h2
+        class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 text-center"
+      >
+        Profit & Loss Statement
+      </h2>
+
+      <!-- Revenue Section -->
+      <div class="mb-4 sm:mb-6">
+        <h3
+          class="text-sm uppercase font-semibold text-gray-500 dark:text-slate-400 mb-3 tracking-wider"
+        >
+          Revenue
+        </h3>
+        <div class="space-y-2 pl-2 sm:pl-4 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-600 dark:text-slate-400">Order Sales</span
+            ><span>{{ formatCurrency(data.revenue.orderSales) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600 dark:text-slate-400">Credit Sales</span
+            ><span>{{ formatCurrency(data.revenue.creditSales) }}</span>
+          </div>
+          <div
+            class="flex justify-between border-t border-gray-200 dark:border-slate-600 pt-2 font-semibold"
+          >
+            <span>Gross Revenue</span
+            ><span>{{ formatCurrency(data.revenue.totalGrossRevenue) }}</span>
+          </div>
+          <div class="flex justify-between text-red-600 dark:text-red-400">
+            <span>Less: Discounts</span
+            ><span>({{ formatCurrency(data.revenue.discountsGiven) }})</span>
+          </div>
+          <div
+            class="flex justify-between border-t border-gray-200 dark:border-slate-600 pt-2 font-bold text-base sm:text-lg"
+          >
+            <span>Net Revenue</span
+            ><span class="text-green-600 dark:text-green-400">{{
+              formatCurrency(data.revenue.netRevenue)
+            }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expenses Section -->
+      <div class="mb-4 sm:mb-6">
+        <h3
+          class="text-sm uppercase font-semibold text-gray-500 dark:text-slate-400 mb-3 tracking-wider"
+        >
+          Expenses
+        </h3>
+        <div class="space-y-2 pl-2 sm:pl-4 text-sm">
+          <div
+            *ngFor="let cat of data.expenses?.byCategory"
+            class="flex justify-between"
+          >
+            <span class="text-gray-600 dark:text-slate-400">{{
+              cat.category
+            }}</span
+            ><span>{{ formatCurrency(cat.amount) }}</span>
+          </div>
+          <div
+            class="flex justify-between border-t border-gray-200 dark:border-slate-600 pt-2 font-bold text-base sm:text-lg"
+          >
+            <span>Total Expenses</span
+            ><span class="text-red-600 dark:text-red-400">{{
+              formatCurrency(data.expenses.totalExpenses)
+            }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profitability Section -->
+      <div class="border-t-2 border-gray-300 dark:border-slate-500 pt-4">
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between text-lg sm:text-xl font-bold">
+            <span>Gross Profit</span>
+            <span
+              [ngClass]="
+                data.profitability.grossProfit >= 0
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'
+              "
+            >
+              {{ formatCurrency(data.profitability.grossProfit) }}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Gross Margin</span>
+            <span class="font-medium">{{
+              formatPercent(data.profitability.grossMargin)
+            }}</span>
+          </div>
+          <div
+            class="flex justify-between text-lg sm:text-xl font-bold border-t border-gray-200 dark:border-slate-600 pt-3"
+          >
+            <span>Net Profit</span>
+            <span
+              [ngClass]="
+                data.profitability.netProfit >= 0
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'
+              "
+            >
+              {{ formatCurrency(data.profitability.netProfit) }}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Net Margin</span>
+            <span class="font-medium">{{
+              formatPercent(data.profitability.netMargin)
+            }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tax & Transaction Counts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          Tax Summary
+        </h3>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-500">Tax Collected</span
+            ><span>{{ formatCurrency(data.tax.taxCollected) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Tax on Expenses</span
+            ><span>{{ formatCurrency(data.tax.taxOnExpenses) }}</span>
+          </div>
+          <div
+            class="flex justify-between font-semibold border-t border-gray-200 dark:border-slate-600 pt-2"
+          >
+            <span>Net Tax Liability</span
+            ><span class="text-purple-600">{{
+              formatCurrency(data.tax.netTaxLiability)
+            }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          Expense Breakdown
+        </h3>
+        <apx-chart
+          *ngIf="expenseChartOptions.series"
+          [series]="expenseChartOptions.series"
+          [chart]="expenseChartOptions.chart"
+          [labels]="expenseChartOptions.labels"
+          [colors]="expenseChartOptions.colors"
+          [legend]="expenseChartOptions.legend"
+          [dataLabels]="expenseChartOptions.dataLabels"
+        ></apx-chart>
+      </div>
+    </div>
+
+    <div class="text-center text-xs text-gray-400 dark:text-slate-500 mt-4">
+      {{ data.metadata?.reportPeriod }}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,670 @@
+﻿<!-- Modern Two-Section Invoice System -->
+<div
+  class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white"
+>
+  <!-- Header -->
+  <header
+    class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-900 p-4"
+  >
+    <div class="mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-orange-600 p-2 rounded-lg">
+          <i class="bi bi-credit-card text-white text-xl"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-orange-400">
+          Invoice Creation Platform
+        </h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div
+          class="hidden md:flex items-center space-x-2 text-gray-500 dark:text-slate-400"
+        >
+          <i class="bi bi-person-circle"></i>
+          <span>{{ currentUser?.username || "User" }}</span>
+        </div>
+        <button
+          (click)="routeToCreditSales()"
+          class="bg-gray-100 dark:bg-slate-900 hover:bg-gray-200 dark:hover:bg-slate-900/80 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 text-gray-700 dark:text-gray-200"
+        >
+          <i class="bi bi-receipt"></i>
+          <span class="hidden sm:inline">View Invoices</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section Navigation Tabs -->
+  <div
+    class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-900"
+  >
+    <div class="mx-auto px-4">
+      <nav class="flex space-x-8">
+        <button
+          (click)="activeSection = 'products'"
+          [class]="
+            'py-4 px-2 border-b-2 font-medium text-sm transition-colors ' +
+            (activeSection === 'products'
+              ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+              : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300')
+          "
+        >
+          <i class="bi bi-box-seam mr-2"></i>
+          Products & Cart
+          <span
+            class="ml-2 bg-orange-600 text-white text-xs px-2 py-1 rounded-full"
+            >{{ selectedProducts.length }}</span
+          >
+        </button>
+        <button
+          (click)="activeSection = 'checkout'"
+          [class]="
+            'py-4 px-2 border-b-2 font-medium text-sm transition-colors ' +
+            (activeSection === 'checkout'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300')
+          "
+        >
+          <i class="bi bi-person-check mr-2"></i>
+          Customer & Invoice Terms
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="mx-auto p-4 lg:p-6 max-w-[1920px]">
+    <!-- SECTION 1: PRODUCTS & CART -->
+    <div
+      *ngIf="activeSection === 'products'"
+      class="grid grid-cols-1 lg:grid-cols-5 gap-6"
+    >
+      <!-- Product Selector Component -->
+      <div class="lg:col-span-3">
+        <app-product-selector
+          themeColor="orange"
+          cartTitle="Invoice Cart"
+          checkoutButtonText="Continue to Customer"
+          [showCheckoutButton]="false"
+          [enableBarcodeScanner]="true"
+          [enableCustomProducts]="true"
+          [enableDiscounts]="true"
+          [enableVAT]="true"
+          [showFilters]="true"
+          [gridColumns]="3"
+          [products]="products"
+          [(selectedProducts)]="selectedProducts"
+          (productAdded)="onProductAdded($event)"
+          (barcodeScanned)="onBarcodeScanned($event)"
+          (vatSettingsChange)="itemVatSettings = $event"
+        ></app-product-selector>
+      </div>
+
+      <!-- Selected Products Summary -->
+      <div class="lg:col-span-2">
+        <div class="sticky top-4">
+          <app-selected-products
+            [products]="selectedProducts"
+            currencySymbol="KSh"
+            (remove)="removeProduct($event)"
+            (changeQty)="updateProductQty($event.id, $event.qty)"
+            (priceChange)="onProductPriceChange($event.id, $event.price)"
+            (priceTypeChange)="
+              updateProductPriceType($event.id, $event.priceType)
+            "
+            (taxTypeChange)="updateProductTaxType($event.id, $event.taxType)"
+          >
+          </app-selected-products>
+
+          <!-- Continue Button -->
+          <button
+            *ngIf="selectedProducts.length > 0"
+            (click)="activeSection = 'checkout'"
+            class="w-full mt-4 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-6 py-4 rounded-xl transition-all duration-200 font-semibold shadow-lg flex items-center justify-center space-x-2"
+          >
+            <span>Continue to Customer</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOATING CART BUTTON (Mobile Only) -->
+    <button
+      *ngIf="activeSection === 'products' && selectedProducts.length > 0"
+      (click)="showMobileCart = true"
+      class="lg:hidden fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-br from-orange-600 to-orange-700 text-white rounded-full shadow-2xl shadow-orange-500/40 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 animate-bounce-subtle"
+    >
+      <i class="bi bi-cart-fill text-2xl"></i>
+      <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white dark:ring-slate-900">
+        {{ selectedProducts.length }}
+      </span>
+    </button>
+
+    <!-- MOBILE CART SLIDE-UP PANEL -->
+    <div
+      *ngIf="showMobileCart"
+      class="lg:hidden fixed inset-0 z-50 flex flex-col justify-end"
+    >
+      <!-- Backdrop -->
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        (click)="showMobileCart = false"
+      ></div>
+
+      <!-- Cart Panel -->
+      <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col animate-slide-up">
+        <!-- Handle Bar -->
+        <div class="flex justify-center pt-3 pb-1">
+          <div class="w-10 h-1 bg-gray-300 dark:bg-slate-700 rounded-full"></div>
+        </div>
+
+        <!-- Cart Header -->
+        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
+              <i class="bi bi-cart-check text-orange-600 dark:text-orange-400 text-lg"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-gray-900 dark:text-white">Invoice Cart</h3>
+              <p class="text-xs text-gray-500 dark:text-slate-400">{{ selectedProducts.length }} item(s)</p>
+            </div>
+          </div>
+          <button
+            (click)="showMobileCart = false"
+            class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+          >
+            <i class="bi bi-x-lg text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Cart Content (Scrollable) -->
+        <div class="flex-1 overflow-y-auto px-4 py-3">
+          <app-selected-products
+            [products]="selectedProducts"
+            currencySymbol="KSh"
+            (remove)="removeProduct($event)"
+            (changeQty)="updateProductQty($event.id, $event.qty)"
+            (priceChange)="onProductPriceChange($event.id, $event.price)"
+            (priceTypeChange)="updateProductPriceType($event.id, $event.priceType)"
+            (taxTypeChange)="updateProductTaxType($event.id, $event.taxType)"
+          >
+          </app-selected-products>
+        </div>
+
+        <!-- Cart Footer Actions -->
+        <div *ngIf="selectedProducts.length > 0" class="px-4 py-4 border-t border-gray-200 dark:border-slate-700 space-y-2 bg-gray-50 dark:bg-slate-900/80">
+          <button
+            (click)="activeSection = 'checkout'; showMobileCart = false"
+            class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-5 py-3.5 rounded-xl transition-all duration-200 font-bold shadow-lg flex items-center justify-center space-x-2"
+          >
+            <span>Continue to Customer</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: CUSTOMER & INVOICE TERMS -->
+    <div *ngIf="activeSection === 'checkout'" class="mx-auto">
+      <app-checkout-summary
+        mode="credit"
+        themeColor="orange"
+        currencySymbol="KSh"
+        [selectedProducts]="selectedProducts"
+        [customers]="customers"
+        [selectedCustomerId]="selectedCustomerId"
+        [(customerName)]="customerName"
+        [(customerEmail)]="customerEmail"
+        [(customerPhone)]="customerPhone"
+        [creditTerms]="{
+          dueDate: dueDate,
+          paymentTerms: paymentTerms,
+          customTerms: customTerms,
+        }"
+        [posting]="posting"
+        [today]="today"
+        [totalVat]="calculateTotalVat()"
+        [totalDiscount]="calculateTotalDiscount()"
+        (customerSelected)="selectedCustomerId = $event; onCustomerSelected()"
+        (customerNameChange)="customerName = $event"
+        (customerEmailChange)="customerEmail = $event"
+        (customerPhoneChange)="customerPhone = $event"
+        (addCustomer)="openAddCustomerDialog()"
+        (removeProduct)="removeProduct($event)"
+        (updateProductQty)="updateProductQty($event.id, $event.qty)"
+        (priceChange)="onProductPriceChange($event.id, $event.price)"
+        (priceTypeChange)="updateProductPriceType($event.id, $event.priceType)"
+        (taxTypeChange)="updateProductTaxType($event.id, $event.taxType)"
+        (submit)="submit()"
+        (backToProducts)="activeSection = 'products'"
+      >
+        <!-- Invoice Terms Content -->
+        <div credit-terms>
+          <div class="flex items-center mb-3">
+            <div
+              class="bg-blue-600 p-2 rounded-lg mr-2.5 shadow-md shadow-blue-500/20"
+            >
+              <i class="bi bi-calendar-check text-white text-base"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-gray-900 dark:text-white">
+                Invoice Terms
+              </h3>
+              <p class="text-[10px] text-gray-500 dark:text-gray-400">
+                Set payment terms and due date
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <!-- Payment Terms & Due Date Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label
+                  class="block text-xs font-semibold mb-1.5 text-gray-600 dark:text-gray-300"
+                >
+                  <i class="bi bi-clock mr-1.5 text-blue-500"></i>
+                  Terms
+                </label>
+                <select
+                  [(ngModel)]="paymentTerms"
+                  (ngModelChange)="onPaymentTermsChange()"
+                  class="w-full bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-xs font-medium transition-all"
+                >
+                  <option value="7">7 Days</option>
+                  <option value="14">14 Days</option>
+                  <option value="30" selected>30 Days</option>
+                  <option value="60">60 Days</option>
+                  <option value="90">90 Days</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  class="block text-xs font-semibold mb-1.5 text-gray-600 dark:text-gray-300"
+                >
+                  <i class="bi bi-calendar-event mr-1.5 text-blue-500"></i>
+                  Due Date *
+                </label>
+                <input
+                  type="date"
+                  [(ngModel)]="dueDate"
+                  [min]="today"
+                  class="w-full bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-xs font-medium transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- Custom Terms Input -->
+            <div *ngIf="paymentTerms === 'custom'" class="mb-3">
+              <label
+                class="block text-xs font-semibold mb-1.5 text-gray-600 dark:text-gray-300"
+              >
+                <i class="bi bi-pencil mr-1.5 text-blue-500"></i>
+                Custom Days
+              </label>
+              <input
+                type="number"
+                [(ngModel)]="customTerms"
+                (ngModelChange)="onCustomTermsChange()"
+                placeholder="Number of days"
+                min="1"
+                class="w-full bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-gray-900 dark:text-white text-xs font-medium transition-all"
+              />
+            </div>
+
+            <!-- Sales Person & Commission Section -->
+            <div class="space-y-3">
+              <div>
+                <label
+                  for="salesPerson"
+                  class="block text-xs font-semibold mb-1.5 text-gray-600 dark:text-gray-300"
+                >
+                  <i class="bi bi-person-badge mr-1.5 text-blue-500"></i>
+                  Sales Person *
+                </label>
+                <select
+                  id="salesPerson"
+                  [(ngModel)]="selectedSalesPersonId"
+                  (ngModelChange)="onSalesPersonChange()"
+                  class="w-full bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-xs font-medium transition-all"
+                  [disabled]="isLoadingUsers"
+                >
+                  <option [value]="null" disabled>Select Sales Person</option>
+                  <option *ngFor="let user of organizationUsers" [value]="user.id">
+                    {{ user.fullName }} <span *ngIf="user.id === currentUser?.id">(You)</span>
+                  </option>
+                </select>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  This determines who gets commission for this sale.
+                </p>
+
+                <!-- Commission Preview Toggle -->
+                <button
+                  *ngIf="selectedSalesPersonId && selectedProducts.length > 0"
+                  type="button"
+                  (click)="toggleCommissionPreview()"
+                  class="mt-2 w-full px-3 py-2 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                  [ngClass]="{
+                    'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50': !showCommissionPreview,
+                    'bg-blue-500 text-white hover:bg-blue-600': showCommissionPreview
+                  }"
+                >
+                  <i [class]="showCommissionPreview ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  {{ showCommissionPreview ? 'Hide' : 'Show' }} Commission Preview
+                </button>
+
+                <!-- Commission Preview Panel -->
+                <div *ngIf="showCommissionPreview" class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-500/30">
+                  <div *ngIf="loadingCommission" class="text-center py-4">
+                    <i class="bi bi-hourglass-split animate-spin text-blue-500 text-xl"></i>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Calculating commission...</p>
+                  </div>
+
+                  <div *ngIf="!loadingCommission && commissionPreview">
+                    <h4 class="font-semibold text-xs text-blue-700 dark:text-blue-400 mb-2 flex items-center justify-between">
+                      <span>
+                        <i class="bi bi-cash-stack mr-1"></i>
+                        Commission Preview
+                      </span>
+                      <span class="bg-blue-100 dark:bg-blue-900/50 px-2 py-1 rounded">
+                        {{ commissionPreview.totalCommission | currency: 'KES' }}
+                      </span>
+                    </h4>
+
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                      <div
+                        *ngFor="let item of commissionItems; let i = index"
+                        class="bg-white dark:bg-slate-800 p-2 rounded border border-gray-200 dark:border-gray-700"
+                      >
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                          <div class="flex-1 min-w-0">
+                            <p class="text-xs font-medium text-gray-900 dark:text-white truncate">
+                              {{ item.productName }}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                              {{ item.quantity }} × {{ item.unitPrice | currency: 'KES' }}
+                            </p>
+                          </div>
+                          <div class="flex items-center gap-2">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                [(ngModel)]="item.hasCommission"
+                                (ngModelChange)="updateItemCommission(i, $event)"
+                                class="sr-only peer"
+                              />
+                              <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div *ngIf="item.hasCommission" class="space-y-2">
+                          <div class="grid grid-cols-2 gap-2">
+                            <div>
+                              <label class="text-xs text-gray-600 dark:text-gray-400">Type</label>
+                              <select
+                                [(ngModel)]="item.commissionType"
+                                (ngModelChange)="updateItemCommission(i, true, item.commissionRate, $event)"
+                                class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                              >
+                                <option value="PERCENTAGE">Percentage</option>
+                                <option value="FIXED">Fixed</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label class="text-xs text-gray-600 dark:text-gray-400">
+                                {{ item.commissionType === 'PERCENTAGE' ? 'Rate (%)' : 'Amount' }}
+                              </label>
+                              <input
+                                type="number"
+                                [(ngModel)]="item.commissionRate"
+                                (ngModelChange)="updateItemCommission(i, true, $event, item.commissionType)"
+                                min="0"
+                                step="0.01"
+                                class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                              />
+                            </div>
+                          </div>
+                          <div class="flex justify-between items-center pt-1 border-t border-gray-200 dark:border-gray-700">
+                            <span class="text-xs text-gray-600 dark:text-gray-400">Commission:</span>
+                            <span class="text-xs font-semibold text-green-600 dark:text-green-400">
+                              {{ item.commissionAmount | currency: 'KES' }}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div *ngIf="!item.hasCommission" class="text-xs text-gray-500 dark:text-gray-400 text-center py-1">
+                          No commission
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div *ngIf="!loadingCommission && !commissionPreview" class="text-center py-4">
+                    <i class="bi bi-info-circle text-gray-400 text-xl"></i>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      No commission data available
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Terms Summary -->
+            <div
+              *ngIf="selectedCustomer && dueDate"
+              class="bg-blue-50/40 dark:bg-blue-900/20 rounded-xl p-3 border border-blue-100 dark:border-blue-500/30"
+            >
+              <h4
+                class="font-bold mb-2 text-blue-600 dark:text-blue-400 text-xs flex items-center"
+              >
+                <i class="bi bi-info-circle mr-1.5"></i>Terms Summary
+              </h4>
+              <div class="space-y-2 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-gray-500 dark:text-gray-400"
+                    >Customer:</span
+                  >
+                  <span class="text-gray-900 dark:text-white font-bold">{{
+                    customerName
+                  }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-500 dark:text-gray-400"
+                    >Due Date:</span
+                  >
+                  <span class="text-blue-600 dark:text-blue-400 font-bold">{{
+                    dueDate | date: "mediumDate"
+                  }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-500 dark:text-gray-400"
+                    >Payment Terms:</span
+                  >
+                  <span class="text-gray-900 dark:text-white font-bold">{{
+                    getPaymentTermsDisplay()
+                  }}</span>
+                </div>
+                <div
+                  *ngIf="getDaysUntilDue() !== null"
+                  class="flex justify-between"
+                >
+                  <span class="text-gray-500 dark:text-gray-400"
+                    >Days Until Due:</span
+                  >
+                  <span
+                    [class]="
+                      getDaysUntilDue()! < 7
+                        ? 'text-red-600 dark:text-red-400 font-bold'
+                        : getDaysUntilDue()! < 14
+                          ? 'text-yellow-600 dark:text-yellow-400 font-bold'
+                          : 'text-green-600 dark:text-green-400 font-bold'
+                    "
+                  >
+                    {{ getDaysUntilDue() }} days
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Credit Limit Warning -->
+            <div
+              *ngIf="getCreditLimitWarning()"
+              class="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-5 border border-yellow-100 dark:border-yellow-500/50"
+            >
+              <div class="flex items-center">
+                <div
+                  class="bg-yellow-100 dark:bg-yellow-900 p-2 rounded-lg mr-3"
+                >
+                  <i
+                    class="bi bi-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-lg"
+                  ></i>
+                </div>
+                <div>
+                  <h5
+                    class="font-bold text-yellow-700 dark:text-yellow-400 mb-0.5 text-sm"
+                  >
+                    Credit Limit Warning
+                  </h5>
+                  <p class="text-yellow-600 dark:text-yellow-300 text-xs">
+                    {{ getCreditLimitWarning() }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </app-checkout-summary>
+    </div>
+  </main>
+</div>
+
+<!-- Enhanced Custom Styles -->
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Custom scrollbar styling */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 20px;
+  }
+
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #d1d5db;
+  }
+
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+
+  /* Enhanced focus states */
+  .focus\:ring-2:focus {
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+  }
+
+  /* Smooth transitions for all interactive elements */
+  * {
+    transition-property:
+      color, background-color, border-color, text-decoration-color, fill,
+      stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  /* Enhanced gradient backgrounds */
+  .bg-gradient-to-r,
+  .bg-gradient-to-br {
+    background-attachment: fixed;
+  }
+
+  /* Hover effects for cards */
+  .hover\:shadow-orange-500\/25:hover {
+    box-shadow: 0 25px 50px -12px rgba(249, 115, 22, 0.25);
+  }
+
+  /* Loading state for buttons */
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  /* Section-specific styling */
+  #activeSection {
+    scroll-behavior: smooth;
+  }
+
+  /* Credit-specific styling */
+  .text-orange-400 {
+    color: #fb923c;
+  }
+
+  .bg-orange-600 {
+    background-color: #ea580c;
+  }
+
+  .border-orange-500 {
+    border-color: #f97316;
+  }
+
+  .ring-orange-500 {
+    --tw-ring-color: #f97316;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .animate-bounce-subtle {
+    animation: bounceSoft 2s ease-in-out infinite;
+  }
+
+  @keyframes bounceSoft {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+</style>

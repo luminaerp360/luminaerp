@@ -1,0 +1,328 @@
+<div
+  class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-200"
+>
+  <div
+    class="px-3 sm:px-4 py-4 sm:py-6 md:px-8 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div
+      class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <h1
+          class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 flex-shrink-0 text-teal-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+            ></path>
+          </svg>
+          Inventory Report
+        </h1>
+        <p class="text-sm sm:text-base text-gray-600 dark:text-slate-400 mt-1">
+          Stock levels, valuation, and alerts
+        </p>
+      </div>
+      <div class="flex items-center gap-3 mt-2 md:mt-0">
+        <button
+          (click)="fetchReport()"
+          class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+        >
+          Refresh
+        </button>
+        <a
+          routerLink="/reports-hub"
+          class="text-purple-600 dark:text-purple-400 hover:underline text-sm flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-1"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M15 19l-7-7 7-7"></path></svg
+          >Back to Reports Hub</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="flex items-center justify-center py-20">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"
+    ></div>
+  </div>
+  <div
+    *ngIf="errorMessage && !loading"
+    class="max-w-7xl mx-auto px-4 md:px-8 mt-4"
+  >
+    <div
+      class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 p-4 rounded-lg flex justify-between items-center"
+    >
+      <span>{{ errorMessage }}</span
+      ><button
+        (click)="fetchReport()"
+        class="text-white bg-red-700 px-3 py-1 rounded text-sm"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <div
+    *ngIf="data && !loading"
+    class="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6"
+  >
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+          Stock Value (Selling)
+        </p>
+        <p class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">
+          {{ formatCurrency(data.summary.totalStockValue) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+          Stock Value (Cost)
+        </p>
+        <p class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">
+          {{ formatCurrency(data.summary.totalCostValue) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+          Potential Profit
+        </p>
+        <p class="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+          {{ formatCurrency(data.summary.potentialProfit) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">Products</p>
+        <p class="text-lg sm:text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+          {{ data.summary.totalProducts }}
+        </p>
+        <p class="text-xs text-gray-400 mt-1">
+          Services: {{ data.summary.totalServices }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Stock Status Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div
+        class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 sm:p-5 border border-green-200 dark:border-green-800 text-center"
+      >
+        <p class="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">
+          {{ data.summary.wellStocked }}
+        </p>
+        <p class="text-sm text-green-700 dark:text-green-300 mt-1">
+          Well Stocked
+        </p>
+      </div>
+      <div
+        class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 sm:p-5 border border-amber-200 dark:border-amber-800 text-center"
+      >
+        <p class="text-2xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400">
+          {{ data.summary.lowStock }}
+        </p>
+        <p class="text-sm text-amber-700 dark:text-amber-300 mt-1">Low Stock</p>
+      </div>
+      <div
+        class="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 sm:p-5 border border-red-200 dark:border-red-800 text-center"
+      >
+        <p class="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">
+          {{ data.summary.outOfStock }}
+        </p>
+        <p class="text-sm text-red-700 dark:text-red-300 mt-1">Out of Stock</p>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          Stock Status
+        </h3>
+        <apx-chart
+          *ngIf="stockStatusChartOptions.series"
+          [series]="stockStatusChartOptions.series"
+          [chart]="stockStatusChartOptions.chart"
+          [labels]="stockStatusChartOptions.labels"
+          [colors]="stockStatusChartOptions.colors"
+          [legend]="stockStatusChartOptions.legend"
+        ></apx-chart>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+        *ngIf="categoryChartOptions.series"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          Value by Category
+        </h3>
+        <apx-chart
+          [series]="categoryChartOptions.series"
+          [chart]="categoryChartOptions.chart"
+          [xaxis]="categoryChartOptions.xaxis"
+          [colors]="categoryChartOptions.colors"
+          [plotOptions]="categoryChartOptions.plotOptions"
+          [dataLabels]="categoryChartOptions.dataLabels"
+          [tooltip]="categoryChartOptions.tooltip"
+        ></apx-chart>
+      </div>
+    </div>
+
+    <!-- Stock Alerts -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700"
+      *ngIf="data.stockAlerts?.length"
+    >
+      <div class="p-4 sm:p-6">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+          Stock Alerts
+        </h3>
+      </div>
+      <div class="hidden md:block overflow-x-auto px-4 sm:px-6 pb-4 sm:pb-6">
+        <table class="w-full text-sm text-left">
+          <thead
+            class="text-xs text-gray-500 uppercase border-b border-gray-200 dark:border-slate-600"
+          >
+            <tr>
+              <th class="py-3 px-2">Product</th>
+              <th class="py-3 px-2">Category</th>
+              <th class="py-3 px-2 text-right">Qty</th>
+              <th class="py-3 px-2 text-right">Reorder Level</th>
+              <th class="py-3 px-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let p of data.stockAlerts"
+              class="border-b border-gray-100 dark:border-slate-700"
+            >
+              <td class="py-3 px-2 font-medium text-gray-900 dark:text-white">
+                {{ p.name }}
+              </td>
+              <td class="py-3 px-2">{{ p.category }}</td>
+              <td class="py-3 px-2 text-right font-medium">{{ p.quantity }}</td>
+              <td class="py-3 px-2 text-right">{{ p.reorderLevel || "-" }}</td>
+              <td class="py-3 px-2">
+                <span
+                  [class]="
+                    getStockStatusColor(p.status) +
+                    ' px-2 py-0.5 rounded-full text-xs font-medium'
+                  "
+                  >{{ formatLabel(p.status) }}</span
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Mobile Cards -->
+      <div class="block md:hidden px-3 pb-3 space-y-2">
+        <div *ngFor="let p of data.stockAlerts" class="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-slate-700">
+          <div class="flex justify-between items-start">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ p.name }}</p>
+            <span [class]="getStockStatusColor(p.status) + ' px-2 py-0.5 rounded-full text-xs font-medium'">{{ formatLabel(p.status) }}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 mt-2 text-xs text-gray-500 dark:text-slate-400">
+            <span>Category: <span class="font-medium text-gray-900 dark:text-white">{{ p.category }}</span></span>
+            <span>Qty: <span class="font-medium text-gray-900 dark:text-white">{{ p.quantity }}</span></span>
+            <span>Reorder: <span class="font-medium">{{ p.reorderLevel || '-' }}</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Value Products -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700"
+    >
+      <div class="p-4 sm:p-6">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+          Top Value Products
+        </h3>
+      </div>
+      <div class="hidden md:block overflow-x-auto px-4 sm:px-6 pb-4 sm:pb-6">
+        <table class="w-full text-sm text-left">
+          <thead
+            class="text-xs text-gray-500 uppercase border-b border-gray-200 dark:border-slate-600"
+          >
+            <tr>
+              <th class="py-3 px-2">Product</th>
+              <th class="py-3 px-2 text-right">Qty</th>
+              <th class="py-3 px-2 text-right">Price</th>
+              <th class="py-3 px-2 text-right">Cost</th>
+              <th class="py-3 px-2 text-right">Stock Value</th>
+              <th class="py-3 px-2 text-right">Margin</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let p of data.topValueProducts?.slice(0, 15)"
+              class="border-b border-gray-100 dark:border-slate-700"
+            >
+              <td class="py-3 px-2 font-medium text-gray-900 dark:text-white">
+                {{ p.name }}
+              </td>
+              <td class="py-3 px-2 text-right">{{ p.quantity }}</td>
+              <td class="py-3 px-2 text-right">
+                {{ formatCurrency(p.sellingPrice) }}
+              </td>
+              <td class="py-3 px-2 text-right">
+                {{ formatCurrency(p.costPrice) }}
+              </td>
+              <td class="py-3 px-2 text-right font-medium">
+                {{ formatCurrency(p.stockValue) }}
+              </td>
+              <td
+                class="py-3 px-2 text-right"
+                [ngClass]="
+                  p.profitMargin > 20 ? 'text-green-600' : 'text-amber-600'
+                "
+              >
+                {{ formatPercent(p.profitMargin) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Mobile Cards -->
+      <div class="block md:hidden px-3 pb-3 space-y-2">
+        <div *ngFor="let p of data.topValueProducts?.slice(0, 15)" class="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-slate-700">
+          <div class="flex justify-between items-start">
+            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ p.name }}</p>
+            <span class="text-sm font-bold text-gray-900 dark:text-white">{{ formatCurrency(p.stockValue) }}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 mt-2 text-xs text-gray-500 dark:text-slate-400">
+            <span>Qty: <span class="font-medium text-gray-900 dark:text-white">{{ p.quantity }}</span></span>
+            <span>Price: <span class="font-medium">{{ formatCurrency(p.sellingPrice) }}</span></span>
+            <span>Cost: <span class="font-medium">{{ formatCurrency(p.costPrice) }}</span></span>
+            <span>Margin: <span class="font-medium" [ngClass]="p.profitMargin > 20 ? 'text-green-600' : 'text-amber-600'">{{ formatPercent(p.profitMargin) }}</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+.timeline {
+  position: relative;
+  padding: 20px 0;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 40px;
+  padding-bottom: 30px;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 0;
+  bottom: -30px;
+  width: 2px;
+}
+
+.timeline-item:last-child::before {
+  display: none;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.timeline-content {
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 3px solid #3b82f6;
+}
+
+/* Light mode */
+.timeline-item::before { background-color: #e5e7eb; }
+.timeline-marker { border: 2px solid #fff; }
+.timeline-content { background-color: #f9fafb; }
+
+/* Dark mode */
+:host-context(.dark) .timeline-item::before { background-color: #374151; }
+:host-context(.dark) .timeline-marker { border: 2px solid #1f2937; }
+:host-context(.dark) .timeline-content { background-color: #111827; }
+
+/* Action badge colors */
+.badge-success { background-color: #16a34a; }
+.badge-info { background-color: #0891b2; }
+.badge-danger { background-color: #dc2626; }
+.badge-warning { background-color: #d97706; color: #fff; }
+.badge-primary { background-color: #2563eb; }
+.badge-secondary { background-color: #6b7280; }

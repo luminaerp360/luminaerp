@@ -1,0 +1,412 @@
+<div class="min-h-screen bg-gray-50 dark:bg-slate-900">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center gap-4">
+        <!-- Back Button (when hideUserList is true) -->
+        <button
+          *ngIf="hideUserList"
+          (click)="goBackToUsers()"
+          class="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+        >
+          <i class="bi bi-arrow-left text-xl"></i>
+          <span>Back to Users</span>
+        </button>
+
+        <div class="flex-1">
+          <h1
+            class="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3"
+          >
+            <i
+              class="bi bi-shield-lock text-indigo-600 dark:text-indigo-400"
+            ></i>
+            <span *ngIf="!hideUserList">User Permissions Management</span>
+            <span *ngIf="hideUserList && selectedUser"
+              >Edit Permissions - {{ selectedUser.fullName }}</span
+            >
+          </h1>
+          <p class="mt-2 text-gray-600 dark:text-gray-400">
+            <span *ngIf="!hideUserList"
+              >Manage user access and permissions across all modules</span
+            >
+            <span *ngIf="hideUserList && selectedUser"
+              >{{ selectedUser.email }} - {{ selectedUser.role }}</span
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="grid grid-cols-1 gap-6"
+      [ngClass]="{ 'lg:grid-cols-3': !hideUserList }"
+    >
+      <!-- User List (hidden when hideUserList is true) -->
+      <div class="lg:col-span-1" *ngIf="!hideUserList">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg">
+          <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2
+              class="text-lg font-semibold text-gray-900 dark:text-white mb-3"
+            >
+              Users ({{ users.length }})
+            </h2>
+
+            <!-- Search -->
+            <div class="relative">
+              <i
+                class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              ></i>
+              <input
+                type="text"
+                [(ngModel)]="searchTerm"
+                placeholder="Search users..."
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div class="overflow-y-auto max-h-[calc(100vh-300px)]">
+            <div *ngIf="isLoadingUsers" class="p-8 text-center">
+              <div
+                class="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"
+              ></div>
+              <p class="mt-2 text-gray-600 dark:text-gray-400">
+                Loading users...
+              </p>
+            </div>
+
+            <div
+              *ngIf="!isLoadingUsers && filteredUsers.length === 0"
+              class="p-8 text-center text-gray-500"
+            >
+              No users found
+            </div>
+
+            <div
+              *ngFor="let user of filteredUsers"
+              (click)="selectUser(user)"
+              [class.bg-indigo-50]="selectedUser?.id === user.id"
+              [class.dark:bg-indigo-900]="selectedUser?.id === user.id"
+              class="p-4 border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <div class="flex-shrink-0">
+                  <div
+                    class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-semibold"
+                  >
+                    {{ user.fullName?.charAt(0).toUpperCase() }}
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p
+                    class="text-sm font-medium text-gray-900 dark:text-white truncate"
+                  >
+                    {{ user.fullName }}
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {{ user.email }}
+                  </p>
+                  <span
+                    [class]="getUserRoleBadgeClass(user.role)"
+                    class="inline-block px-2 py-0.5 text-xs font-medium rounded-full mt-1"
+                  >
+                    {{ user.role }}
+                  </span>
+                </div>
+                <i
+                  *ngIf="selectedUser?.id === user.id"
+                  class="bi bi-check-circle-fill text-indigo-600 dark:text-indigo-400"
+                ></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Permission Editor -->
+      <div
+        [ngClass]="{
+          'lg:col-span-2': !hideUserList,
+          'col-span-1': hideUserList,
+        }"
+      >
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg">
+          <!-- Loading State -->
+          <div *ngIf="isLoadingUsers" class="p-12 text-center">
+            <div
+              class="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"
+            ></div>
+            <p class="mt-4 text-gray-600 dark:text-gray-400">
+              Loading permissions...
+            </p>
+          </div>
+
+          <!-- No User Selected (only show when not hideUserList mode) -->
+          <div
+            *ngIf="!selectedUser && !hideUserList && !isLoadingUsers"
+            class="p-12 text-center"
+          >
+            <i
+              class="bi bi-person-plus text-6xl text-gray-300 dark:text-gray-600"
+            ></i>
+            <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+              No User Selected
+            </h3>
+            <p class="mt-2 text-gray-500 dark:text-gray-400">
+              Select a user from the list to manage their permissions
+            </p>
+          </div>
+
+          <!-- Permission Editor Content -->
+          <div *ngIf="selectedUser && !isLoadingUsers">
+            <!-- Selected User Header -->
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-start justify-between">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold"
+                  >
+                    {{ selectedUser.fullName?.charAt(0).toUpperCase() }}
+                  </div>
+                  <div>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                      {{ selectedUser.fullName }}
+                    </h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      {{ selectedUser.email }}
+                    </p>
+                    <span
+                      [class]="getUserRoleBadgeClass(selectedUser.role)"
+                      class="inline-block px-3 py-1 text-xs font-medium rounded-full mt-1"
+                    >
+                      {{ selectedUser.role }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Role Templates -->
+              <div class="mt-6">
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Quick Apply Role Template
+                </label>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <button
+                    *ngFor="let template of roleTemplates"
+                    (click)="applyRoleTemplate(template)"
+                    type="button"
+                    class="px-3 py-2 text-sm bg-gray-100 dark:bg-slate-900 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                  >
+                    {{ template.name }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <form
+              [formGroup]="permissionForm"
+              (ngSubmit)="savePermissions()"
+              class="p-6"
+            >
+              <div *ngIf="isLoadingPermissions" class="py-12 text-center">
+                <div
+                  class="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"
+                ></div>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">
+                  Loading permissions...
+                </p>
+              </div>
+
+              <div *ngIf="!isLoadingPermissions">
+                <!-- Global CRUD Permissions -->
+                <div
+                  class="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900 dark:to-purple-900 rounded-lg"
+                >
+                  <h3
+                    class="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"
+                  >
+                    <i class="bi bi-unlock"></i>
+                    Global Action Permissions
+                  </h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                    These permissions apply across all accessible modules
+                  </p>
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <label
+                      class="flex items-center gap-2 p-3 bg-white dark:bg-slate-900 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        formControlName="canView"
+                        class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                      <span
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        <i class="bi bi-eye"></i> View
+                      </span>
+                    </label>
+                    <label
+                      class="flex items-center gap-2 p-3 bg-white dark:bg-slate-900 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        formControlName="canCreate"
+                        class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                      <span
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        <i class="bi bi-plus-circle"></i> Create
+                      </span>
+                    </label>
+                    <label
+                      class="flex items-center gap-2 p-3 bg-white dark:bg-slate-900 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        formControlName="canUpdate"
+                        class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                      <span
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        <i class="bi bi-pencil"></i> Update
+                      </span>
+                    </label>
+                    <label
+                      class="flex items-center gap-2 p-3 bg-white dark:bg-slate-900 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        formControlName="canDelete"
+                        class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                      <span
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        <i class="bi bi-trash"></i> Delete
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Module Permissions -->
+                <div class="space-y-3">
+                  <h3
+                    class="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2"
+                  >
+                    <i class="bi bi-grid-3x3"></i>
+                    Module Access & Permissions
+                  </h3>
+
+                  <div
+                    *ngFor="let module of modules"
+                    class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+                  >
+                    <!-- Module Header -->
+                    <div
+                      class="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-900 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-900/70 transition-colors"
+                      (click)="toggleModule(module)"
+                    >
+                      <div class="flex items-center gap-3 flex-1">
+                        <label
+                          class="flex items-center gap-3 cursor-pointer"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <input
+                            type="checkbox"
+                            [formControlName]="module.id"
+                            (change)="
+                              toggleAllModuleActions(
+                                module,
+                                $any($event.target).checked
+                              )
+                            "
+                            class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                          />
+                          <i
+                            [class]="module.icon"
+                            class="text-xl text-indigo-600 dark:text-indigo-400"
+                          ></i>
+                          <div>
+                            <span
+                              class="font-medium text-gray-900 dark:text-white"
+                              >{{ module.name }}</span
+                            >
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                              {{ module.description }}
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                      <i
+                        *ngIf="module.actions && module.actions.length > 0"
+                        [class.rotate-180]="module.expanded"
+                        class="bi bi-chevron-down text-gray-400 transition-transform"
+                      ></i>
+                    </div>
+
+                    <!-- Module Actions -->
+                    <div
+                      *ngIf="
+                        module.expanded &&
+                        module.actions &&
+                        module.actions.length > 0
+                      "
+                      class="p-4 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-gray-700"
+                    >
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label
+                          *ngFor="let action of module.actions"
+                          class="flex items-start gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-slate-900/50 cursor-pointer transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            [formControlName]="module.id + '_' + action.id"
+                            class="w-4 h-4 mt-0.5 text-indigo-600 rounded focus:ring-indigo-500"
+                          />
+                          <div>
+                            <span
+                              class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                              >{{ action.name }}</span
+                            >
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                              {{ action.description }}
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Save Button -->
+                <div
+                  class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700"
+                >
+                  <button
+                    type="submit"
+                    [disabled]="isSaving"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <div
+                      *ngIf="isSaving"
+                      class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"
+                    ></div>
+                    <i *ngIf="!isSaving" class="bi bi-check-circle"></i>
+                    <span>{{
+                      isSaving ? "Saving..." : "Save Permissions"
+                    }}</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

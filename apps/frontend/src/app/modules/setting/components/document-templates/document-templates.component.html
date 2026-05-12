@@ -1,0 +1,209 @@
+<div class="min-h-screen bg-gray-50 dark:bg-slate-900 p-6">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        Document Templates
+      </h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-1">
+        Choose and customize the default template, colors, and fields printed on
+        each document type. Settings are saved permanently.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Invoice -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6 text-blue-600 dark:text-blue-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Invoice
+            </h3>
+            <p class="text-xs text-gray-400">Default: Modern Bold · Blue</p>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 flex-1">
+          Customize the template, accent color, logo visibility, which fields to
+          show, and the footer text on all invoices.
+        </p>
+        <button
+          (click)="docSettingsOpen = 'invoice'"
+          class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+            />
+          </svg>
+          Configure Invoice Template
+        </button>
+      </div>
+
+      <!-- Quotation -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6 text-green-600 dark:text-green-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Quotation
+            </h3>
+            <p class="text-xs text-gray-400">Default: Classic · Green</p>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 flex-1">
+          Customize the template, accent color, logo visibility, which fields to
+          show, and the footer text on all quotations.
+        </p>
+        <button
+          (click)="docSettingsOpen = 'quotation'"
+          class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+            />
+          </svg>
+          Configure Quotation Template
+        </button>
+      </div>
+
+      <!-- Sale -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6 text-orange-600 dark:text-orange-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 11H4L5 9z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Sale Receipt
+            </h3>
+            <p class="text-xs text-gray-400">Default: Classic · Orange</p>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 flex-1">
+          Customize the template, accent color, logo visibility, which fields to
+          show, and the footer text on all sale receipts.
+        </p>
+        <button
+          (click)="docSettingsOpen = 'sale'"
+          class="w-full px-4 py-3 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+            />
+          </svg>
+          Configure Sale Template
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<app-document-print-settings
+  [docType]="'invoice'"
+  [data]="null"
+  [isOpen]="docSettingsOpen === 'invoice'"
+  (closed)="docSettingsOpen = null"
+>
+</app-document-print-settings>
+
+<app-document-print-settings
+  [docType]="'quotation'"
+  [data]="null"
+  [isOpen]="docSettingsOpen === 'quotation'"
+  (closed)="docSettingsOpen = null"
+>
+</app-document-print-settings>
+
+<app-document-print-settings
+  [docType]="'sale'"
+  [data]="null"
+  [isOpen]="docSettingsOpen === 'sale'"
+  (closed)="docSettingsOpen = null"
+>
+</app-document-print-settings>

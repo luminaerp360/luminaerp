@@ -1,0 +1,961 @@
+﻿<!-- Modern Two-Section Angular POS System -->
+<div
+  class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white transition-colors duration-200"
+>
+  <!-- Header -->
+  <header
+    class="bg-white/95 dark:bg-slate-900/95 border-b border-gray-200 dark:border-slate-900 p-4 transition-colors duration-200 backdrop-blur-sm sticky top-[60px] z-20 shadow-sm dark:shadow-none"
+  >
+    <div class="mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-blue-600 p-2 rounded-lg">
+          <i class="bi bi-shop text-white text-xl"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          Cash Sales
+        </h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div
+          class="hidden md:flex items-center space-x-2 text-gray-600 dark:text-slate-400"
+        >
+          <i class="bi bi-person-circle"></i>
+          <span>{{ currentUser?.username || "User" }}</span>
+        </div>
+        <button
+          (click)="toggleHeldSalesPanel()"
+          class="bg-orange-600 hover:bg-orange-700 dark:from-orange-600 dark:to-orange-700 px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 relative"
+        >
+          <i class="bi bi-pause-circle"></i>
+          <span class="hidden sm:inline">Held Sales</span>
+          <span
+            *ngIf="heldSales.length > 0"
+            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full min-w-[20px] text-center"
+          >
+            {{ heldSales.length }}
+          </span>
+        </button>
+        <button
+          (click)="routeToSales()"
+          class="bg-gray-200 dark:bg-slate-900 hover:bg-gray-300 dark:hover:bg-slate-900/80 px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+        >
+          <i class="bi bi-list-ul"></i>
+          <span class="hidden sm:inline">View Sales</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section Navigation Tabs -->
+  <div
+    class="bg-white/95 dark:bg-slate-900/95 border-b border-gray-200 dark:border-slate-900 backdrop-blur-sm"
+  >
+    <div class="mx-auto px-4 transition-colors duration-200">
+      <nav class="flex space-x-8">
+        <button
+          (click)="activeSection = 'products'"
+          [class]="
+            'py-4 px-2 border-b-2 font-medium text-sm transition-colors ' +
+            (activeSection === 'products'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-300')
+          "
+        >
+          <i class="bi bi-box-seam mr-2"></i>
+          Products & Cart
+          <span
+            class="ml-2 bg-blue-600 dark:bg-blue-500 text-white text-xs px-2 py-1 rounded-full transition-colors duration-200"
+            >{{ selectedProducts.length }}</span
+          >
+        </button>
+        <button
+          (click)="activeSection = 'checkout'"
+          [class]="
+            'py-4 px-2 border-b-2 font-medium text-sm transition-colors ' +
+            (activeSection === 'checkout'
+              ? 'border-green-500 text-green-600 dark:text-green-400'
+              : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-300')
+          "
+        >
+          <i class="bi bi-credit-card mr-2"></i>
+          Customer & Payment
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main
+    class="mx-auto p-4 lg:p-6 max-w-[1920px] transition-colors duration-200"
+  >
+    <!-- SECTION 1: PRODUCTS & CART (Using Product Selector Component) -->
+    <div
+      *ngIf="activeSection === 'products'"
+      class="grid grid-cols-1 lg:grid-cols-5 gap-6"
+    >
+      <!-- Product Selector Component -->
+      <div class="lg:col-span-3">
+        <div
+          class="bg-white dark:bg-slate-900/50 rounded-xl p-4 border-2 border-gray-200 dark:border-slate-700 transition-colors duration-200"
+        >
+          <app-product-selector
+            themeColor="blue"
+            cartTitle="Shopping Cart"
+            checkoutButtonText="Continue to Checkout"
+            [showCheckoutButton]="false"
+            [enableBarcodeScanner]="true"
+            [enableCustomProducts]="true"
+            [enableDiscounts]="true"
+            [enableVAT]="true"
+            [showFilters]="true"
+            [gridColumns]="3"
+            [products]="products"
+            [(selectedProducts)]="selectedProducts"
+            (productAdded)="onProductAdded($event)"
+            (productRemoved)="onProductRemoved($event)"
+            (vatSettingsChange)="itemVatSettings = $event"
+          >
+          </app-product-selector>
+        </div>
+      </div>
+
+      <!-- Selected Products Summary (hidden on mobile, shown in floating panel) -->
+      <div class="lg:col-span-2 hidden lg:block">
+        <div class="sticky top-4 transition-colors duration-200">
+          <div
+            class="bg-white dark:bg-slate-900/80 rounded-xl p-4 border-2 border-gray-200 dark:border-slate-700 transition-colors duration-200"
+          >
+            <app-selected-products
+              #selectedProductsComponent
+              [products]="selectedProducts"
+              currencySymbol="KSh"
+              (remove)="removeProduct($event)"
+              (changeQty)="updateProductQty($event.id, $event.qty)"
+              (priceChange)="updateProductPrice($event.id, $event.price)"
+              (priceTypeChange)="
+                updateProductPriceType($event.id, $event.priceType)
+              "
+              (taxTypeChange)="updateProductTaxType($event.id, $event.taxType)"
+            >
+            </app-selected-products>
+
+            <!-- Action Buttons -->
+            <div *ngIf="selectedProducts.length > 0" class="mt-4 space-y-3">
+              <!-- Hold Sale Button -->
+              <button
+                (click)="showHoldDialog()"
+                class="w-full bg-gradient-to-r from-orange-600 to-orange-700 dark:from-orange-700 dark:to-orange-800 hover:from-orange-700 hover:to-orange-800 text-white px-6 py-3 rounded-xl transition-all duration-200 font-semibold shadow-lg flex items-center justify-center space-x-2"
+              >
+                <i class="bi bi-pause-circle"></i>
+                <span>Hold Sale</span>
+              </button>
+
+              <!-- Continue Button -->
+              <button
+                (click)="activeSection = 'checkout'"
+                class="w-full bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-4 rounded-xl transition-all duration-200 font-semibold shadow-lg flex items-center justify-center space-x-2"
+              >
+                <span>Continue to Checkout</span>
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOATING CART BUTTON (Mobile Only) -->
+    <button
+      *ngIf="activeSection === 'products' && selectedProducts.length > 0"
+      (click)="showMobileCart = true"
+      class="lg:hidden fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-full shadow-2xl shadow-blue-500/40 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 animate-bounce-subtle"
+    >
+      <i class="bi bi-cart-fill text-2xl"></i>
+      <span
+        class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white dark:ring-slate-900"
+      >
+        {{ selectedProducts.length }}
+      </span>
+    </button>
+
+    <!-- MOBILE CART SLIDE-UP PANEL -->
+    <div
+      *ngIf="showMobileCart"
+      class="lg:hidden fixed inset-0 z-50 flex flex-col justify-end"
+    >
+      <!-- Backdrop -->
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        (click)="showMobileCart = false"
+      ></div>
+
+      <!-- Cart Panel -->
+      <div
+        class="relative bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl max-h-[85vh] flex flex-col animate-slide-up"
+      >
+        <!-- Handle Bar -->
+        <div class="flex justify-center pt-3 pb-1">
+          <div
+            class="w-10 h-1 bg-gray-300 dark:bg-slate-700 rounded-full"
+          ></div>
+        </div>
+
+        <!-- Cart Header -->
+        <div
+          class="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-slate-700"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center"
+            >
+              <i
+                class="bi bi-cart-check text-blue-600 dark:text-blue-400 text-lg"
+              ></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-gray-900 dark:text-white">
+                Cart
+              </h3>
+              <p class="text-xs text-gray-500 dark:text-slate-400">
+                {{ selectedProducts.length }} item(s)
+              </p>
+            </div>
+          </div>
+          <button
+            (click)="showMobileCart = false"
+            class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+          >
+            <i class="bi bi-x-lg text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Cart Content (Scrollable) -->
+        <div class="flex-1 overflow-y-auto px-4 py-3">
+          <app-selected-products
+            [products]="selectedProducts"
+            currencySymbol="KSh"
+            (remove)="removeProduct($event)"
+            (changeQty)="updateProductQty($event.id, $event.qty)"
+            (priceChange)="updateProductPrice($event.id, $event.price)"
+            (priceTypeChange)="
+              updateProductPriceType($event.id, $event.priceType)
+            "
+            (taxTypeChange)="updateProductTaxType($event.id, $event.taxType)"
+          >
+          </app-selected-products>
+        </div>
+
+        <!-- Cart Footer Actions -->
+        <div
+          *ngIf="selectedProducts.length > 0"
+          class="px-4 py-4 border-t border-gray-200 dark:border-slate-700 space-y-2 bg-gray-50 dark:bg-slate-900/80"
+        >
+          <button
+            (click)="showHoldDialog(); showMobileCart = false"
+            class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-5 py-2.5 rounded-xl transition-all duration-200 font-semibold shadow-lg flex items-center justify-center space-x-2 text-sm"
+          >
+            <i class="bi bi-pause-circle"></i>
+            <span>Hold Sale</span>
+          </button>
+          <button
+            (click)="activeSection = 'checkout'; showMobileCart = false"
+            class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-3.5 rounded-xl transition-all duration-200 font-bold shadow-lg flex items-center justify-center space-x-2"
+          >
+            <span>Continue to Checkout</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: CUSTOMER & PAYMENT -->
+    <div *ngIf="activeSection === 'checkout'" class="mx-auto">
+      <!-- Sales Person Selection & Commission Preview -->
+      <div
+        class="mb-4 p-4 bg-white dark:bg-slate-900/80 rounded-lg shadow-sm border-2 border-gray-200 dark:border-slate-700"
+      >
+        <div class="flex justify-between items-start mb-2">
+          <label
+            for="salesPerson"
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300"
+          >
+            Sales Person
+            <span class="text-gray-500 text-xs"
+              >(Who does this sale belong to?)</span
+            >
+          </label>
+          <button
+            *ngIf="selectedProducts.length > 0"
+            (click)="toggleCommissionPreview()"
+            type="button"
+            class="text-xs px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 rounded flex items-center gap-1"
+          >
+            <span>💰</span>
+            {{ showCommissionPreview ? "Hide" : "Show" }} Commission
+          </button>
+        </div>
+        <select
+          id="salesPerson"
+          [(ngModel)]="selectedSalesPersonId"
+          (ngModelChange)="onSalesPersonChange()"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-slate-900 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-900 dark:text-white"
+          [disabled]="isLoadingUsers"
+        >
+          <option [value]="null" disabled>Select Sales Person</option>
+          <option *ngFor="let user of organizationUsers" [value]="user.id">
+            {{ user.fullName }}
+            <span *ngIf="user.id === currentUser?.id">(You)</span>
+          </option>
+        </select>
+        <p class="mt-1 text-xs text-gray-500 dark:text-slate-400">
+          This determines who gets commission for this sale.
+        </p>
+
+        <!-- Commission Preview Panel -->
+        <div
+          *ngIf="showCommissionPreview"
+          class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+        >
+          <div *ngIf="loadingCommission" class="text-center py-4">
+            <div
+              class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
+            ></div>
+            <p class="text-sm text-gray-600 dark:text-slate-400 mt-2">
+              Calculating...
+            </p>
+          </div>
+
+          <div *ngIf="!loadingCommission && commissionPreview">
+            <div class="flex justify-between items-center mb-3">
+              <h4 class="font-semibold text-sm text-gray-900 dark:text-white">
+                Commission Details
+              </h4>
+              <span
+                class="text-lg font-bold text-green-600 dark:text-green-400"
+              >
+                KSh {{ commissionPreview.totalCommission | number: "1.0-0" }}
+              </span>
+            </div>
+
+            <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <div
+                *ngFor="let item of commissionItems; let i = index"
+                class="p-3 bg-white dark:bg-slate-900/90 rounded border text-sm"
+                [class.border-blue-300]="!item.isEdited"
+                [class.border-yellow-400]="item.isEdited"
+              >
+                <div class="flex justify-between items-start mb-2">
+                  <div class="flex-1">
+                    <p class="font-medium text-gray-900 dark:text-white">
+                      {{ item.productName }}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400">
+                      Sale: KSh {{ item.saleAmount | number: "1.0-0" }}
+                    </p>
+                  </div>
+
+                  <label class="flex items-center cursor-pointer ml-2">
+                    <input
+                      type="checkbox"
+                      [checked]="item.hasCommission"
+                      (change)="
+                        updateItemCommission(i, $any($event.target).checked)
+                      "
+                      class="w-4 h-4 text-blue-600 rounded"
+                    />
+                    <span class="ml-1 text-xs text-gray-600 dark:text-slate-300"
+                      >Enable</span
+                    >
+                  </label>
+                </div>
+
+                <div
+                  *ngIf="item.hasCommission"
+                  class="flex gap-2 items-center pt-2 border-t border-gray-200 dark:border-slate-900"
+                >
+                  <select
+                    [(ngModel)]="item.commissionType"
+                    (ngModelChange)="
+                      updateItemCommission(i, true, item.commissionRate, $event)
+                    "
+                    class="text-xs px-2 py-1 border rounded dark:bg-slate-900"
+                  >
+                    <option value="PERCENTAGE">%</option>
+                    <option value="FIXED">Fixed</option>
+                  </select>
+
+                  <input
+                    type="number"
+                    [(ngModel)]="item.commissionRate"
+                    (blur)="
+                      updateItemCommission(
+                        i,
+                        true,
+                        item.commissionRate,
+                        item.commissionType
+                      )
+                    "
+                    min="0"
+                    step="0.1"
+                    class="text-xs px-2 py-1 w-16 border rounded dark:bg-slate-900"
+                  />
+
+                  <span
+                    class="text-green-600 dark:text-green-400 font-semibold"
+                  >
+                    = KSh {{ item.commissionAmount | number: "1.0-0" }}
+                  </span>
+
+                  <span
+                    *ngIf="item.isEdited"
+                    class="text-xs text-yellow-600 ml-auto"
+                    >✏️</span
+                  >
+                </div>
+
+                <div *ngIf="!item.hasCommission" class="pt-1">
+                  <span class="text-xs text-gray-400 italic"
+                    >No commission</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800"
+            >
+              <div class="flex justify-between items-center">
+                <span class="font-semibold text-gray-900 dark:text-white"
+                  >Total:</span
+                >
+                <span
+                  class="text-xl font-bold text-green-600 dark:text-green-400"
+                >
+                  KSh {{ commissionPreview.totalCommission | number: "1.0-0" }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        *ngIf="getTrackedProductsInCart().length > 0"
+        class="mb-4 p-4 bg-white dark:bg-slate-900/80 rounded-lg shadow-sm border-2 border-gray-200 dark:border-slate-700"
+      >
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+            Select Exact Units To Sell
+          </h3>
+          <span class="text-xs text-gray-500 dark:text-slate-400">
+            Required for tracked products
+          </span>
+        </div>
+
+        <div class="space-y-4">
+          <div
+            *ngFor="let product of getTrackedProductsInCart()"
+            class="p-3 rounded-lg border border-gray-200 dark:border-slate-700"
+          >
+            <div
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3"
+            >
+              <div>
+                <p class="font-semibold text-gray-900 dark:text-white">
+                  {{ product.name }}
+                </p>
+                <p class="text-xs text-gray-500 dark:text-slate-400">
+                  {{ getTrackingLabel(product) }} | Required:
+                  {{ product.selectedItems || 1 }} | Selected:
+                  {{ getSelectedUnitCount(product) }}
+                </p>
+              </div>
+              <button
+                type="button"
+                (click)="loadTrackedUnitsForProduct(product)"
+                class="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+              >
+                Reload Units
+              </button>
+            </div>
+
+            <div
+              *ngIf="trackedUnitsLoadingByProduct[product.id]"
+              class="text-xs text-gray-500 dark:text-slate-400"
+            >
+              Loading units...
+            </div>
+
+            <div
+              *ngIf="!trackedUnitsLoadingByProduct[product.id]"
+              class="max-h-40 overflow-auto border border-gray-200 dark:border-slate-700 rounded-md"
+            >
+              <label
+                *ngFor="let unit of getAvailableUnits(product.id)"
+                class="flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-100 dark:border-slate-800 text-sm"
+              >
+                <div class="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    [checked]="isUnitSelected(product, unit.id)"
+                    [disabled]="
+                      !isUnitSelected(product, unit.id) &&
+                      !canSelectMoreUnits(product)
+                    "
+                    (change)="
+                      toggleUnitSelection(
+                        product,
+                        unit.id,
+                        $any($event.target).checked
+                      )
+                    "
+                    class="rounded border-gray-300"
+                  />
+                  <span class="font-medium text-gray-900 dark:text-white">{{
+                    unit.identifierValue
+                  }}</span>
+                </div>
+                <span class="text-xs text-green-600 dark:text-green-400">{{
+                  unit.status
+                }}</span>
+              </label>
+
+              <div
+                *ngIf="getAvailableUnits(product.id).length === 0"
+                class="px-3 py-3 text-xs text-gray-500 dark:text-slate-400"
+              >
+                No in-stock units available for this product.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <app-checkout-summary
+        mode="cash"
+        themeColor="blue"
+        currencySymbol="KSh"
+        [selectedProducts]="selectedProducts"
+        [customers]="customers"
+        [selectedCustomerId]="selectedCustomerId"
+        [(customerName)]="customerName"
+        [(customerEmail)]="customerEmail"
+        [(customerPhone)]="customerPhone"
+        [paymentMethods]="paymentMethods"
+        [selectedPaymentMethod]="selectedPaymentMethod"
+        [mpesaPaymentMethod]="mpesaPaymentMethod"
+        [mpesaPaymentNumber]="mpesaPaymentNumber"
+        [mpesaConfirmationCode]="mpesaConfirmationCode"
+        [mpesaManualAmount]="mpesaManualAmount"
+        (mpesaPaymentNumberChange)="mpesaPaymentNumber = $event"
+        (mpesaConfirmationCodeChange)="mpesaConfirmationCode = $event"
+        (mpesaManualAmountChange)="mpesaManualAmount = $event"
+        [hasMpesaStkPush]="hasMpesaStkPush"
+        [sendingMpesaRequest]="sendingMpesaRequest"
+        [availablePaymentMethods]="availablePaymentMethods"
+        [selectedPayments]="selectedPayments"
+        [loadingPaymentMethods]="loadingPaymentMethods"
+        (addPaymentMethod)="addPaymentMethod($event.method, $event.amount)"
+        (removePaymentMethod)="removePaymentMethodByIndex($event)"
+        (updatePaymentAmount)="updatePaymentAmount($event.index, $event.amount)"
+        (updateTransactionCode)="
+          updateTransactionCode($event.index, $event.code)
+        "
+        [posting]="posting"
+        [isUpdateMode]="isUpdateMode"
+        [totalVat]="calculateTotalVat()"
+        [totalDiscount]="calculateTotalDiscount()"
+        (customerSelected)="selectedCustomerId = $event; onCustomerSelected()"
+        (customerNameChange)="customerName = $event"
+        (customerEmailChange)="customerEmail = $event"
+        (customerPhoneChange)="customerPhone = $event"
+        (addCustomer)="openAddCustomerDialog()"
+        (paymentMethodSelected)="selectedPaymentMethod = $event"
+        (payAllClicked)="payAll()"
+        (mpesaStkPushClicked)="sendMpesaStkPushRequest()"
+        (manualMpesaSubmit)="submitManualMpesaPayment()"
+        (removeProduct)="removeProduct($event)"
+        (updateProductQty)="updateProductQty($event.id, $event.qty)"
+        (priceChange)="updateProductPrice($event.id, $event.price)"
+        (priceTypeChange)="updateProductPriceType($event.id, $event.priceType)"
+        (taxTypeChange)="updateProductTaxType($event.id, $event.taxType)"
+        (submit)="submit()"
+        (backToProducts)="activeSection = 'products'"
+      >
+        <!-- Payment Details Content -->
+        <div payment-details>
+          <!-- Dynamic Payment Methods Section -->
+          <div *ngIf="availablePaymentMethods.length > 0" class="space-y-3">
+            <!-- Payment Method Selector -->
+            <div
+              class="bg-white dark:bg-slate-900/80 rounded-xl p-4 border-2 border-gray-200 dark:border-slate-700"
+            >
+              <h4
+                class="font-bold mb-3 text-gray-700 dark:text-slate-300 text-sm flex items-center"
+              >
+                <i class="bi bi-credit-card mr-2"></i>Select Payment Method
+              </h4>
+
+              <div class="grid grid-cols-2 gap-2 mb-3">
+                <button
+                  *ngFor="let method of availablePaymentMethods"
+                  (click)="selectPaymentMethodForAdd(method)"
+                  class="bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 border-2 border-blue-200 dark:border-blue-700 rounded-lg px-3 py-2 transition-all text-sm font-medium text-blue-700 dark:text-blue-300 flex items-center justify-center space-x-2"
+                >
+                  <i class="bi bi-{{ method.icon || 'cash-stack' }}"></i>
+                  <span>{{ method.displayName }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Selected Payments List -->
+            <div *ngIf="selectedPayments.length > 0" class="space-y-2">
+              <h4
+                class="font-bold text-gray-700 dark:text-slate-300 text-sm flex items-center"
+              >
+                <i class="bi bi-list-check mr-2"></i>Payment Breakdown
+              </h4>
+
+              <div
+                *ngFor="let payment of selectedPayments; let i = index"
+                class="bg-green-50/40 dark:bg-green-900/20 rounded-xl p-3 border border-green-100 dark:border-green-500/30 shadow-sm"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <span
+                    class="font-bold text-green-600 dark:text-green-400 text-xs"
+                  >
+                    <i class="bi bi-cash-stack mr-1"></i
+                    >{{ payment.methodName }}
+                  </span>
+                  <button
+                    (click)="removePaymentMethodByIndex(i)"
+                    class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1"
+                  >
+                    <i class="bi bi-x-circle text-sm"></i>
+                  </button>
+                </div>
+
+                <div class="space-y-2">
+                  <input
+                    type="number"
+                    [value]="payment.amount"
+                    (input)="updatePaymentAmount(i, $any($event.target).value)"
+                    placeholder="Amount"
+                    min="0"
+                    class="w-full bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-900 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 placeholder-gray-400 text-gray-900 dark:text-white text-sm font-bold transition-all"
+                  />
+
+                  <input
+                    *ngIf="payment.methodCode !== 'CASH'"
+                    type="text"
+                    [value]="payment.transactionCode || ''"
+                    (input)="
+                      updateTransactionCode(i, $any($event.target).value)
+                    "
+                    placeholder="Transaction Code (Optional)"
+                    class="w-full bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 placeholder-gray-400 text-gray-900 dark:text-white text-xs transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div *ngIf="loadingPaymentMethods" class="text-center py-4">
+            <i
+              class="bi bi-arrow-repeat animate-spin text-2xl text-blue-500"
+            ></i>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Loading payment methods...
+            </p>
+          </div>
+
+          <!-- Fallback: No payment methods configured -->
+          <div
+            *ngIf="
+              !loadingPaymentMethods && availablePaymentMethods.length === 0
+            "
+            class="text-center py-4"
+          >
+            <i
+              class="bi bi-exclamation-triangle text-3xl text-yellow-500 mb-2"
+            ></i>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              No payment methods configured for this organization.
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              Please configure payment methods in Settings.
+            </p>
+          </div>
+        </div>
+      </app-checkout-summary>
+    </div>
+  </main>
+
+  <!-- Held Sales Panel (Slide-out) -->
+  <div
+    *ngIf="showHeldSalesPanel"
+    class="fixed inset-0 z-50 flex"
+    (click)="showHeldSalesPanel = false"
+  >
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+
+    <!-- Panel -->
+    <div
+      class="relative ml-auto w-full max-w-md bg-white dark:bg-slate-900 shadow-xl transform transition-transform duration-300 ease-in-out"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Panel Header -->
+      <div
+        class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-900"
+      >
+        <h2
+          class="text-lg font-semibold text-gray-900 dark:text-white flex items-center"
+        >
+          <i class="bi bi-pause-circle mr-2 text-orange-500"></i>
+          Held Sales ({{ heldSales.length }})
+        </h2>
+        <button
+          (click)="showHeldSalesPanel = false"
+          class="text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-900/80 transition-colors"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Panel Content -->
+      <div class="flex-1 overflow-y-auto max-h-[calc(100vh-120px)]">
+        <!-- Empty State -->
+        <div *ngIf="heldSales.length === 0" class="p-6 text-center">
+          <div class="text-gray-400 dark:text-slate-500 mb-4">
+            <i class="bi bi-pause-circle text-4xl"></i>
+          </div>
+          <p class="text-gray-500 dark:text-slate-400">No held sales</p>
+          <p class="text-sm text-gray-400 dark:text-slate-500 mt-2">
+            Use "Hold Sale" to park transactions temporarily
+          </p>
+        </div>
+
+        <!-- Held Sales List -->
+        <div *ngIf="heldSales.length > 0" class="p-4 space-y-3">
+          <div
+            *ngFor="let sale of heldSales; trackBy: trackHeldSale"
+            class="bg-gray-50 dark:bg-slate-900/50 rounded-lg p-4 border border-gray-200 dark:border-slate-900 hover:border-orange-500 transition-colors"
+          >
+            <!-- Sale Header -->
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <h3 class="font-semibold text-gray-900 dark:text-white">
+                  {{ sale.id }}
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-slate-400">
+                  {{ getHeldSaleAge(sale.timestamp) }}
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="font-bold text-green-600 dark:text-green-400">
+                  KSh {{ sale.totals.total | number: "1.0-0" }}
+                </p>
+                <p class="text-xs text-gray-500 dark:text-slate-400">
+                  {{ sale.selectedProducts.length }} items
+                </p>
+              </div>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="mb-3">
+              <p class="text-sm text-gray-700 dark:text-slate-300">
+                {{ sale.customerInfo.name }}
+              </p>
+              <p *ngIf="sale.reason" class="text-xs text-orange-400 italic">
+                {{ sale.reason }}
+              </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex space-x-2">
+              <button
+                (click)="resumeHeldSale(sale)"
+                class="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center space-x-1"
+              >
+                <i class="bi bi-play-circle"></i>
+                <span>Resume</span>
+              </button>
+              <button
+                (click)="deleteHeldSale(sale)"
+                class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm transition-colors"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel Footer -->
+      <div
+        *ngIf="heldSales.length > 0"
+        class="border-t border-gray-200 dark:border-slate-900 p-4"
+      >
+        <button
+          (click)="clearAllHeldSales()"
+          class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2"
+        >
+          <i class="bi bi-trash"></i>
+          <span>Clear All</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hold Reason Dialog -->
+  <div
+    *ngIf="showHoldReasonDialog"
+    class="fixed inset-0 z-50 flex items-center justify-center"
+    (click)="cancelHold()"
+  >
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+
+    <!-- Dialog -->
+    <div
+      class="relative bg-white dark:bg-slate-900 rounded-xl shadow-xl max-w-md w-full mx-4 transform transition-all duration-300 ease-in-out"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Dialog Header -->
+      <div
+        class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-900"
+      >
+        <h3
+          class="text-lg font-semibold text-gray-900 dark:text-white flex items-center"
+        >
+          <i class="bi bi-pause-circle mr-2 text-orange-500"></i>
+          Hold Sale
+        </h3>
+        <button
+          (click)="cancelHold()"
+          class="text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-900/80 transition-colors"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Dialog Content -->
+      <div class="p-6">
+        <p class="text-gray-700 dark:text-slate-300 mb-4">
+          Why are you holding this sale?
+        </p>
+
+        <!-- Quick Reason Buttons -->
+        <div class="grid grid-cols-2 gap-2 mb-4">
+          <button
+            *ngFor="let reason of holdReasonOptions"
+            (click)="selectHoldReason(reason)"
+            [class]="
+              'p-3 text-left rounded-lg border transition-all text-sm ' +
+              (holdReason === reason
+                ? 'bg-orange-600 border-orange-500 text-white'
+                : 'bg-gray-100 dark:bg-slate-900/70 border-gray-300 dark:border-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-900/50 hover:border-gray-400 dark:hover:border-slate-900')
+            "
+          >
+            {{ reason }}
+          </button>
+        </div>
+
+        <!-- Custom Reason Input -->
+        <div class="mb-6">
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+          >
+            Custom reason (optional)
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="holdReason"
+            placeholder="Enter custom reason..."
+            class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-900 rounded-lg px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+          />
+        </div>
+
+        <!-- Sale Summary -->
+        <div class="bg-gray-100 dark:bg-slate-900/50 rounded-lg p-4 mb-6">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-gray-600 dark:text-slate-300">Items:</span>
+            <span class="text-gray-900 dark:text-white">{{
+              selectedProducts.length
+            }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 dark:text-slate-300">Total:</span>
+            <span class="text-gray-900 dark:text-white font-bold"
+              >KSh {{ calculateTotal() | number: "1.0-0" }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Dialog Footer -->
+      <div
+        class="flex space-x-3 p-6 border-t border-gray-200 dark:border-slate-900"
+      >
+        <button
+          (click)="cancelHold()"
+          class="flex-1 bg-gray-300 dark:bg-slate-900/70 hover:bg-gray-400 dark:hover:bg-slate-900/50 text-gray-700 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="holdCurrentSale()"
+          class="flex-1 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+        >
+          <i class="bi bi-pause-circle"></i>
+          <span>Hold Sale</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Enhanced Custom Styles -->
+<style>
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .animate-bounce-subtle {
+    animation: bounceSoft 2s ease-in-out infinite;
+  }
+
+  @keyframes bounceSoft {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+</style>

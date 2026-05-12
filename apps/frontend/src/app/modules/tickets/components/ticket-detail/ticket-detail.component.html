@@ -1,0 +1,352 @@
+﻿<section
+  class="container px-4 mx-auto min-h-screen transition-colors duration-300"
+>
+  <!-- Loading Spinner -->
+  <div
+    *ngIf="isLoading"
+    class="flex flex-col justify-center items-center py-20"
+  >
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-4 border-purple-500/20 border-t-purple-600 mb-4"
+    ></div>
+    <span class="text-gray-500 dark:text-gray-400 font-bold animate-pulse"
+      >Loading ticket...</span
+    >
+  </div>
+
+  <div *ngIf="!isLoading && ticket" class="py-6">
+    <!-- Header -->
+    <div class="mb-6">
+      <button
+        (click)="goBack()"
+        class="flex items-center px-4 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm mb-4"
+      >
+        <i class="bi bi-arrow-left text-lg mr-2"></i>
+        Back to Tickets
+      </button>
+
+      <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
+        <div>
+          <h2
+            class="text-2xl font-black text-gray-900 dark:text-white tracking-tight mb-2"
+          >
+            <span class="text-gray-500 dark:text-gray-400 mr-2"
+              >#{{ ticket.id }}</span
+            >
+            {{ ticket.title }}
+          </h2>
+          <div class="flex gap-2 flex-wrap">
+            <span
+              class="inline-flex items-center px-2.5 py-1 rounded-full gap-x-1.5 text-xs font-bold uppercase"
+              [ngClass]="{
+                'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800':
+                  ticket.status === 'OPEN',
+                'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800':
+                  ticket.status === 'IN_PROGRESS',
+                'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800':
+                  ticket.status === 'RESOLVED',
+                'bg-gray-100 dark:bg-slate-900/30 text-gray-700 dark:text-gray-400 border border-gray-200 dark:border-gray-800':
+                  ticket.status === 'CLOSED',
+              }"
+            >
+              {{ ticket.status.replace("_", " ") }}
+            </span>
+            <span
+              class="inline-flex items-center px-2.5 py-1 rounded-full gap-x-1.5 text-xs font-bold uppercase"
+              [ngClass]="{
+                'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800':
+                  ticket.priority === 'LOW',
+                'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800':
+                  ticket.priority === 'MEDIUM',
+                'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800':
+                  ticket.priority === 'HIGH',
+                'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800':
+                  ticket.priority === 'URGENT',
+              }"
+            >
+              {{ ticket.priority }}
+            </span>
+            <span
+              class="inline-flex items-center px-2.5 py-1 rounded-full gap-x-1.5 bg-gray-100 dark:bg-slate-900/30 text-gray-700 dark:text-gray-400 border border-gray-200 dark:border-gray-800 text-xs font-bold uppercase"
+            >
+              {{ getCategoryLabel(ticket.category) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ticket Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Description Card -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"
+        >
+          <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+            <h5 class="text-sm font-black text-white uppercase tracking-wide">
+              <i class="bi bi-file-text mr-2"></i>Description
+            </h5>
+          </div>
+          <div class="p-6">
+            <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+              {{ ticket.description }}
+            </p>
+          </div>
+          <div
+            class="px-6 py-4 bg-gray-50 dark:bg-slate-800/50 border-t border-gray-200 dark:border-gray-700"
+          >
+            <small class="text-gray-500 dark:text-gray-400 text-sm">
+              Created by
+              <span class="font-bold text-gray-700 dark:text-gray-300">{{
+                ticket.user?.fullName || "Unknown"
+              }}</span>
+              on
+              {{ formatDate(ticket.createdAt) }}
+            </small>
+          </div>
+        </div>
+
+        <!-- Responses Card -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"
+        >
+          <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+            <h5 class="text-sm font-black text-white uppercase tracking-wide">
+              <i class="bi bi-chat-dots mr-2"></i>
+              Responses ({{ ticket.responses?.length || 0 }})
+            </h5>
+          </div>
+          <div class="p-6">
+            <div *ngIf="!ticket.responses || ticket.responses.length === 0">
+              <p class="text-gray-500 dark:text-gray-400 text-center py-6">
+                No responses yet. Add a comment below.
+              </p>
+            </div>
+
+            <div
+              *ngFor="let response of ticket.responses; let i = index"
+              class="mb-4 pb-4"
+              [class.border-b]="i < ticket.responses!.length - 1"
+              [class.border-gray-200]="i < ticket.responses!.length - 1"
+              [class.dark:border-gray-700]="i < ticket.responses!.length - 1"
+            >
+              <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center gap-2">
+                  <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm"
+                  >
+                    {{
+                      response.isAdmin
+                        ? "S"
+                        : ticket.user?.fullName?.charAt(0) || "U"
+                    }}
+                  </div>
+                  <div>
+                    <span class="font-bold text-gray-900 dark:text-white">
+                      {{
+                        response.isAdmin
+                          ? "Support Team"
+                          : ticket.user?.fullName || "User"
+                      }}
+                    </span>
+                    <span
+                      *ngIf="response.isAdmin"
+                      class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
+                    >
+                      Admin
+                    </span>
+                  </div>
+                </div>
+                <small class="text-gray-500 dark:text-gray-400 text-xs">
+                  {{ formatDate(response.createdAt) }}
+                </small>
+              </div>
+              <p
+                class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap ml-10"
+              >
+                {{ response.message }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Response Form -->
+        <div
+          *ngIf="ticket.status !== 'CLOSED' && ticket.status !== 'RESOLVED'"
+          class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"
+        >
+          <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+            <h5 class="text-sm font-black text-white uppercase tracking-wide">
+              <i class="bi bi-pencil mr-2"></i>Add a Comment
+            </h5>
+          </div>
+          <div class="p-6">
+            <form [formGroup]="responseForm" (ngSubmit)="addResponse()">
+              <div class="mb-4">
+                <textarea
+                  formControlName="message"
+                  rows="4"
+                  placeholder="Type your message here..."
+                  class="w-full p-3 bg-white dark:bg-slate-800 border-2 text-gray-900 dark:text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none"
+                  [class.border-red-500]="
+                    responseForm.get('message')?.invalid &&
+                    responseForm.get('message')?.touched
+                  "
+                  [class.border-gray-200]="
+                    !(
+                      responseForm.get('message')?.invalid &&
+                      responseForm.get('message')?.touched
+                    )
+                  "
+                  [class.dark:border-red-500]="
+                    responseForm.get('message')?.invalid &&
+                    responseForm.get('message')?.touched
+                  "
+                  [class.dark:border-gray-700]="
+                    !(
+                      responseForm.get('message')?.invalid &&
+                      responseForm.get('message')?.touched
+                    )
+                  "
+                ></textarea>
+                <p
+                  *ngIf="
+                    responseForm.get('message')?.invalid &&
+                    responseForm.get('message')?.touched
+                  "
+                  class="mt-2 text-xs text-red-500 font-medium"
+                >
+                  <i class="bi bi-exclamation-circle mr-1"></i>Message is
+                  required (minimum 5 characters)
+                </p>
+              </div>
+              <button
+                type="submit"
+                [disabled]="isSubmittingResponse"
+                class="flex items-center justify-center px-6 py-3 text-sm font-bold tracking-wide text-white transition-all duration-200 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl gap-x-2 hover:from-purple-700 hover:to-indigo-700 shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div
+                  *ngIf="isSubmittingResponse"
+                  class="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white"
+                ></div>
+                <i
+                  *ngIf="!isSubmittingResponse"
+                  class="bi bi-send-fill text-lg"
+                ></i>
+                <span>{{
+                  isSubmittingResponse ? "Sending..." : "Send Response"
+                }}</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Closed Ticket Alert -->
+        <div
+          *ngIf="ticket.status === 'CLOSED' || ticket.status === 'RESOLVED'"
+          class="bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 p-4"
+        >
+          <div class="flex items-center">
+            <i
+              class="bi bi-info-circle text-blue-600 dark:text-blue-400 text-xl mr-3"
+            ></i>
+            <span class="text-blue-700 dark:text-blue-300 font-medium">
+              This ticket has been {{ ticket.status.toLowerCase() }}. No further
+              comments can be added.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Info -->
+      <div class="lg:col-span-1">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden sticky top-6"
+        >
+          <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+            <h5 class="text-sm font-black text-white uppercase tracking-wide">
+              <i class="bi bi-info-circle mr-2"></i>Ticket Information
+            </h5>
+          </div>
+          <div class="p-6 space-y-4">
+            <div>
+              <small
+                class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1"
+                >Created</small
+              >
+              <strong class="text-sm text-gray-900 dark:text-white">{{
+                formatDate(ticket.createdAt)
+              }}</strong>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <small
+                class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1"
+                >Last Updated</small
+              >
+              <strong class="text-sm text-gray-900 dark:text-white">{{
+                formatDate(ticket.updatedAt)
+              }}</strong>
+            </div>
+
+            <div
+              *ngIf="ticket.resolvedAt"
+              class="border-t border-gray-200 dark:border-gray-700 pt-4"
+            >
+              <small
+                class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1"
+                >Resolved</small
+              >
+              <strong class="text-sm text-gray-900 dark:text-white">{{
+                formatDate(ticket.resolvedAt)
+              }}</strong>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <small
+                class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1"
+                >Created By</small
+              >
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm"
+                >
+                  {{ ticket.user?.fullName?.charAt(0) || "U" }}
+                </div>
+                <div>
+                  <strong class="text-sm text-gray-900 dark:text-white block">{{
+                    ticket.user?.fullName || "Unknown"
+                  }}</strong>
+                  <small class="text-xs text-gray-500 dark:text-gray-400">{{
+                    ticket.user?.email
+                  }}</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <small
+                class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1"
+                >Organization</small
+              >
+              <strong class="text-sm text-gray-900 dark:text-white">{{
+                ticket.organization?.name || "Unknown"
+              }}</strong>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <small
+                class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1"
+                >Ticket ID</small
+              >
+              <strong class="text-sm text-gray-900 dark:text-white"
+                >#{{ ticket.id }}</strong
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

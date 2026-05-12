@@ -1,0 +1,151 @@
+<div
+  id="{{ modalId }}"
+  tabindex="-1"
+  aria-hidden="true"
+  class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-gray-500-800 bg-opacity-75"
+  [ngClass]="{ hidden: !isModalVisible }"
+>
+  <!-- Centered content -->
+  <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
+    <!-- Modal header -->
+    <div class="flex justify-between items-center border-b pb-4">
+      <h3 class="text-lg font-semibold text-gray-800">Update Product</h3>
+      <button
+        (click)="closeModal()"
+        type="button"
+        class="text-gray-500-400 hover:bg-gray-500-200 hover:text-gray-500-900 rounded-full p-2 focus:outline-none"
+      >
+        <svg
+          class="w-4 h-4"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 14 14"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+          />
+        </svg>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+    <form
+      [formGroup]="productForm"
+      (ngSubmit)="onSubmit()"
+      class="max-w-md mx-auto bg-periwinklebBlue rounded-lg shadow-lg p-6"
+    >
+      <!-- <h2 class="text-2xl font-bold mb-4">Add New Product</h2> -->
+
+      <div class="mb-4">
+        <label class="block text-gray-500-700 font-bold mb-2" for="name">
+          Name
+        </label>
+        <input
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500-700 leading-tight focus:outline-none focus:shadow-outline"
+          id="name"
+          type="text"
+          placeholder="Enter product name"
+          formControlName="name"
+        />
+        <div
+          *ngIf="
+            productForm.get('name')?.invalid &&
+            (productForm.get('name')?.dirty || productForm.get('name')?.touched)
+          "
+          class="text-red text-sm mt-1"
+        >
+          Product name is required
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-500-700 font-bold mb-2" for="price">
+          Price
+        </label>
+        <input
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500-700 leading-tight focus:outline-none focus:shadow-outline"
+          id="price"
+          type="number"
+          placeholder="Enter product price"
+          formControlName="price"
+        />
+        <div
+          *ngIf="
+            productForm.get('price')?.invalid &&
+            (productForm.get('price')?.dirty ||
+              productForm.get('price')?.touched)
+          "
+          class="text-red text-sm mt-1"
+        >
+          Product price is required
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-500-700 font-bold mb-2" for="categoryId">
+          Category
+        </label>
+        <select
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500-700 leading-tight focus:outline-none focus:shadow-outline"
+          id="categoryId"
+          formControlName="categoryId"
+        >
+          <option value="" disabled>Select a category</option>
+          <option *ngFor="let category of categories" [value]="category.name">
+            {{ category.name }}
+          </option>
+        </select>
+        <div
+          *ngIf="
+            productForm.get('categoryId')?.invalid &&
+            (productForm.get('categoryId')?.dirty ||
+              productForm.get('categoryId')?.touched)
+          "
+          class="text-red text-sm mt-1"
+        >
+          Category is required
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-500-700 font-bold mb-2" for="description">
+          Quantity
+        </label>
+        <input
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500-700 leading-tight focus:outline-none focus:shadow-outline"
+          id="quantity"
+          type="number"
+          placeholder="Enter product quantity"
+          formControlName="quantity"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-500-700 font-bold mb-2" for="picture">
+          Picture URL
+        </label>
+        <input
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-500-700 leading-tight focus:outline-none focus:shadow-outline"
+          id="picture"
+          type="text"
+          placeholder="Enter picture URL"
+          formControlName="picture"
+        />
+      </div>
+
+      <div class="flex items-center justify-between">
+        <button
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          type="submit"
+          [disabled]="productForm.invalid"
+        >
+          Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

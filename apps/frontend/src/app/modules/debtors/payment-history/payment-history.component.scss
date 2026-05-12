@@ -1,0 +1,17 @@
+/* Payment History Styles */
+.no-print {
+  @media print {
+    display: none !important;
+  }
+}
+
+@media print {
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-break {
+    page-break-inside: avoid;
+  }
+}

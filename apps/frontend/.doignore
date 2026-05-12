@@ -1,0 +1,43 @@
+# Source files (only need built dist/)
+src/
+
+# Development dependencies
+node_modules/
+.angular/
+.vscode/
+
+# Documentation
+*.md
+README.md
+
+# Configuration files
+.git/
+.gitignore
+tsconfig*.json
+angular.json
+karma.conf.js
+
+# Test files
+*.spec.ts
+e2e/
+coverage/
+
+# Development scripts
+electron.js
+electron/
+
+# IDE
+.idea/
+*.sublime-*
+.DS_Store
+Thumbs.db
+
+# Build artifacts (will be rebuilt)
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Capacitor (mobile)
+android/
+ios/
+capacitor.config.ts

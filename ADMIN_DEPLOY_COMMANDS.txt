@@ -1,0 +1,10 @@
+LUMINA ADMIN - DEPLOYMENT
+=========================
+
+Admin is now deployed independently from its own repo.
+See: /opt/lumina-admin/DEPLOY_COMMANDS.txt on the server
+Or:  lumina-admin/DEPLOY_COMMANDS.txt in the admin repo
+
+Server path: /opt/lumina-admin (separate from /opt/lumina-erp)
+Domain: admin.lumina360.tech
+Ports: Blue=5001, Green=5002

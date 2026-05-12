@@ -1,0 +1,39 @@
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+// Custom scrollbar for dark mode
+.dark .overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-track {
+  background: rgb(31 41 55);
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgb(75 85 99);
+  border-radius: 4px;
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgb(107 114 128);
+}
+
+// Light mode scrollbar
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
+}

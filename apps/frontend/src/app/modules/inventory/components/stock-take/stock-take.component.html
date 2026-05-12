@@ -1,0 +1,994 @@
+<div class="p-4 md:p-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+        Stock Take
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        Physical inventory count and variance tracking
+      </p>
+    </div>
+    <div class="flex gap-2 mt-3 md:mt-0">
+      <button
+        (click)="switchTab('history')"
+        [class]="
+          activeTab === 'history'
+            ? 'bg-blue-600 text-white'
+            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600'
+        "
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+      >
+        History
+      </button>
+      <button
+        (click)="switchTab('create')"
+        [class]="
+          activeTab === 'create'
+            ? 'bg-blue-600 text-white'
+            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600'
+        "
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+      >
+        + New Stock Take
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div *ngIf="summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+    >
+      <p
+        class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+      >
+        Total Stock Takes
+      </p>
+      <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+        {{ summary.total }}
+      </p>
+    </div>
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+    >
+      <p
+        class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+      >
+        Completed
+      </p>
+      <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+        {{ summary.completed }}
+      </p>
+    </div>
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+    >
+      <p
+        class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+      >
+        In Progress / Draft
+      </p>
+      <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+        {{ summary.inProgress + summary.draft }}
+      </p>
+    </div>
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+    >
+      <p
+        class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+      >
+        Total Variance Value
+      </p>
+      <p
+        class="text-2xl font-bold mt-1"
+        [ngClass]="
+          summary.allTimeVarianceValue >= 0
+            ? 'text-green-600 dark:text-green-400'
+            : 'text-red-600 dark:text-red-400'
+        "
+      >
+        {{ formatCurrency(summary.allTimeVarianceValue) }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ==================== HISTORY TAB ==================== -->
+  <div *ngIf="activeTab === 'history'">
+    <!-- Filters -->
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-4"
+    >
+      <div class="flex flex-col md:flex-row gap-3">
+        <div class="flex-1">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            placeholder="Search by stock take number..."
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <select
+            [(ngModel)]="statusFilter"
+            (change)="onStatusFilterChange()"
+            class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">All Statuses</option>
+            <option value="DRAFT">Draft</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="flex justify-center py-12">
+      <div
+        class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+      ></div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      *ngIf="!loading && stockTakes.length === 0"
+      class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center"
+    >
+      <svg
+        class="mx-auto h-12 w-12 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+        />
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+        No stock takes found
+      </h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Get started by creating a new stock take.
+      </p>
+      <button
+        (click)="switchTab('create')"
+        class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+      >
+        + New Stock Take
+      </button>
+    </div>
+
+    <!-- Stock Takes List - Desktop -->
+    <div
+      *ngIf="!loading && stockTakes.length > 0"
+      class="hidden md:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+    >
+      <table class="w-full text-sm text-left">
+        <thead
+          class="bg-gray-50 dark:bg-gray-700 text-xs uppercase text-gray-500 dark:text-gray-400"
+        >
+          <tr>
+            <th class="px-4 py-3">Stock Take #</th>
+            <th class="px-4 py-3">Date</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3">Items</th>
+            <th class="px-4 py-3">Variance Qty</th>
+            <th class="px-4 py-3">Variance Value</th>
+            <th class="px-4 py-3">Created By</th>
+            <th class="px-4 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <tr
+            *ngFor="let st of stockTakes"
+            class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+          >
+            <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">
+              {{ st.stockTakeNumber }}
+            </td>
+            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">
+              {{ st.createdAt | date: "dd/MM/yyyy HH:mm" }}
+            </td>
+            <td class="px-4 py-3">
+              <span
+                class="px-2 py-1 rounded-full text-xs font-medium"
+                [ngClass]="getStatusClass(st.status)"
+              >
+                {{ st.status }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">
+              {{ st.totalItems }}
+            </td>
+            <td
+              class="px-4 py-3"
+              [ngClass]="getVarianceClass(st.totalVarianceQty)"
+            >
+              {{ st.totalVarianceQty > 0 ? "+" : "" }}{{ st.totalVarianceQty }}
+            </td>
+            <td
+              class="px-4 py-3 font-medium"
+              [ngClass]="getVarianceClass(st.totalVarianceValue)"
+            >
+              {{ formatCurrency(st.totalVarianceValue) }}
+            </td>
+            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">
+              {{ st.createdByName }}
+            </td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex justify-end gap-1">
+                <button
+                  (click)="viewStockTake(st.id)"
+                  class="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                  title="View"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  *ngIf="canComplete(st)"
+                  (click)="completeStockTake(st)"
+                  class="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
+                  title="Complete"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  *ngIf="canCancel(st)"
+                  (click)="cancelStockTake(st)"
+                  class="p-1.5 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded"
+                  title="Cancel"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                    />
+                  </svg>
+                </button>
+                <button
+                  *ngIf="canDelete(st)"
+                  (click)="deleteStockTake(st)"
+                  class="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                  title="Delete"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Stock Takes List - Mobile -->
+    <div *ngIf="!loading && stockTakes.length > 0" class="md:hidden space-y-3">
+      <div
+        *ngFor="let st of stockTakes"
+        class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4"
+      >
+        <div class="flex justify-between items-start mb-2">
+          <div>
+            <p class="font-medium text-gray-900 dark:text-white">
+              {{ st.stockTakeNumber }}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              {{ st.createdAt | date: "dd/MM/yyyy HH:mm" }}
+            </p>
+          </div>
+          <span
+            class="px-2 py-1 rounded-full text-xs font-medium"
+            [ngClass]="getStatusClass(st.status)"
+          >
+            {{ st.status }}
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+          <div>
+            <p class="text-gray-500 dark:text-gray-400 text-xs">Items</p>
+            <p class="text-gray-900 dark:text-white">{{ st.totalItems }}</p>
+          </div>
+          <div>
+            <p class="text-gray-500 dark:text-gray-400 text-xs">
+              Variance Value
+            </p>
+            <p
+              class="font-medium"
+              [ngClass]="getVarianceClass(st.totalVarianceValue)"
+            >
+              {{ formatCurrency(st.totalVarianceValue) }}
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button
+            (click)="viewStockTake(st.id)"
+            class="flex-1 py-1.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded font-medium"
+          >
+            View
+          </button>
+          <button
+            *ngIf="canComplete(st)"
+            (click)="completeStockTake(st)"
+            class="flex-1 py-1.5 text-xs bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded font-medium"
+          >
+            Complete
+          </button>
+          <button
+            *ngIf="canCancel(st)"
+            (click)="cancelStockTake(st)"
+            class="flex-1 py-1.5 text-xs bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 rounded font-medium"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      *ngIf="totalPages > 1"
+      class="flex justify-between items-center mt-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3"
+    >
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Page {{ page }} of {{ totalPages }} ({{ total }} total)
+      </p>
+      <div class="flex gap-2">
+        <button
+          (click)="prevPage()"
+          [disabled]="page <= 1"
+          class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+        >
+          Previous
+        </button>
+        <button
+          (click)="nextPage()"
+          [disabled]="page >= totalPages"
+          class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CREATE TAB ==================== -->
+  <div *ngIf="activeTab === 'create'">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 md:p-6"
+    >
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        New Stock Take
+      </h2>
+
+      <!-- Stock Take Info -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >Type</label
+          >
+          <select
+            [(ngModel)]="stockTakeForm.value.type"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="stockTakeForm.get('type')!.setValue($event)"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+          >
+            <option value="PHYSICAL_COUNT">Physical Count</option>
+            <option value="CYCLE_COUNT">Cycle Count</option>
+            <option value="DAMAGE">Damage</option>
+            <option value="THEFT">Theft</option>
+            <option value="CORRECTION">Correction</option>
+            <option value="WRITE_OFF">Write Off</option>
+            <option value="FOUND">Found</option>
+            <option value="LOSS">Loss</option>
+          </select>
+        </div>
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >Notes</label
+          >
+          <input
+            type="text"
+            [(ngModel)]="stockTakeForm.value.notes"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="stockTakeForm.get('notes')!.setValue($event)"
+            placeholder="Optional notes..."
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+          />
+        </div>
+      </div>
+
+      <!-- Add Products -->
+      <div class="mb-4">
+        <div
+          class="flex flex-col md:flex-row md:items-center justify-between mb-3"
+        >
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Products</label
+          >
+          <button
+            (click)="addAllProducts()"
+            class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1 md:mt-0"
+          >
+            + Add All Products
+          </button>
+        </div>
+        <div class="relative">
+          <input
+            type="text"
+            [(ngModel)]="productSearch"
+            [ngModelOptions]="{ standalone: true }"
+            (input)="filterProducts()"
+            placeholder="Search product by name or barcode..."
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+          />
+          <!-- Dropdown -->
+          <div
+            *ngIf="productSearch.length > 0 && filteredProducts.length > 0"
+            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+          >
+            <button
+              *ngFor="let product of filteredProducts | slice: 0 : 10"
+              (click)="addProduct(product)"
+              class="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex justify-between items-center"
+            >
+              <span class="text-gray-900 dark:text-white">{{
+                product.name
+              }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400"
+                >Qty: {{ product.quantity || 0 }}</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div *ngIf="items.length > 0" class="mb-4">
+        <!-- Desktop Table -->
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead
+              class="bg-gray-50 dark:bg-gray-700 text-xs uppercase text-gray-500 dark:text-gray-400"
+            >
+              <tr>
+                <th class="px-3 py-2">#</th>
+                <th class="px-3 py-2">Product</th>
+                <th class="px-3 py-2">System Qty</th>
+                <th class="px-3 py-2">Counted Qty</th>
+                <th class="px-3 py-2">Variance</th>
+                <th class="px-3 py-2">Variance Value</th>
+                <th class="px-3 py-2">Reason</th>
+                <th class="px-3 py-2"></th>
+              </tr>
+            </thead>
+            <tbody [formGroup]="stockTakeForm">
+              <ng-container formArrayName="items">
+                <tr
+                  *ngFor="let item of items.controls; let i = index"
+                  [formGroupName]="i"
+                  class="border-b border-gray-200 dark:border-gray-700"
+                >
+                  <td class="px-3 py-2 text-gray-500 dark:text-gray-400">
+                    {{ i + 1 }}
+                  </td>
+                  <td
+                    class="px-3 py-2 font-medium text-gray-900 dark:text-white"
+                  >
+                    {{ item.get("productName")?.value }}
+                  </td>
+                  <td class="px-3 py-2 text-gray-600 dark:text-gray-300">
+                    {{ item.get("systemQuantity")?.value }}
+                  </td>
+                  <td class="px-3 py-2">
+                    <input
+                      type="number"
+                      formControlName="countedQuantity"
+                      min="0"
+                      class="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm text-center"
+                      placeholder="0"
+                    />
+                  </td>
+                  <td
+                    class="px-3 py-2 font-medium"
+                    [ngClass]="getVarianceClass(getVarianceQty(i))"
+                  >
+                    {{ getVarianceQty(i) > 0 ? "+" : ""
+                    }}{{ getVarianceQty(i) }}
+                  </td>
+                  <td
+                    class="px-3 py-2 font-medium"
+                    [ngClass]="getVarianceClass(getVarianceValue(i))"
+                  >
+                    {{ formatCurrency(getVarianceValue(i)) }}
+                  </td>
+                  <td class="px-3 py-2">
+                    <select
+                      formControlName="reason"
+                      class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
+                    >
+                      <option value="">Select reason</option>
+                      <option value="DAMAGED">Damaged</option>
+                      <option value="STOLEN">Stolen</option>
+                      <option value="EXPIRED">Expired</option>
+                      <option value="MISCOUNT">Previous Miscount</option>
+                      <option value="SHRINKAGE">Shrinkage</option>
+                      <option value="DATA_ENTRY_ERROR">Data Entry Error</option>
+                      <option value="FOUND">Found/Extra Stock</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </td>
+                  <td class="px-3 py-2">
+                    <button
+                      (click)="removeItem(i)"
+                      class="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="md:hidden space-y-3" [formGroup]="stockTakeForm">
+          <ng-container formArrayName="items">
+            <div
+              *ngFor="let item of items.controls; let i = index"
+              [formGroupName]="i"
+              class="border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+            >
+              <div class="flex justify-between items-start mb-2">
+                <p class="font-medium text-gray-900 dark:text-white text-sm">
+                  {{ item.get("productName")?.value }}
+                </p>
+                <button (click)="removeItem(i)" class="p-1 text-red-500">
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                  <label class="text-xs text-gray-500 dark:text-gray-400"
+                    >System Qty</label
+                  >
+                  <p class="text-sm text-gray-900 dark:text-white">
+                    {{ item.get("systemQuantity")?.value }}
+                  </p>
+                </div>
+                <div>
+                  <label class="text-xs text-gray-500 dark:text-gray-400"
+                    >Counted Qty</label
+                  >
+                  <input
+                    type="number"
+                    formControlName="countedQuantity"
+                    min="0"
+                    class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                  <label class="text-xs text-gray-500 dark:text-gray-400"
+                    >Variance</label
+                  >
+                  <p
+                    class="text-sm font-medium"
+                    [ngClass]="getVarianceClass(getVarianceQty(i))"
+                  >
+                    {{ getVarianceQty(i) > 0 ? "+" : ""
+                    }}{{ getVarianceQty(i) }}
+                  </p>
+                </div>
+                <div>
+                  <label class="text-xs text-gray-500 dark:text-gray-400"
+                    >Variance Value</label
+                  >
+                  <p
+                    class="text-sm font-medium"
+                    [ngClass]="getVarianceClass(getVarianceValue(i))"
+                  >
+                    {{ formatCurrency(getVarianceValue(i)) }}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400"
+                  >Reason</label
+                >
+                <select
+                  formControlName="reason"
+                  class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs mt-1"
+                >
+                  <option value="">Select reason</option>
+                  <option value="DAMAGED">Damaged</option>
+                  <option value="STOLEN">Stolen</option>
+                  <option value="EXPIRED">Expired</option>
+                  <option value="MISCOUNT">Previous Miscount</option>
+                  <option value="SHRINKAGE">Shrinkage</option>
+                  <option value="DATA_ENTRY_ERROR">Data Entry Error</option>
+                  <option value="FOUND">Found/Extra Stock</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Totals -->
+        <div
+          class="mt-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-2"
+        >
+          <div class="text-sm text-gray-600 dark:text-gray-300">
+            <span class="font-medium">{{ items.length }}</span> products | Total
+            Variance Qty:
+            <span
+              class="font-medium"
+              [ngClass]="getVarianceClass(getTotalVarianceQty())"
+              >{{ getTotalVarianceQty() > 0 ? "+" : ""
+              }}{{ getTotalVarianceQty() }}</span
+            >
+            | Total Variance Value:
+            <span
+              class="font-medium"
+              [ngClass]="getVarianceClass(getTotalVarianceValue())"
+              >{{ formatCurrency(getTotalVarianceValue()) }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty Items State -->
+      <div
+        *ngIf="items.length === 0"
+        class="text-center py-8 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg mb-4"
+      >
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Search and add products above to start the stock take
+        </p>
+      </div>
+
+      <!-- Submit -->
+      <div class="flex justify-end gap-3">
+        <button
+          (click)="switchTab('history')"
+          class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="submitStockTake()"
+          [disabled]="submitting || items.length === 0"
+          class="px-6 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+        >
+          {{ submitting ? "Submitting..." : "Submit Stock Take" }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== DETAIL MODAL ==================== -->
+  <div
+    *ngIf="showDetailModal && selectedStockTake"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+    (click)="closeDetailModal()"
+  >
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Modal Header -->
+      <div
+        class="flex justify-between items-center p-4 md:p-6 border-b border-gray-200 dark:border-gray-700"
+      >
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ selectedStockTake.stockTakeNumber }}
+          </h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            {{ selectedStockTake.createdAt | date: "dd/MM/yyyy HH:mm" }}
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span
+            class="px-3 py-1 rounded-full text-xs font-medium"
+            [ngClass]="getStatusClass(selectedStockTake.status)"
+          >
+            {{ selectedStockTake.status }}
+          </span>
+          <button
+            (click)="closeDetailModal()"
+            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 md:p-6">
+        <!-- Info Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Type</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ selectedStockTake.type }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Created By</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ selectedStockTake.createdByName }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Total Items</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ selectedStockTake.totalItems }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Variance Value
+            </p>
+            <p
+              class="text-sm font-medium"
+              [ngClass]="getVarianceClass(selectedStockTake.totalVarianceValue)"
+            >
+              {{ formatCurrency(selectedStockTake.totalVarianceValue) }}
+            </p>
+          </div>
+        </div>
+
+        <div
+          *ngIf="selectedStockTake.completedByName"
+          class="grid grid-cols-2 gap-4 mb-6"
+        >
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Completed By</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ selectedStockTake.completedByName }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Completed At</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ selectedStockTake.completedAt | date: "dd/MM/yyyy HH:mm" }}
+            </p>
+          </div>
+        </div>
+
+        <div *ngIf="selectedStockTake.notes" class="mb-6">
+          <p class="text-xs text-gray-500 dark:text-gray-400">Notes</p>
+          <p class="text-sm text-gray-900 dark:text-white mt-1">
+            {{ selectedStockTake.notes }}
+          </p>
+        </div>
+
+        <!-- Items Table -->
+        <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
+          Items
+        </h3>
+
+        <!-- Desktop -->
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead
+              class="bg-gray-50 dark:bg-gray-700 text-xs uppercase text-gray-500 dark:text-gray-400"
+            >
+              <tr>
+                <th class="px-3 py-2">Product</th>
+                <th class="px-3 py-2">System Qty</th>
+                <th class="px-3 py-2">Counted Qty</th>
+                <th class="px-3 py-2">Variance</th>
+                <th class="px-3 py-2">Unit Cost</th>
+                <th class="px-3 py-2">Variance Value</th>
+                <th class="px-3 py-2">Reason</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr *ngFor="let item of selectedStockTake.items">
+                <td class="px-3 py-2 font-medium text-gray-900 dark:text-white">
+                  {{ item.productName }}
+                </td>
+                <td class="px-3 py-2 text-gray-600 dark:text-gray-300">
+                  {{ item.systemQuantity }}
+                </td>
+                <td class="px-3 py-2 text-gray-900 dark:text-white">
+                  {{ item.countedQuantity }}
+                </td>
+                <td
+                  class="px-3 py-2 font-medium"
+                  [ngClass]="getVarianceClass(item.varianceQty)"
+                >
+                  {{ item.varianceQty > 0 ? "+" : "" }}{{ item.varianceQty }}
+                </td>
+                <td class="px-3 py-2 text-gray-600 dark:text-gray-300">
+                  {{ formatCurrency(item.unitCost) }}
+                </td>
+                <td
+                  class="px-3 py-2 font-medium"
+                  [ngClass]="getVarianceClass(item.varianceValue)"
+                >
+                  {{ formatCurrency(item.varianceValue) }}
+                </td>
+                <td class="px-3 py-2 text-gray-600 dark:text-gray-300">
+                  {{ item.reason || "-" }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile -->
+        <div class="md:hidden space-y-3">
+          <div
+            *ngFor="let item of selectedStockTake.items"
+            class="border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+          >
+            <p class="font-medium text-gray-900 dark:text-white text-sm mb-2">
+              {{ item.productName }}
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <p class="text-gray-500 dark:text-gray-400">System Qty</p>
+                <p class="text-gray-900 dark:text-white">
+                  {{ item.systemQuantity }}
+                </p>
+              </div>
+              <div>
+                <p class="text-gray-500 dark:text-gray-400">Counted Qty</p>
+                <p class="text-gray-900 dark:text-white">
+                  {{ item.countedQuantity }}
+                </p>
+              </div>
+              <div>
+                <p class="text-gray-500 dark:text-gray-400">Variance</p>
+                <p
+                  class="font-medium"
+                  [ngClass]="getVarianceClass(item.varianceQty)"
+                >
+                  {{ item.varianceQty > 0 ? "+" : "" }}{{ item.varianceQty }}
+                </p>
+              </div>
+              <div>
+                <p class="text-gray-500 dark:text-gray-400">Variance Value</p>
+                <p
+                  class="font-medium"
+                  [ngClass]="getVarianceClass(item.varianceValue)"
+                >
+                  {{ formatCurrency(item.varianceValue) }}
+                </p>
+              </div>
+            </div>
+            <div *ngIf="item.reason" class="mt-2">
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Reason:
+                <span class="text-gray-900 dark:text-white">{{
+                  item.reason
+                }}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div
+        *ngIf="canComplete(selectedStockTake) || canCancel(selectedStockTake)"
+        class="flex justify-end gap-3 p-4 md:p-6 border-t border-gray-200 dark:border-gray-700"
+      >
+        <button
+          *ngIf="canCancel(selectedStockTake)"
+          (click)="cancelStockTake(selectedStockTake)"
+          class="px-4 py-2 text-sm text-yellow-600 border border-yellow-300 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+        >
+          Cancel Stock Take
+        </button>
+        <button
+          *ngIf="canComplete(selectedStockTake)"
+          (click)="completeStockTake(selectedStockTake)"
+          class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+        >
+          Complete & Update Inventory
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

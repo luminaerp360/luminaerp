@@ -1,0 +1,1042 @@
+﻿<!-- Stock Transfer Form Modal -->
+<div
+  class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md p-4"
+>
+  <!-- Modal Container -->
+  <div
+    class="relative w-full max-w-6xl bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl transform transition-all max-h-[90vh] sm:max-h-[95vh] overflow-hidden border border-gray-300 dark:border-gray-700/50"
+  >
+    <!-- Header -->
+    <div
+      class="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6 border-b border-gray-300 dark:border-gray-700/50 bg-gray-50 dark:bg-slate-900/70 backdrop-blur-sm"
+    >
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"
+        >
+          <svg
+            class="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+            />
+          </svg>
+        </div>
+        <h3 class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Create Stock Transfer</h3>
+      </div>
+      <button
+        (click)="close()"
+        class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-900/50 transition-all duration-200 group"
+      >
+        <svg
+          class="w-6 h-6 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Form Content -->
+    <div class="p-4 sm:p-8 overflow-y-auto max-h-[calc(90vh-180px)] sm:max-h-[calc(95vh-180px)]">
+      <form [formGroup]="transferForm" (ngSubmit)="submit()" class="space-y-4 sm:space-y-8">
+        <!-- Organization Selection -->
+        <div
+          class="bg-gray-50 dark:bg-slate-900/70 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700/50"
+        >
+          <h4
+            class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-200 mb-4 sm:mb-6 flex items-center gap-2"
+          >
+            <svg
+              class="w-5 h-5 text-blue-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+              />
+            </svg>
+            Transfer Route
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- From Organization (Current Org - Disabled) -->
+            <div class="relative group">
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                From Organization (Current) *
+              </label>
+              <select
+                formControlName="fromOrganizationId"
+                class="w-full px-4 py-3 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-900/30 border border-gray-300 dark:border-gray-600/50 rounded-xl cursor-not-allowed appearance-none backdrop-blur-sm"
+              >
+                <option value="">Select Organization</option>
+                <option *ngFor="let org of userOrganizations" [value]="org.id">
+                  {{ org.name }}
+                  <span *ngIf="org.id === currentOrgId"> (Current)</span>
+                </option>
+              </select>
+              <div class="pointer-events-none absolute right-4 top-11">
+                <svg
+                  class="h-5 w-5 text-gray-400 dark:text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 9l-7 7-7-7"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                You can only transfer from your current organization
+              </p>
+            </div>
+
+            <!-- To Organization (Other Connected Orgs) -->
+            <div class="relative group">
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                To Organization *
+              </label>
+              <select
+                formControlName="toOrganizationId"
+                class="w-full px-4 py-3 text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-slate-900/70 appearance-none backdrop-blur-sm"
+              >
+                <option value="">Select Destination Organization</option>
+                <option
+                  *ngFor="let org of userOrganizations"
+                  [value]="org.id"
+                  [disabled]="org.id === currentOrgId"
+                  [class.text-gray-400]="org.id === currentOrgId"
+                >
+                  {{ org.name }}
+                  <span *ngIf="org.id === currentOrgId" class="text-gray-400">
+                    (Current)</span
+                  >
+                </option>
+              </select>
+              <div class="pointer-events-none absolute right-4 top-11">
+                <svg
+                  class="h-5 w-5 text-gray-500 dark:text-gray-400 group-focus-within:text-blue-400 transition-colors duration-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 9l-7 7-7-7"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <div
+                class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-600/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"
+              ></div>
+
+              <!-- Warning when only one organization -->
+              <div
+                *ngIf="userOrganizations.length === 1"
+                class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-600/50 rounded-lg"
+              >
+                <div class="flex items-start">
+                  <svg
+                    class="w-5 h-5 text-amber-400 mr-2 flex-shrink-0 mt-0.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                  <div class="text-sm text-amber-800 dark:text-amber-300">
+                    <p class="font-medium">Limited Transfer Options</p>
+                    <p class="text-xs mt-1 text-amber-700 dark:text-amber-400">
+                      You only have access to one organization. To create
+                      transfers between organizations, you need access to
+                      multiple organizations.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <span
+                *ngIf="transferForm.get('toOrganizationId')?.errors?.['required'] && transferForm.get('toOrganizationId')?.touched"
+                class="text-sm text-red-600 dark:text-red-400 mt-2 block"
+              >
+                Destination organization is required
+              </span>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="mt-6 relative group">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Transfer Notes (Optional)
+            </label>
+            <textarea
+              formControlName="notes"
+              rows="3"
+              class="w-full px-4 py-3 text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-slate-900/70 placeholder-gray-500 dark:placeholder-gray-400 backdrop-blur-sm"
+              placeholder="Enter any additional notes for this transfer..."
+            ></textarea>
+            <div
+              class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-600/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Product Search and Selection -->
+        <div
+          class="bg-gray-50 dark:bg-slate-900/70 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700/50"
+        >
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+            <h4
+              class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-200 flex items-center gap-2"
+            >
+              <svg
+                class="w-5 h-5 text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                />
+              </svg>
+              Transfer Items
+            </h4>
+            <div class="flex items-center space-x-3 w-full sm:w-auto">
+              <!-- Product Search -->
+              <div class="relative group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+                >
+                  <svg
+                    class="h-5 w-5 text-gray-500 dark:text-gray-400 group-focus-within:text-blue-400 transition-colors duration-200"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <input
+                  [(ngModel)]="searchQuery"
+                  (ngModelChange)="searchProducts()"
+                  [ngModelOptions]="{ standalone: true }"
+                  type="text"
+                  placeholder="Search products..."
+                  class="w-full sm:w-80 py-3 pl-12 pr-10 text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-slate-900/70 placeholder-gray-500 dark:placeholder-gray-400 backdrop-blur-sm"
+                />
+                <button
+                  *ngIf="searchQuery"
+                  type="button"
+                  (click)="searchQuery = ''; searchProducts()"
+                  class="absolute right-3 top-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                >
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fill-rule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    ></path>
+                  </svg>
+                </button>
+                <div
+                  class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-600/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"
+                ></div>
+              </div>
+              <button
+                type="button"
+                (click)="addItem()"
+                class="px-5 py-3 text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center gap-2 font-medium hover:shadow-lg hover:shadow-blue-500/25 active:scale-[0.98]"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Add Item
+              </button>
+            </div>
+          </div>
+
+          <!-- Product Selection Dropdown -->
+          <div
+            *ngIf="searchQuery && filteredProducts.length > 0"
+            class="mb-6 border border-gray-300 dark:border-gray-600/50 rounded-xl bg-gray-50 dark:bg-slate-900/30 shadow-2xl max-h-80 overflow-y-auto backdrop-blur-sm"
+          >
+            <div class="p-2">
+              <div
+                class="text-sm font-medium text-gray-700 dark:text-gray-300 px-3 py-3 border-b border-gray-200 dark:border-gray-600/30 bg-gray-100 dark:bg-slate-900/50 rounded-t-lg flex items-center justify-between"
+              >
+                <div class="flex items-center gap-2">
+                  <svg
+                    class="w-4 h-4 text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Found {{ filteredProducts.length }} product(s) matching "{{
+                    searchQuery
+                  }}"
+                </div>
+                <span class="text-xs text-blue-400 font-medium"
+                  >Click to add</span
+                >
+              </div>
+              <div class="max-h-64 overflow-y-auto">
+                <div
+                  *ngFor="let product of filteredProducts; let i = index"
+                  (click)="selectProduct(product)"
+                  class="flex items-center justify-between px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-600/30 cursor-pointer border-b border-gray-200 dark:border-gray-600/20 last:border-b-0 transition-all duration-200 group relative"
+                >
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-4">
+                      <div class="flex-shrink-0">
+                        <div
+                          class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"
+                        >
+                          <svg
+                            class="w-6 h-6 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div
+                          class="font-semibold text-gray-900 dark:text-gray-200 text-base truncate"
+                        >
+                          {{ product.name }}
+                        </div>
+                        <div
+                          class="text-sm text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-3"
+                        >
+                          <span
+                            class="bg-gray-600/50 px-2 py-1 rounded text-xs font-mono"
+                          >
+                            ID: {{ product.productIdNumber }}
+                          </span>
+                          <span>{{
+                            product.category?.name || "No Category"
+                          }}</span>
+                        </div>
+                      </div>
+                      <div class="text-right flex-shrink-0">
+                        <div class="text-lg font-bold text-gray-900 dark:text-gray-200">
+                          KES
+                          {{
+                            (
+                              product.buyingPrice ||
+                              product.buying_price ||
+                              0
+                            ).toFixed(2)
+                          }}
+                        </div>
+                        <div
+                          class="text-sm text-gray-600 dark:text-gray-400 flex items-center justify-end gap-2"
+                        >
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                            />
+                          </svg>
+                          Stock: {{ product.quantity || 0 }}
+                        </div>
+                        <div
+                          class="text-xs px-3 py-1 rounded-full mt-2 inline-block font-medium"
+                          [ngClass]="{
+                            'bg-green-500/20 text-green-400 border border-green-500/30':
+                              (product.quantity || 0) > 10,
+                            'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30':
+                              (product.quantity || 0) > 0 &&
+                              (product.quantity || 0) <= 10,
+                            'bg-red-500/20 text-red-400 border border-red-500/30':
+                              (product.quantity || 0) === 0
+                          }"
+                        >
+                          {{
+                            (product.quantity || 0) > 10
+                              ? "In Stock"
+                              : (product.quantity || 0) > 0
+                              ? "Low Stock"
+                              : "Out of Stock"
+                          }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ml-4 flex-shrink-0">
+                    <div
+                      class="w-10 h-10 bg-blue-600/20 border border-blue-600/30 rounded-lg flex items-center justify-center text-blue-400 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:bg-blue-600/30"
+                    >
+                      <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div
+                    class="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Products Found Message -->
+          <div
+            *ngIf="searchQuery && filteredProducts.length === 0"
+            class="mb-6 p-8 border border-gray-300 dark:border-gray-600/50 rounded-xl bg-gray-50 dark:bg-slate-900/30 text-center backdrop-blur-sm"
+          >
+            <div class="text-gray-600 dark:text-gray-400 flex flex-col items-center gap-4">
+              <div
+                class="w-16 h-16 bg-gray-600/30 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-8 h-8 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  No products found matching "{{ searchQuery }}"
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-500">
+                  Try adjusting your search terms or browse all available
+                  products
+                </p>
+              </div>
+              <button
+                type="button"
+                (click)="searchQuery = ''; searchProducts()"
+                class="mt-2 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-all duration-200 text-sm font-medium border border-blue-600/30 hover:border-blue-600/50"
+              >
+                Clear Search
+              </button>
+            </div>
+          </div>
+
+          <!-- All Products Grid (when no search) -->
+          <div
+            *ngIf="!searchQuery && products.length > 0"
+            class="mb-6 border border-gray-300 dark:border-gray-600/50 rounded-xl bg-gray-50 dark:bg-slate-900/30 backdrop-blur-sm"
+          >
+            <div
+              class="p-4 border-b border-gray-200 dark:border-gray-600/30 bg-gray-100 dark:bg-slate-900/50 rounded-t-xl"
+            >
+              <div class="flex items-center justify-between">
+                <h5
+                  class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-200 flex items-center gap-2"
+                >
+                  <svg
+                    class="w-5 h-5 text-blue-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                  Available Products
+                  <span
+                    class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full text-sm font-medium"
+                  >
+                    {{ products.length }}
+                  </span>
+                </h5>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Click on any product to add it to your transfer
+                </p>
+              </div>
+            </div>
+            <div class="max-h-80 overflow-y-auto p-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div
+                  *ngFor="let product of products; let i = index"
+                  (click)="selectProduct(product)"
+                  class="p-4 border border-gray-200 dark:border-gray-600/30 rounded-xl hover:border-blue-500/50 hover:bg-gray-100 dark:hover:bg-gray-600/30 cursor-pointer transition-all duration-200 group relative hover:shadow-lg hover:shadow-gray-900/20"
+                >
+                  <div class="flex flex-col space-y-3">
+                    <!-- Product Header -->
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1 min-w-0">
+                        <h6
+                          class="font-semibold text-gray-900 dark:text-gray-200 text-sm truncate group-hover:text-blue-300 transition-colors"
+                        >
+                          {{ product.name }}
+                        </h6>
+                        <div class="mt-1 flex items-center gap-2">
+                          <span
+                            class="bg-gray-200 dark:bg-gray-600/50 px-2 py-1 rounded text-xs font-mono text-gray-700 dark:text-gray-400"
+                          >
+                            {{ product.productIdNumber }}
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        class="w-8 h-8 bg-blue-600/20 border border-blue-600/30 rounded-lg flex items-center justify-center text-blue-400 opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:bg-blue-600/30 flex-shrink-0"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+
+                    <!-- Product Details -->
+                    <div class="space-y-2">
+                      <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-600 dark:text-gray-400">Category</span>
+                        <span class="text-xs text-gray-700 dark:text-gray-300">{{
+                          product.category?.name || "No Category"
+                        }}</span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-600 dark:text-gray-400">Unit Price</span>
+                        <span class="text-sm font-bold text-gray-900 dark:text-gray-200">
+                          KES
+                          {{
+                            (
+                              product.buyingPrice ||
+                              product.buying_price ||
+                              0
+                            ).toFixed(2)
+                          }}
+                        </span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-600 dark:text-gray-400">Stock Level</span>
+                        <div class="flex items-center gap-2">
+                          <span class="text-sm text-gray-700 dark:text-gray-300">{{
+                            product.quantity || 0
+                          }}</span>
+                          <div
+                            class="text-xs px-2 py-1 rounded-full font-medium"
+                            [ngClass]="{
+                              'bg-green-500/20 text-green-400 border border-green-500/30':
+                                (product.quantity || 0) > 10,
+                              'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30':
+                                (product.quantity || 0) > 0 &&
+                                (product.quantity || 0) <= 10,
+                              'bg-red-500/20 text-red-400 border border-red-500/30':
+                                (product.quantity || 0) === 0
+                            }"
+                          >
+                            {{
+                              (product.quantity || 0) > 10
+                                ? "Available"
+                                : (product.quantity || 0) > 0
+                                ? "Low"
+                                : "Out"
+                            }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Items Form Array -->
+          <div class="space-y-4">
+            <div
+              *ngFor="let item of itemsFormArray.controls; let i = index"
+              [formGroupName]="i"
+              class="border-2 rounded-xl overflow-hidden transition-all duration-200"
+              [ngClass]="{
+                'border-blue-500/50 bg-gray-50 dark:bg-slate-900/30':
+                  item.get('productIdNumber')?.value,
+                'border-gray-200 dark:border-gray-600/30 bg-gray-25 dark:bg-slate-900/20':
+                  !item.get('productIdNumber')?.value
+              }"
+            >
+              <!-- Product Info Header (when product is selected) -->
+              <div
+                *ngIf="item.get('productIdNumber')?.value"
+                class="px-4 py-4 bg-gradient-to-r from-blue-500 to-purple-600"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-4 flex-1">
+                    <div
+                      class="flex items-center justify-center w-10 h-10 bg-white/20 rounded-lg backdrop-blur-sm"
+                    >
+                      <span class="text-sm font-bold text-white"
+                        >#{{ i + 1 }}</span
+                      >
+                    </div>
+                    <div class="flex-1">
+                      <div class="flex items-center space-x-3">
+                        <div
+                          class="px-3 py-1.5 bg-white/20 rounded-lg text-xs font-mono text-white backdrop-blur-sm"
+                        >
+                          ID: {{ item.get("productIdNumber")?.value }}
+                        </div>
+                        <div class="text-lg font-bold text-white">
+                          {{ item.get("productName")?.value }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                      <div class="text-xs text-white/80">Quantity</div>
+                      <div class="text-2xl font-bold text-white">
+                        {{ item.get("quantity")?.value || 0 }}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="removeItem(i)"
+                      [disabled]="itemsFormArray.length === 1"
+                      class="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed group"
+                      title="Remove item"
+                    >
+                      <svg
+                        class="w-5 h-5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Empty State Header (when no product selected) -->
+              <div
+                *ngIf="!item.get('productIdNumber')?.value"
+                class="px-4 py-3 bg-gray-100 dark:bg-slate-900/50 border-b border-gray-200 dark:border-gray-600/30"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div
+                      class="flex items-center justify-center w-8 h-8 bg-gray-200 dark:bg-gray-600/50 rounded-lg"
+                    >
+                      <span class="text-sm font-bold text-gray-500 dark:text-gray-400"
+                        >#{{ i + 1 }}</span
+                      >
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400 italic">
+                      No product selected - Search and select a product above
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="removeItem(i)"
+                    [disabled]="itemsFormArray.length === 1"
+                    class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Form Fields -->
+              <div class="p-4">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                  <!-- Hidden inputs for form validation -->
+                  <input formControlName="productIdNumber" type="hidden" />
+                  <input formControlName="productName" type="hidden" />
+
+                  <!-- Quantity -->
+                  <div class="md:col-span-2 relative group">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Quantity to Transfer *
+                    </label>
+                    <div class="flex items-center space-x-2">
+                      <div class="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          (click)="updateQuantity(i, -1)"
+                          class="inline-flex items-center justify-center w-10 h-10 bg-gray-200 dark:bg-slate-900/40 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-900/60 transition-colors"
+                          title="Decrease quantity"
+                        >
+                          -
+                        </button>
+
+                        <input
+                          formControlName="quantity"
+                          type="number"
+                          min="1"
+                          [value]="item.get('quantity')?.value || 1"
+                          (input)="onQuantityInput(i, $event)"
+                          class="w-28 text-center px-3 py-2 text-base font-medium text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-slate-900/70 placeholder-gray-500 dark:placeholder-gray-400 backdrop-blur-sm"
+                          aria-label="Quantity to transfer"
+                        />
+
+                        <button
+                          type="button"
+                          (click)="updateQuantity(i, 1)"
+                          class="inline-flex items-center justify-center w-10 h-10 bg-gray-200 dark:bg-slate-900/40 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-900/60 transition-colors"
+                          title="Increase quantity"
+                        >
+                          +
+                        </button>
+
+                        <div
+                          class="px-3 py-3 bg-gray-200 dark:bg-gray-600/30 rounded-xl text-sm text-gray-700 dark:text-gray-300 font-medium"
+                        >
+                          units
+                        </div>
+                      </div>
+                      <div
+                        class="px-3 py-3 bg-gray-200 dark:bg-gray-600/30 rounded-xl text-sm text-gray-700 dark:text-gray-300 font-medium"
+                      >
+                        units
+                      </div>
+                    </div>
+                    <div
+                      class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-600/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"
+                    ></div>
+                  </div>
+
+                  <!-- Unit Price -->
+                  <div class="md:col-span-2 relative group">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Unit Price (KES) *
+                    </label>
+                    <div class="flex items-center space-x-2">
+                      <div
+                        class="px-3 py-3 bg-gray-200 dark:bg-gray-600/30 rounded-xl text-sm text-gray-700 dark:text-gray-300 font-medium"
+                      >
+                        KES
+                      </div>
+                      <input
+                        formControlName="unitPrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        (input)="calculateTotalPrice(i)"
+                        class="flex-1 px-4 py-3 text-base font-medium text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-slate-900/70 placeholder-gray-500 dark:placeholder-gray-400 backdrop-blur-sm"
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div
+                      class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-600/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"
+                    ></div>
+                  </div>
+
+                  <!-- Total Price -->
+                  <div class="md:col-span-2">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Total Price
+                    </label>
+                    <div
+                      class="px-4 py-3 bg-green-500/10 border border-green-500/30 rounded-xl backdrop-blur-sm"
+                    >
+                      <div class="text-lg font-bold text-green-400">
+                        KES
+                        {{ (item.get("totalPrice")?.value || 0).toFixed(2) }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Item Notes (full width) -->
+                  <div class="md:col-span-6 relative group">
+                    <label
+                      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Item Notes (Optional)
+                    </label>
+                    <input
+                      formControlName="notes"
+                      type="text"
+                      class="w-full px-4 py-2.5 text-sm text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-slate-900/70 placeholder-gray-500 dark:placeholder-gray-400 backdrop-blur-sm"
+                      placeholder="Add any specific notes for this item..."
+                    />
+                    <div
+                      class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-600/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transfer Summary -->
+          <div
+            class="mt-6 sm:mt-8 p-4 sm:p-6 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-xl border border-blue-500/30 backdrop-blur-sm"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 text-blue-300">
+                  <svg
+                    class="w-6 h-6 text-blue-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                  <span class="font-semibold text-lg">Transfer Summary</span>
+                </div>
+                <div class="flex items-center gap-6">
+                  <div class="text-center">
+                    <div class="text-sm text-blue-300 mb-1">Total Items</div>
+                    <div class="text-2xl font-bold text-blue-200">
+                      {{ itemsFormArray.length }}
+                    </div>
+                  </div>
+                  <div class="h-8 w-px bg-blue-500/30"></div>
+                  <div class="text-center">
+                    <div class="text-sm text-blue-300 mb-1">Valid Items</div>
+                    <div class="text-2xl font-bold text-green-400">
+                      {{ getValidItemsCount() }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div
+                  class="text-sm text-blue-300 mb-1 flex items-center justify-end gap-2"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                    />
+                  </svg>
+                  Total Transfer Value
+                </div>
+                <div class="text-3xl font-bold text-blue-200">
+                  KES {{ getTotalTransferValue().toFixed(2) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="flex flex-col sm:flex-row justify-between items-center gap-4 px-4 sm:px-8 py-4 sm:py-6 border-t border-gray-300 dark:border-gray-700/50 bg-gray-50 dark:bg-slate-900/70 backdrop-blur-sm"
+    >
+      <div class="hidden sm:flex items-center gap-3">
+        <div
+          class="flex items-center justify-center w-8 h-8 bg-blue-500/20 rounded-lg"
+        >
+          <svg
+            class="w-4 h-4 text-blue-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          <span class="font-medium text-gray-900 dark:text-gray-300">Pro Tip:</span> Search for
+          products above and they'll be added to your transfer automatically
+        </div>
+      </div>
+      <div class="flex items-center space-x-3 w-full sm:w-auto">
+        <button
+          type="button"
+          (click)="close()"
+          class="px-6 py-3 w-full sm:w-auto justify-center text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-slate-900/50 rounded-xl hover:bg-gray-300 dark:hover:bg-slate-900/70 transition-all duration-200 font-medium border border-gray-300 dark:border-gray-600/30 hover:border-gray-400 dark:hover:border-gray-500/50 active:scale-[0.98] flex items-center gap-2"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+          Cancel
+        </button>
+        <button
+          type="submit"
+          (click)="submit()"
+          [disabled]="
+            !transferForm.valid || loading || getValidItemsCount() === 0
+          "
+          class="px-8 py-3 w-full sm:w-auto text-white bg-gradient-to-r from-green-500 to-green-600 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 font-medium hover:shadow-lg hover:shadow-green-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-600 disabled:to-gray-700 active:scale-[0.98] min-w-[180px] flex items-center justify-center gap-2"
+        >
+          <div
+            *ngIf="loading"
+            class="animate-spin h-5 w-5 border-2 border-gray-900 dark:border-white border-t-transparent rounded-full"
+          ></div>
+          <svg
+            *ngIf="!loading"
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          <span *ngIf="loading">Creating Transfer...</span>
+          <span *ngIf="!loading">Create Transfer</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div
+  *ngIf="loading"
+  class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+>
+  <div
+    class="bg-white dark:bg-slate-900 rounded-xl p-8 mx-4 max-w-sm w-full border border-gray-300 dark:border-gray-700"
+  >
+    <div class="text-center">
+      <div
+        class="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
+      ></div>
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-2">
+        Creating Stock Transfer
+      </h3>
+      <p class="text-gray-600 dark:text-gray-400">Please wait while we process your request...</p>
+    </div>
+  </div>
+</div>

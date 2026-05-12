@@ -1,0 +1,227 @@
+﻿<div class="receivable-form-container bg-white dark:bg-slate-800 rounded-lg shadow-xl transition-colors duration-200">
+  <div class="modal-header bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 rounded-t-lg">
+    <h5 class="modal-title text-gray-900 dark:text-white text-lg font-semibold flex items-center">
+      <i class="fas fa-file-invoice-dollar me-2 text-indigo-600 dark:text-indigo-400"></i>
+      {{ isUpdateMode ? 'Edit Receivable' : 'Create New Receivable' }}
+    </h5>
+    <button type="button" class="btn-close text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" (click)="close()">
+      <i class="fas fa-times text-xl"></i>
+    </button>
+  </div>
+
+  <div class="modal-body p-6 max-h-[70vh] overflow-y-auto">
+    <form [formGroup]="receivableForm" (ngSubmit)="onSubmit()">
+      <div class="row g-3">
+        <!-- Customer -->
+        <div class="col-md-6">
+          <label for="customerId" class="form-label text-gray-700 dark:text-gray-300 font-medium">Customer *</label>
+          <select
+            id="customerId"
+            class="form-select w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
+            formControlName="customerId"
+            [class.is-invalid]="isInvalid('customerId')"
+            [disabled]="customersLoading"
+          >
+            <option value="" *ngIf="customersLoading">Loading customers...</option>
+            <option value="" *ngIf="!customersLoading">Select Customer</option>
+            <option *ngFor="let customer of customers" [value]="customer.id">
+              {{ customer.name }}
+            </option>
+          </select>
+          <div class="invalid-feedback text-red-600 dark:text-red-400 text-sm mt-1" *ngIf="isInvalid('customerId')">
+            {{ getErrorMessage('customerId') }}
+          </div>
+        </div>
+
+        <!-- Receivable Number -->
+        <div class="col-md-6">
+          <label for="receivableNumber" class="form-label text-gray-700 dark:text-gray-300 font-medium">Receivable Number *</label>
+          <input
+            type="text"
+            id="receivableNumber"
+            class="form-control w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
+            formControlName="receivableNumber"
+            placeholder="Enter receivable number"
+            [class.is-invalid]="isInvalid('receivableNumber')"
+          />
+          <div class="invalid-feedback text-red-600 dark:text-red-400 text-sm mt-1" *ngIf="isInvalid('receivableNumber')">
+            {{ getErrorMessage('receivableNumber') }}
+          </div>
+        </div>
+
+        <!-- Receivable Date -->
+        <div class="col-md-6">
+          <label for="receivableDate" class="form-label text-gray-700 dark:text-gray-300 font-medium">Receivable Date *</label>
+          <div class="relative">
+            <input
+              datepicker
+              datepicker-format="yyyy-mm-dd"
+              type="text"
+              id="receivableDate"
+              class="form-control w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
+              formControlName="receivableDate"
+              [class.is-invalid]="isInvalid('receivableDate')"
+              placeholder="Select receivable date"
+            />
+            <i class="fas fa-calendar-alt text-gray-400 dark:text-gray-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"></i>
+          </div>
+          <div class="invalid-feedback text-red-600 dark:text-red-400 text-sm mt-1" *ngIf="isInvalid('receivableDate')">
+            {{ getErrorMessage('receivableDate') }}
+          </div>
+        </div>
+
+        <!-- Due Date -->
+        <div class="col-md-6">
+          <label for="dueDate" class="form-label text-gray-700 dark:text-gray-300 font-medium">Due Date *</label>
+          <div class="relative">
+            <input
+              datepicker
+              datepicker-format="yyyy-mm-dd"
+              type="text"
+              id="dueDate"
+              class="form-control w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
+              formControlName="dueDate"
+              [class.is-invalid]="isInvalid('dueDate')"
+              placeholder="Select due date"
+            />
+            <i class="fas fa-calendar-alt text-gray-400 dark:text-gray-500 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"></i>
+          </div>
+          <div class="invalid-feedback text-red-600 dark:text-red-400 text-sm mt-1" *ngIf="isInvalid('dueDate')">
+            {{ getErrorMessage('dueDate') }}
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="col-12">
+          <label for="description" class="form-label text-gray-700 dark:text-gray-300 font-medium">Description</label>
+          <textarea
+            id="description"
+            class="form-control w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
+            formControlName="description"
+            rows="3"
+            placeholder="Enter receivable description"
+            [class.is-invalid]="isInvalid('description')"
+          ></textarea>
+          <div class="invalid-feedback text-red-600 dark:text-red-400 text-sm mt-1" *ngIf="isInvalid('description')">
+            {{ getErrorMessage('description') }}
+          </div>
+        </div>
+
+        <!-- Total Amount -->
+        <div class="col-md-4">
+          <label for="totalAmount" class="form-label text-gray-700 dark:text-gray-300 font-medium">Total Amount *</label>
+          <input
+            type="number"
+            id="totalAmount"
+            class="form-control w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
+            formControlName="totalAmount"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+            [class.is-invalid]="isInvalid('totalAmount')"
+          />
+          <div class="invalid-feedback text-red-600 dark:text-red-400 text-sm mt-1" *ngIf="isInvalid('totalAmount')">
+            {{ getErrorMessage('totalAmount') }}
+          </div>
+        </div>
+
+        <!-- Tax Amount -->
+        <div class="col-md-4">
+          <label for="taxAmount" class="form-label text-gray-700 dark:text-gray-300 font-medium">Tax Amount</label>
+          <input
+            type="number"
+            id="taxAmount"
+            class="form-control w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
+            formControlName="taxAmount"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+            [class.is-invalid]="isInvalid('taxAmount')"
+          />
+          <div class="invalid-feedback text-red-600 dark:text-red-400 text-sm mt-1" *ngIf="isInvalid('taxAmount')">
+            {{ getErrorMessage('taxAmount') }}
+          </div>
+        </div>
+
+        <!-- Discount Amount -->
+        <div class="col-md-4">
+          <label for="discountAmount" class="form-label text-gray-700 dark:text-gray-300 font-medium">Discount Amount</label>
+          <input
+            type="number"
+            id="discountAmount"
+            class="form-control w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
+            formControlName="discountAmount"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+            [class.is-invalid]="isInvalid('discountAmount')"
+          />
+          <div class="invalid-feedback text-red-600 dark:text-red-400 text-sm mt-1" *ngIf="isInvalid('discountAmount')">
+            {{ getErrorMessage('discountAmount') }}
+          </div>
+        </div>
+
+        <!-- Net Amount Display -->
+        <div class="col-12">
+          <div class="net-amount-display bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 border border-indigo-200 dark:border-indigo-700 rounded-lg p-4 text-center transition-colors duration-200">
+            <span class="text-gray-700 dark:text-gray-300 font-medium">Net Amount: </span>
+            <strong class="text-indigo-700 dark:text-indigo-400 text-xl">{{ formatCurrency(calculateNetAmount()) }}</strong>
+          </div>
+        </div>
+
+        <!-- Reference Number -->
+        <div class="col-md-6">
+          <label for="referenceNumber" class="form-label text-gray-700 dark:text-gray-300 font-medium">Reference Number</label>
+          <input
+            type="text"
+            id="referenceNumber"
+            class="form-control w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
+            formControlName="referenceNumber"
+            placeholder="Enter reference number"
+            [class.is-invalid]="isInvalid('referenceNumber')"
+          />
+          <div class="invalid-feedback text-red-600 dark:text-red-400 text-sm mt-1" *ngIf="isInvalid('referenceNumber')">
+            {{ getErrorMessage('referenceNumber') }}
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="col-md-6">
+          <label for="notes" class="form-label text-gray-700 dark:text-gray-300 font-medium">Notes</label>
+          <input
+            type="text"
+            id="notes"
+            class="form-control w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200"
+            formControlName="notes"
+            placeholder="Additional notes"
+            [class.is-invalid]="isInvalid('notes')"
+          />
+          <div class="invalid-feedback text-red-600 dark:text-red-400 text-sm mt-1" *ngIf="isInvalid('notes')">
+            {{ getErrorMessage('notes') }}
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 rounded-b-lg flex gap-3">
+    <button
+      type="button"
+      class="flex-1 px-6 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium rounded-lg transition-all duration-200 border border-gray-300 dark:border-gray-600 flex items-center justify-center gap-2"
+      (click)="close()"
+    >
+      <i class="fas fa-times"></i>
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="flex-1 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+      (click)="onSubmit()"
+      [disabled]="receivableForm.invalid || submitting"
+    >
+      <i class="fas fa-spinner fa-spin" *ngIf="submitting"></i>
+      <i class="fas fa-save" *ngIf="!submitting"></i>
+      {{ isUpdateMode ? 'Update Receivable' : 'Create Receivable' }}
+    </button>
+  </div>
+</div>

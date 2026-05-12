@@ -1,0 +1,677 @@
+<div
+  class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+>
+  <div
+    class="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-xl shadow-xl max-h-[90vh] overflow-hidden flex flex-col"
+  >
+    <!-- Header -->
+    <div
+      class="bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20 transition-all duration-300 rounded-t-xl"
+    >
+      <div class="flex items-center justify-between p-4">
+        <h3
+          class="text-lg font-black text-white uppercase tracking-[0.1em] flex items-center"
+        >
+          <i class="fas fa-receipt me-2"></i>
+          {{ isUpdateMode ? "Update" : "Record" }} Expense
+        </h3>
+        <button
+          (click)="close()"
+          type="button"
+          class="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition-colors"
+          [disabled]="submitting"
+        >
+          <svg
+            class="w-5 h-5"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+          <span class="sr-only">Close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body with scrollable content -->
+    <div class="overflow-y-auto flex-1 p-6">
+      <!-- Expense Summary Card (Update Mode Only) -->
+      <div
+        *ngIf="expense && isUpdateMode"
+        class="mb-6 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30 border border-purple-200 dark:border-purple-700 rounded-lg p-4"
+      >
+        <h6
+          class="text-purple-800 dark:text-purple-300 font-semibold mb-3 flex items-center"
+        >
+          <i class="fas fa-file-invoice me-2"></i>
+          Expense: {{ expense.title }}
+        </h6>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Status:</strong>
+              <span
+                class="ml-2 px-2 py-0.5 rounded text-xs font-medium"
+                [ngClass]="{
+                  'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400':
+                    expense.status === 'APPROVED' ||
+                    expense.status === 'Approved',
+                  'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400':
+                    expense.status === 'PENDING_APPROVAL',
+                  'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400':
+                    expense.status === 'REJECTED',
+                  'bg-gray-100 text-gray-800 dark:bg-slate-900/30 dark:text-gray-400':
+                    expense.status === 'DRAFT',
+                }"
+                >{{ expense.status }}</span
+              >
+            </p>
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Category:</strong> {{ expense.category }}
+            </p>
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Created:</strong> {{ expense.createdAt | date: "medium" }}
+            </p>
+          </div>
+          <div class="space-y-1">
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Total Amount:</strong> KES
+              {{ expense.amount | number: "1.2-2" }}
+            </p>
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Paid Amount:</strong> KES
+              {{ expense.paidAmount | number: "1.2-2" }}
+            </p>
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Payment Method:</strong> {{ expense.paymentMethod }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()">
+        <div class="space-y-4">
+          <!-- Expense Title and Date -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+              <label
+                for="title"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Expense Title <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="title"
+                formControlName="title"
+                placeholder="e.g., Office Supplies Purchase"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+                [class.border-red-500]="isInvalid('title')"
+              />
+              <p
+                *ngIf="isInvalid('title')"
+                class="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
+                {{ getErrorMessage("title") }}
+              </p>
+            </div>
+
+            <div>
+              <label
+                for="expenseDate"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Expense Date <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                id="expenseDate"
+                formControlName="expenseDate"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+                [class.border-red-500]="isInvalid('expenseDate')"
+              />
+              <p
+                *ngIf="isInvalid('expenseDate')"
+                class="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
+                {{ getErrorMessage("expenseDate") }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Category and Type -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label
+                for="category"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Category <span class="text-red-500">*</span>
+              </label>
+              <select
+                id="category"
+                formControlName="category"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+                [class.border-red-500]="isInvalid('category')"
+              >
+                <option value="">Select Category</option>
+                <option *ngFor="let cat of expenseCategories" [value]="cat">
+                  {{ cat }}
+                </option>
+              </select>
+              <p
+                *ngIf="isInvalid('category')"
+                class="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
+                {{ getErrorMessage("category") }}
+              </p>
+            </div>
+
+            <div>
+              <label
+                for="expenseType"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Expense Type <span class="text-red-500">*</span>
+              </label>
+              <select
+                id="expenseType"
+                formControlName="expenseType"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+              >
+                <option *ngFor="let type of expenseTypes" [value]="type">
+                  {{ type.replace("_", " ") }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Amount and Paid Amount -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label
+                for="amount"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Amount <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                id="amount"
+                formControlName="amount"
+                step="0.01"
+                min="0.01"
+                placeholder="0.00"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+                [class.border-red-500]="isInvalid('amount')"
+              />
+              <p
+                *ngIf="isInvalid('amount')"
+                class="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
+                {{ getErrorMessage("amount") }}
+              </p>
+            </div>
+
+            <div>
+              <label
+                for="paidAmount"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Paid Amount
+              </label>
+              <input
+                type="number"
+                id="paidAmount"
+                formControlName="paidAmount"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+                [class.border-red-500]="isInvalid('paidAmount')"
+              />
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Defaults to full amount if not specified
+              </p>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label
+              for="description"
+              class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+            >
+              Description <span class="text-red-500">*</span>
+            </label>
+            <textarea
+              id="description"
+              rows="3"
+              formControlName="description"
+              placeholder="Detailed description of the expense..."
+              [disabled]="submitting"
+              class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+              [class.border-red-500]="isInvalid('description')"
+            ></textarea>
+            <div class="flex justify-between mt-1">
+              <p
+                *ngIf="isInvalid('description')"
+                class="text-sm text-red-600 dark:text-red-400"
+              >
+                {{ getErrorMessage("description") }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                {{ expenseForm.get("description")?.value?.length || 0 }}/2000
+                characters
+              </p>
+            </div>
+          </div>
+
+          <!-- Payment Method and Paid By -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label
+                for="paymentMethod"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Payment Method <span class="text-red-500">*</span>
+              </label>
+              <select
+                id="paymentMethod"
+                formControlName="paymentMethod"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+                [class.border-red-500]="isInvalid('paymentMethod')"
+              >
+                <option *ngFor="let method of paymentMethods" [value]="method">
+                  {{ method.replace("_", " ") }}
+                </option>
+              </select>
+              <p
+                *ngIf="isInvalid('paymentMethod')"
+                class="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
+                {{ getErrorMessage("paymentMethod") }}
+              </p>
+            </div>
+
+            <div>
+              <label
+                for="paidBy"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Paid By <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="paidBy"
+                formControlName="paidBy"
+                placeholder="Person or entity who paid"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+                [class.border-red-500]="isInvalid('paidBy')"
+              />
+              <p
+                *ngIf="isInvalid('paidBy')"
+                class="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
+                {{ getErrorMessage("paidBy") }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Transaction Code and Payment Reference -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div
+              *ngIf="
+                expenseForm.get('paymentMethod')?.value === 'MPESA' ||
+                expenseForm.get('paymentMethod')?.value === 'BANK_TRANSFER'
+              "
+            >
+              <label
+                for="transactionCode"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Transaction Code <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="transactionCode"
+                formControlName="transactionCode"
+                placeholder="e.g., SK12ABC34D"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+                [class.border-red-500]="isInvalid('transactionCode')"
+              />
+              <p
+                *ngIf="isInvalid('transactionCode')"
+                class="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
+                {{ getErrorMessage("transactionCode") }}
+              </p>
+            </div>
+
+            <div>
+              <label
+                for="paymentReference"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Payment Reference
+              </label>
+              <input
+                type="text"
+                id="paymentReference"
+                formControlName="paymentReference"
+                placeholder="Reference number or note"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+              />
+            </div>
+          </div>
+
+          <!-- Chart of Account and Status -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label
+                for="chartOfAccountId"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Chart of Account
+              </label>
+              <select
+                id="chartOfAccountId"
+                formControlName="chartOfAccountId"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+              >
+                <option value="">Select Account (Optional)</option>
+                <option
+                  *ngFor="let account of expenseAccounts"
+                  [value]="account.id"
+                >
+                  {{ account.accountCode }} - {{ account.accountName }}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                for="status"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Status
+              </label>
+              <select
+                id="status"
+                formControlName="status"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+              >
+                <option *ngFor="let status of expenseStatuses" [value]="status">
+                  {{ status.replace("_", " ") }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Tax Rate and Tax Amount -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label
+                for="taxRate"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Tax Rate (%)
+              </label>
+              <input
+                type="number"
+                id="taxRate"
+                formControlName="taxRate"
+                step="0.01"
+                min="0"
+                max="100"
+                placeholder="0.00"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+              />
+            </div>
+
+            <div>
+              <label
+                for="taxAmount"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Tax Amount
+              </label>
+              <input
+                type="number"
+                id="taxAmount"
+                formControlName="taxAmount"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                readonly
+                class="w-full px-3 py-2 bg-gray-100 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white cursor-not-allowed"
+              />
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Auto-calculated based on tax rate
+              </p>
+            </div>
+          </div>
+
+          <!-- Advanced Options Toggle -->
+          <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              type="button"
+              (click)="toggleAdvancedOptions()"
+              class="flex items-center text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+            >
+              <i
+                class="fas mr-2"
+                [ngClass]="
+                  showAdvancedOptions ? 'fa-chevron-up' : 'fa-chevron-down'
+                "
+              ></i>
+              Advanced Options
+            </button>
+          </div>
+
+          <!-- Advanced Options Section -->
+          <div *ngIf="showAdvancedOptions" class="space-y-4 pt-2">
+            <!-- Vendor and Invoice Number -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="vendor"
+                  class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Vendor
+                </label>
+                <input
+                  type="text"
+                  id="vendor"
+                  formControlName="vendor"
+                  placeholder="Supplier or vendor name"
+                  [disabled]="submitting"
+                  class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="invoiceNumber"
+                  class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Invoice Number
+                </label>
+                <input
+                  type="text"
+                  id="invoiceNumber"
+                  formControlName="invoiceNumber"
+                  placeholder="Vendor's invoice number"
+                  [disabled]="submitting"
+                  class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+                />
+              </div>
+            </div>
+
+            <!-- Checkboxes -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  id="isBillable"
+                  formControlName="isBillable"
+                  class="w-4 h-4 text-purple-600 bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500"
+                  [disabled]="submitting"
+                />
+                <label
+                  for="isBillable"
+                  class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                >
+                  Billable to Client
+                </label>
+              </div>
+
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  id="isReimbursable"
+                  formControlName="isReimbursable"
+                  class="w-4 h-4 text-purple-600 bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500"
+                  [disabled]="submitting"
+                />
+                <label
+                  for="isReimbursable"
+                  class="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                >
+                  Reimbursable
+                </label>
+              </div>
+            </div>
+
+            <!-- Tags -->
+            <div>
+              <label
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+                >Tags</label
+              >
+              <div class="flex flex-wrap gap-2 mb-2">
+                <span
+                  *ngFor="
+                    let tag of expenseForm.get('tags')?.value;
+                    let i = index
+                  "
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400"
+                >
+                  {{ tag }}
+                  <button
+                    type="button"
+                    (click)="removeTag(i)"
+                    class="ml-1.5 inline-flex items-center justify-center w-4 h-4 text-purple-400 hover:bg-purple-200 hover:text-purple-600 dark:hover:bg-purple-800 rounded-full"
+                  >
+                    <i class="fas fa-times text-xs"></i>
+                  </button>
+                </span>
+              </div>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  #tagInput
+                  (keyup.enter)="addTag(tagInput)"
+                  placeholder="Add tag and press Enter"
+                  class="flex-1 px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
+                />
+                <button
+                  type="button"
+                  (click)="addTag(tagInput)"
+                  class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                >
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div>
+              <label
+                for="notes"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
+              >
+                Notes
+              </label>
+              <textarea
+                id="notes"
+                rows="2"
+                formControlName="notes"
+                placeholder="Additional notes or comments"
+                [disabled]="submitting"
+                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-60"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-slate-900/50"
+    >
+      <div class="flex gap-3 justify-end">
+        <button
+          type="button"
+          (click)="close()"
+          [disabled]="submitting"
+          class="px-4 py-2 bg-gray-200 dark:bg-slate-900 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <i class="fas fa-times me-2"></i>
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="onSubmit()"
+          [disabled]="expenseForm.invalid || submitting"
+          class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <svg
+            *ngIf="submitting"
+            class="animate-spin h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <i *ngIf="!submitting" class="fas fa-save"></i>
+          <span>{{ isUpdateMode ? "Update" : "Save" }} Expense</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

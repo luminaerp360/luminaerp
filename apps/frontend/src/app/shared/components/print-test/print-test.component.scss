@@ -1,0 +1,39 @@
+.print-test-container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.test-content {
+  border: 1px solid #ddd;
+  padding: 20px;
+  margin: 20px 0;
+  background-color: #f9f9f9;
+}
+
+.print-controls {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.print-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.print-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.status {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+}

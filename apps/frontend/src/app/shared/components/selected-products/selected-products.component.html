@@ -1,0 +1,337 @@
+<div class="selected-products transition-colors duration-200">
+  <div class="flex items-center justify-between mb-3">
+    <h4 class="text-base font-semibold text-gray-900 dark:text-white">
+      <i class="bi bi-cart-check mr-2 text-green-600 dark:text-green-400"></i>
+      Cart Items
+    </h4>
+    <div class="flex items-center gap-2">
+      <span class="bg-blue-600 dark:bg-blue-500 text-white text-xs px-2.5 py-1 rounded-full font-medium">
+        {{ getTotalQuantity() }} qty
+      </span>
+      <span class="bg-purple-600 dark:bg-purple-500 text-white text-xs px-2.5 py-1 rounded-full font-medium">
+        {{ products.length || 0 }} items
+      </span>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div
+    *ngIf="!products || products.length === 0"
+    class="empty-cart text-center py-12 bg-gray-50 dark:bg-transparent rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-900/60"
+  >
+    <i class="bi bi-cart-x text-5xl text-gray-400 dark:text-slate-500 mb-3 block"></i>
+    <p class="text-gray-600 dark:text-slate-400 text-sm font-medium">No items in cart</p>
+    <p class="text-gray-500 dark:text-slate-500 text-xs mt-1">Add products to start building your order</p>
+  </div>
+
+  <!-- Products Table Container -->
+  <div
+    *ngIf="products && products.length > 0"
+    class="bg-white dark:bg-slate-900/90 rounded-lg border-2 border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm transition-colors duration-200"
+  >
+    <!-- Desktop View: Table -->
+    <div class="hidden sm:block max-h-80 overflow-y-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-slate-900 dark:to-slate-900 sticky top-0 z-10 shadow-sm backdrop-blur-sm">
+          <tr class="text-left">
+            <th class="px-2 py-2 text-xs font-semibold uppercase tracking-tight" style="width: 32%;">
+              Product
+            </th>
+            <th class="px-2 py-2 text-xs font-semibold uppercase tracking-tight text-center" style="width: 20%;">
+              Quantity
+            </th>
+            <th class="px-2 py-2 text-xs font-semibold uppercase tracking-tight text-right" style="width: 17%;">
+              Unit Price
+            </th>
+            <th class="px-2 py-2 text-xs font-semibold uppercase tracking-tight text-center" style="width: 13%;">
+              Tax
+            </th>
+            <th class="px-2 py-2 text-xs font-semibold uppercase tracking-tight text-right" style="width: 14%;">
+              Total
+            </th>
+            <th class="px-2 py-2 text-xs font-semibold uppercase tracking-tight text-center" style="width: 4%;">
+              <i class="bi bi-trash text-xs"></i>
+            </th>
+          </tr>
+        </thead>
+
+        <!-- Table Body -->
+        <tbody class="divide-y divide-gray-200 dark:divide-slate-700">
+          <tr
+            *ngFor="let p of products; trackBy: trackById; let i = index"
+            [ngClass]="{
+              'bg-white dark:bg-slate-900/70': i % 2 === 0,
+              'bg-gray-50 dark:bg-slate-900/30': i % 2 === 1
+            }"
+            class="transition-all duration-150 hover:bg-blue-50 dark:hover:bg-slate-900/40 hover:shadow-sm"
+          >
+            <!-- Product Name & Info -->
+            <td class="px-3 py-3">
+              <div class="flex flex-col">
+                <!-- Product Name -->
+                <p class="font-semibold text-gray-900 dark:text-white text-sm mb-1.5" [title]="p.name">
+                  {{ p.name }}
+                </p>
+                
+                <!-- Product Type Badges & Price Type Toggle -->
+                <div class="flex items-center gap-1.5 flex-wrap">
+
+                  <span
+                    *ngIf="p.isOneTime"
+                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-200 dark:border-purple-700"
+                    title="Custom/One-time Product"
+                  >
+                    <i class="bi bi-star text-[9px] mr-0.5"></i> Custom
+                  </span>
+                  
+                  <!-- Price Type Toggle (if wholesale available) -->
+                  <div *ngIf="hasWholesalePrice(p)" class="price-toggle-enhanced">
+                    <button
+                      (click)="togglePriceType(p.id, 'retail')"
+                      [class.active]="getPriceType(p.id) === 'retail'"
+                      class="toggle-btn"
+                      title="Retail Price"
+                    >
+                      <i class="bi bi-shop text-[8px] mr-0.5"></i> R
+                    </button>
+                    <button
+                      (click)="togglePriceType(p.id, 'wholesale')"
+                      [class.active]="getPriceType(p.id) === 'wholesale'"
+                      class="toggle-btn"
+                      title="Wholesale Price"
+                    >
+                      <i class="bi bi-box-seam text-[8px] mr-0.5"></i> W
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Quantity Controls -->
+            <td class="px-2 py-3">
+              <div class="flex items-center justify-center gap-1">
+                <button
+                  (click)="onQtyChange(p.id, (p.selectedItems || 1) - 1)"
+                  class="qty-btn qty-btn-minus"
+                  [disabled]="(p.selectedItems || 1) <= 1"
+                  title="Decrease quantity"
+                >
+                  <i class="bi bi-dash-lg font-bold"></i>
+                </button>
+                <input
+                  class="qty-input"
+                  type="number"
+                  [value]="p.selectedItems || 1"
+                  (change)="onQtyChange(p.id, $any($event.target).value)"
+                  (blur)="$any($event.target).value = p.selectedItems || 1"
+                  min="1"
+                  max="9999"
+                />
+                <button
+                  (click)="onQtyChange(p.id, (p.selectedItems || 1) + 1)"
+                  class="qty-btn qty-btn-plus"
+                  title="Increase quantity"
+                >
+                  <i class="bi bi-plus-lg font-bold"></i>
+                </button>
+              </div>
+            </td>
+
+            <!-- Unit Price -->
+            <td class="px-2 py-3 text-right">
+              <div class="flex flex-col items-end gap-1">
+                <input
+                  type="number"
+                  [value]="getCurrentPrice(p)"
+                  (input)="onPriceChange(p.id, $any($event.target).value)"
+                  (blur)="onPriceChange(p.id, $any($event.target).value)"
+                  class="price-input-direct"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                />
+                <span *ngIf="(p.discountValue || 0) > 0" class="text-red-600 dark:text-red-400 text-[10px] font-medium">
+                  <i class="bi bi-tag-fill text-[8px]"></i> Disc: -{{ p.discountValue | number : "1.2-2" }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Tax Type Selector -->
+            <td class="px-2 py-3">
+              <div class="tax-type-selector-enhanced">
+                <button
+                  (click)="toggleTaxType(p.id, 'exempt')"
+                  [class.active]="getTaxType(p.id) === 'exempt'"
+                  class="tax-btn"
+                  title="Tax Exempt (0%)"
+                >
+                  <i class="bi bi-x-circle text-[9px]"></i>
+                  <span>0</span>
+                </button>
+                <button
+                  (click)="toggleTaxType(p.id, 'inclusive')"
+                  [class.active]="getTaxType(p.id) === 'inclusive'"
+                  class="tax-btn"
+                  title="Tax Inclusive (16%)"
+                >
+                  <i class="bi bi-check-circle text-[9px]"></i>
+                  <span>=</span>
+                </button>
+                <button
+                  (click)="toggleTaxType(p.id, 'exclusive')"
+                  [class.active]="getTaxType(p.id) === 'exclusive'"
+                  class="tax-btn"
+                  title="Tax Exclusive (+16%)"
+                >
+                  <i class="bi bi-plus-circle text-[9px]"></i>
+                  <span>+</span>
+                </button>
+              </div>
+            </td>
+
+            <!-- Total Price with Tax Info -->
+            <td class="px-2 py-3 text-right">
+              <div class="flex flex-col items-end gap-0.5">
+                <span class="text-green-600 dark:text-green-400 font-bold text-sm">
+                  {{ currencySymbol }} {{ itemTotal(p) | number : "1.2-2" }}
+                </span>
+                <span *ngIf="calculateTax(p) > 0" class="text-yellow-600 dark:text-yellow-400 text-[10px] font-medium">
+                  <i class="bi bi-receipt text-[8px]"></i> Tax: {{ calculateTax(p) | number : "1.2-2" }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Remove Action -->
+            <td class="px-2 py-3 text-center">
+              <button
+                class="remove-btn"
+                (click)="onRemove(p.id)"
+                title="Remove from cart"
+              >
+                <i class="bi bi-trash-fill text-sm"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile View: Cards -->
+    <div class="sm:hidden max-h-[500px] overflow-y-auto p-2 space-y-3 bg-gray-50/50 dark:bg-slate-900/40 transition-colors duration-200">
+      <div 
+        *ngFor="let p of products; let i = index; trackBy: trackById"
+        class="bg-white dark:bg-slate-900/90 p-3 rounded-lg border-2 border-gray-200 dark:border-slate-700 shadow-sm relative overflow-hidden transition-colors duration-200"
+      >
+        <!-- Item Accent -->
+        <div 
+          class="absolute top-0 left-0 w-1 h-full"
+          [ngClass]="i % 2 === 0 ? 'bg-blue-500' : 'bg-purple-500'"
+        ></div>
+
+        <!-- Product Name & Remove -->
+        <div class="flex justify-between items-start mb-2 pl-2">
+          <div class="flex-1">
+            <h5 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">{{ p.name }}</h5>
+            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+              <span *ngIf="p.isService" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100/80 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-700">
+                S
+              </span>
+              <div *ngIf="hasWholesalePrice(p)" class="price-toggle-enhanced scale-90 origin-left">
+                <button (click)="togglePriceType(p.id, 'retail')" [class.active]="getPriceType(p.id) === 'retail'" class="toggle-btn">R</button>
+                <button (click)="togglePriceType(p.id, 'wholesale')" [class.active]="getPriceType(p.id) === 'wholesale'" class="toggle-btn">W</button>
+              </div>
+            </div>
+          </div>
+          <button (click)="onRemove(p.id)" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors">
+            <i class="bi bi-trash-fill text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Inputs: Qty and Price -->
+        <div class="grid grid-cols-2 gap-3 mb-3 pl-2">
+          <div class="space-y-1">
+            <label class="text-[9px] uppercase font-bold text-gray-400 dark:text-slate-500">Quantity</label>
+            <div class="flex items-center gap-1">
+              <button (click)="onQtyChange(p.id, (p.selectedItems || 1) - 1)" 
+                class="qty-btn w-7 h-7" [disabled]="(p.selectedItems || 1) <= 1">-</button>
+              <input type="number" [value]="p.selectedItems || 1" 
+                (change)="onQtyChange(p.id, $any($event.target).value)"
+                class="qty-input w-full h-7 text-xs">
+              <button (click)="onQtyChange(p.id, (p.selectedItems || 1) + 1)" 
+                class="qty-btn w-7 h-7">+</button>
+            </div>
+          </div>
+          <div class="space-y-1 text-right">
+            <label class="text-[9px] uppercase font-bold text-gray-400 dark:text-slate-500">Unit Price</label>
+            <div class="flex flex-col items-end gap-1">
+              <input type="number" [value]="getCurrentPrice(p)" 
+                (input)="onPriceChange(p.id, $any($event.target).value)"
+                class="price-input-direct w-full h-7 text-right text-xs">
+              <span *ngIf="(p.discountValue || 0) > 0" class="text-red-500 text-[9px] font-bold">
+                -{{ p.discountValue | number : "1.2-2" }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totals & Tax -->
+        <div class="flex items-center justify-between pt-2 border-t-2 border-gray-200 dark:border-slate-700 pl-2">
+          <div class="tax-type-selector-enhanced origin-left scale-90">
+            <button (click)="toggleTaxType(p.id, 'exempt')" [class.active]="getTaxType(p.id) === 'exempt'" class="tax-btn">0</button>
+            <button (click)="toggleTaxType(p.id, 'inclusive')" [class.active]="getTaxType(p.id) === 'inclusive'" class="tax-btn">=</button>
+            <button (click)="toggleTaxType(p.id, 'exclusive')" [class.active]="getTaxType(p.id) === 'exclusive'" class="tax-btn">+</button>
+          </div>
+          <div class="text-right">
+            <div class="flex flex-col items-end">
+              <span class="text-green-600 dark:text-green-400 font-bold text-sm">
+                {{ itemTotal(p) | number : "1.2-2" }}
+              </span>
+              <span class="text-[9px] text-gray-500 dark:text-slate-400">
+                Tax: {{ calculateTax(p) | number : "1.2-2" }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Table Footer with Detailed Summary -->
+    <div class="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-slate-900 dark:to-slate-900 px-3 py-3 border-t-2 border-gray-300 dark:border-slate-700 transition-colors duration-200">
+      <div class="space-y-2">
+        <!-- Items Count -->
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-gray-600 dark:text-slate-400 flex items-center gap-1">
+            <i class="bi bi-box text-blue-600 dark:text-blue-400"></i>
+            <strong class="text-gray-900 dark:text-white">{{ products.length }}</strong> item(s)
+          </span>
+          <span class="text-gray-600 dark:text-slate-400 flex items-center gap-1">
+            <i class="bi bi-stack text-purple-600 dark:text-purple-400"></i>
+            <strong class="text-gray-900 dark:text-white">{{ getTotalQuantity() }}</strong> quantity
+          </span>
+        </div>
+
+        <!-- Tax Breakdown -->
+        <div *ngIf="getTotalTax() > 0" class="flex justify-between items-center text-xs py-1.5 px-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-900/40">
+          <span class="text-yellow-700 dark:text-yellow-400 font-medium flex items-center gap-1">
+            <i class="bi bi-receipt"></i> Total Tax (16%):
+          </span>
+          <span class="text-yellow-700 dark:text-yellow-300 font-semibold">
+            {{ currencySymbol }} {{ getTotalTax() | number : "1.2-2" }}
+          </span>
+        </div>
+
+        <!-- Grand Total -->
+        <div class="flex justify-between items-center pt-2 border-t-2 border-gray-300 dark:border-slate-700">
+          <span class="text-gray-800 dark:text-slate-200 font-bold text-sm flex items-center gap-1">
+            <i class="bi bi-cash-stack text-green-600 dark:text-green-400"></i> 
+            Grand Total:
+          </span>
+          <span class="text-green-600 dark:text-green-400 font-bold text-lg">
+            {{ currencySymbol }} {{ getGrandTotal() | number : "1.2-2" }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

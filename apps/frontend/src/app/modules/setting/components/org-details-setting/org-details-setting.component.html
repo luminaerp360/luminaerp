@@ -1,0 +1,636 @@
+<!-- Enhanced org-details.component.html -->
+<div
+  class="min-h-screen bg-gradient-to-br from-white dark:from-gray-900 via-gray-50 dark:via-slate-900 to-white dark:to-gray-900 py-8"
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <form [formGroup]="orgForm" (ngSubmit)="onSubmit()">
+      <!-- Enhanced Header Section with Logo and Organization Info -->
+      <div
+        class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-50 dark:from-slate-900 via-white dark:via-gray-900 to-gray-50 dark:to-slate-900 p-8 mb-8 border border-cyan-500/20 shadow-2xl"
+      >
+        <!-- Animated Background -->
+        <div class="absolute inset-0">
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-purple-500/5 animate-pulse"
+          ></div>
+          <div
+            class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-500"
+          ></div>
+        </div>
+
+        <div class="relative z-10">
+          <div
+            class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6"
+          >
+            <!-- Logo and Basic Info Section -->
+            <div
+              class="flex flex-col lg:flex-row items-start lg:items-center gap-6 flex-1"
+            >
+              <!-- Logo Section -->
+              <div class="flex-shrink-0">
+                <div class="relative group">
+                  <!-- Logo Display -->
+                  <div
+                    class="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-2 border-cyan-500/30 flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:border-cyan-400/50"
+                  >
+                    <img
+                      *ngIf="logoPreviewUrl"
+                      [src]="logoPreviewUrl"
+                      alt="Organization Logo"
+                      class="w-full h-full object-cover rounded-xl"
+                    />
+                    <div *ngIf="!logoPreviewUrl" class="text-center">
+                      <svg
+                        class="w-12 h-12 lg:w-16 lg:h-16 text-cyan-400/50 mx-auto mb-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.5"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                        />
+                      </svg>
+                      <span class="text-xs text-cyan-400/70">No Logo</span>
+                    </div>
+                  </div>
+
+                  <!-- Logo Upload Controls (Edit Mode) -->
+                  <div *ngIf="isEditMode" class="mt-3 space-y-2">
+                    <input
+                      #logoFileInput
+                      type="file"
+                      accept="image/*"
+                      (change)="onLogoSelect($event)"
+                      class="hidden"
+                    />
+                    <div class="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        (click)="triggerFileInput()"
+                        class="px-3 py-1.5 text-xs bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 border border-cyan-500/30 rounded-lg transition-colors"
+                      >
+                        Choose File
+                      </button>
+                      <button
+                        type="button"
+                        *ngIf="selectedLogoFile"
+                        (click)="uploadLogo()"
+                        [disabled]="isUploadingLogo"
+                        class="px-3 py-1.5 text-xs bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-500/30 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <span *ngIf="!isUploadingLogo">Upload</span>
+                        <span
+                          *ngIf="isUploadingLogo"
+                          class="flex items-center gap-1"
+                        >
+                          <svg
+                            class="animate-spin w-3 h-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              class="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              stroke-width="4"
+                            ></circle>
+                            <path
+                              class="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Uploading
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        *ngIf="logoPreviewUrl"
+                        (click)="removeLogo()"
+                        class="px-3 py-1.5 text-xs bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-lg transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Organization Name and Details -->
+              <div class="flex-1 min-w-0">
+                <div class="mb-4">
+                  <div class="flex items-center gap-4 mb-2">
+                    <input
+                      *ngIf="isEditMode"
+                      formControlName="name"
+                      class="text-2xl lg:text-3xl font-bold bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-cyan-800/50 rounded-lg px-4 py-3 text-gray-900 dark:text-cyan-400 flex-1 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                      placeholder="Organization Name"
+                    />
+                    <h1
+                      *ngIf="!isEditMode"
+                      class="text-2xl lg:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 tracking-wider"
+                    >
+                      {{ orgForm.get("name")?.value || "Organization Name" }}
+                    </h1>
+                  </div>
+                  <p
+                    class="text-gray-600 dark:text-gray-400 text-sm"
+                    *ngIf="orgDetails?.subscription?.licenseKey"
+                  >
+                    <span class="inline-flex items-center gap-2">
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                        />
+                      </svg>
+                      License: {{ orgDetails.subscription.licenseKey }}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subscription Status and Controls -->
+            <div class="flex flex-col lg:items-end gap-4">
+              <!-- Edit Toggle Button -->
+              <button
+                type="button"
+                (click)="toggleEditMode()"
+                class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-600/20 to-blue-600/20 hover:from-cyan-600/30 hover:to-blue-600/30 text-cyan-400 border border-cyan-500/30 transition-all duration-300 hover:scale-105"
+              >
+                <svg
+                  *ngIf="!isEditMode"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+                <svg
+                  *ngIf="isEditMode"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <span *ngIf="!isEditMode">Edit Details</span>
+                <span *ngIf="isEditMode">View Mode</span>
+              </button>
+
+              <!-- Subscription Info -->
+              <div
+                *ngIf="orgDetails?.subscription"
+                class="text-right space-y-2"
+              >
+                <div class="flex items-center gap-2 justify-end">
+                  <span
+                    [ngClass]="getPlanBadgeClass()"
+                    class="px-3 py-1 rounded-full text-white text-sm font-medium"
+                  >
+                    {{ orgDetails.subscription.plan }}
+                  </span>
+                  <span
+                    [ngClass]="getStatusBadgeClass()"
+                    class="px-3 py-1 rounded-full text-white text-xs font-medium"
+                  >
+                    {{ orgDetails.subscription.status }}
+                  </span>
+                </div>
+                <div class="text-gray-600 dark:text-gray-400 text-sm">
+                  Expires:
+                  {{ orgDetails.subscription.endDate | date : "shortDate" }}
+                </div>
+                <div class="text-cyan-600 dark:text-cyan-400 font-semibold">
+                  KES {{ orgDetails.subscription.price | number }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        <!-- Organization Information Card -->
+        <div
+          class="bg-gradient-to-br from-white dark:from-slate-900 to-gray-50 dark:to-gray-900 rounded-2xl p-6 border border-cyan-500/20 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-cyan-500/30"
+        >
+          <div class="flex items-center mb-6">
+            <div
+              class="p-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl mr-4"
+            >
+              <svg
+                class="w-6 h-6 text-cyan-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
+              </svg>
+            </div>
+            <h2
+              class="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400"
+            >
+              Organization Info
+            </h2>
+          </div>
+
+          <div class="space-y-6">
+            <div class="form-group">
+              <label class="text-gray-600 dark:text-gray-400 mb-2 block font-medium"
+                >Address</label
+              >
+              <div class="relative">
+                <textarea
+                  *ngIf="isEditMode"
+                  formControlName="address"
+                  rows="3"
+                  class="w-full bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all resize-none"
+                  placeholder="Enter organization address"
+                ></textarea>
+                <div
+                  *ngIf="!isEditMode"
+                  class="bg-gray-50 dark:bg-slate-900/30 rounded-xl px-4 py-3 min-h-[80px] border border-gray-300 dark:border-gray-700/50"
+                >
+                  <p class="text-gray-900 dark:text-gray-200 whitespace-pre-wrap">
+                    {{ orgForm.get("address")?.value || "No address provided" }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="text-gray-600 dark:text-gray-400 mb-2 block font-medium"
+                >Contact Information</label
+              >
+              <div class="relative">
+                <input
+                  *ngIf="isEditMode"
+                  formControlName="contact"
+                  class="w-full bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                  placeholder="Phone, Email, etc."
+                />
+                <div
+                  *ngIf="!isEditMode"
+                  class="bg-gray-50 dark:bg-slate-900/30 rounded-xl px-4 py-3 border border-gray-300 dark:border-gray-700/50"
+                >
+                  <p class="text-gray-900 dark:text-gray-200">
+                    {{ orgForm.get("contact")?.value || "No contact provided" }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="text-gray-600 dark:text-gray-400 mb-2 block font-medium"
+                >Complementary Message</label
+              >
+              <div class="relative">
+                <textarea
+                  *ngIf="isEditMode"
+                  formControlName="complementaryMessage"
+                  rows="3"
+                  class="w-full bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all resize-none"
+                  placeholder="Thank you message, tagline, etc."
+                ></textarea>
+                <div
+                  *ngIf="!isEditMode"
+                  class="bg-gray-50 dark:bg-slate-900/30 rounded-xl px-4 py-3 min-h-[80px] border border-gray-300 dark:border-gray-700/50"
+                >
+                  <p class="text-gray-900 dark:text-gray-200 whitespace-pre-wrap">
+                    {{
+                      orgForm.get("complementaryMessage")?.value ||
+                        "No message provided"
+                    }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Details Card -->
+        <div
+          class="bg-gradient-to-br from-white dark:from-slate-900 to-gray-50 dark:to-gray-900 rounded-2xl p-6 border border-cyan-500/20 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-cyan-500/30"
+        >
+          <div class="flex items-center mb-6">
+            <div
+              class="p-3 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl mr-4"
+            >
+              <svg
+                class="w-6 h-6 text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                />
+              </svg>
+            </div>
+            <h2
+              class="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400"
+            >
+              Payment Details
+            </h2>
+          </div>
+
+          <div class="space-y-6">
+            <div class="form-group">
+              <label class="text-gray-600 dark:text-gray-400 mb-2 block font-medium"
+                >Bank Details</label
+              >
+              <div class="relative">
+                <textarea
+                  *ngIf="isEditMode"
+                  formControlName="bankDetails"
+                  rows="4"
+                  class="w-full bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all resize-none"
+                  placeholder="Bank Name:&#10;Account Number:&#10;Account Name:&#10;Branch:"
+                ></textarea>
+                <div
+                  *ngIf="!isEditMode"
+                  class="bg-gray-50 dark:bg-slate-900/30 rounded-xl px-4 py-3 min-h-[100px] border border-gray-300 dark:border-gray-700/50"
+                >
+                  <p class="text-gray-900 dark:text-gray-200 whitespace-pre-line">
+                    {{
+                      orgForm.get("bankDetails")?.value ||
+                        "No bank details provided"
+                    }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="text-gray-600 dark:text-gray-400 mb-2 block font-medium"
+                >M-Pesa Details</label
+              >
+              <div class="relative">
+                <textarea
+                  *ngIf="isEditMode"
+                  formControlName="mpesaDetails"
+                  rows="3"
+                  class="w-full bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-gray-600/50 rounded-xl px-4 py-3 text-gray-900 dark:text-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all resize-none"
+                  placeholder="Paybill:&#10;Till Number:&#10;Account:"
+                ></textarea>
+                <div
+                  *ngIf="!isEditMode"
+                  class="bg-gray-50 dark:bg-slate-900/30 rounded-xl px-4 py-3 min-h-[80px] border border-gray-300 dark:border-gray-700/50"
+                >
+                  <p class="text-gray-900 dark:text-gray-200 whitespace-pre-line">
+                    {{
+                      orgForm.get("mpesaDetails")?.value ||
+                        "No M-Pesa details provided"
+                    }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics Card -->
+        <div
+          class="bg-gradient-to-br from-white dark:from-slate-900 to-gray-50 dark:to-gray-900 rounded-2xl p-6 border border-cyan-500/20 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-cyan-500/30 lg:col-span-2 xl:col-span-1"
+        >
+          <div class="flex items-center mb-6">
+            <div
+              class="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl mr-4"
+            >
+              <svg
+                class="w-6 h-6 text-purple-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+            </div>
+            <h2
+              class="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400"
+            >
+              System Overview
+            </h2>
+          </div>
+
+          <!-- Statistics Grid -->
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div
+              class="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 p-4 rounded-xl border border-blue-500/20 hover:border-blue-500/30 transition-all"
+            >
+              <div class="text-2xl font-bold text-blue-400">
+                {{ orgDetails?._count?.users || 0 }}
+              </div>
+              <div class="text-gray-600 dark:text-gray-400 text-sm">Active Users</div>
+            </div>
+            <div
+              class="bg-gradient-to-br from-green-500/10 to-emerald-500/10 p-4 rounded-xl border border-green-500/20 hover:border-green-500/30 transition-all"
+            >
+              <div class="text-2xl font-bold text-green-400">
+                {{ orgDetails?._count?.products || 0 }}
+              </div>
+              <div class="text-gray-600 dark:text-gray-400 text-sm">Products</div>
+            </div>
+            <div
+              class="bg-gradient-to-br from-orange-500/10 to-red-500/10 p-4 rounded-xl border border-orange-500/20 hover:border-orange-500/30 transition-all"
+            >
+              <div class="text-2xl font-bold text-orange-400">
+                {{ orgDetails?._count?.orders || 0 }}
+              </div>
+              <div class="text-gray-600 dark:text-gray-400 text-sm">Orders</div>
+            </div>
+            <div
+              class="bg-gradient-to-br from-purple-500/10 to-pink-500/10 p-4 rounded-xl border border-purple-500/20 hover:border-purple-500/30 transition-all"
+            >
+              <div class="text-2xl font-bold text-purple-400">
+                {{ orgDetails?._count?.customers || 0 }}
+              </div>
+              <div class="text-gray-600 dark:text-gray-400 text-sm">Customers</div>
+            </div>
+          </div>
+
+          <!-- Subscription Details -->
+          <div
+            *ngIf="orgDetails?.subscription"
+            class="bg-gradient-to-br from-gray-50 dark:from-gray-900/50 to-white dark:to-slate-900/50 p-4 rounded-xl border border-gray-300 dark:border-gray-700/50"
+          >
+            <h3
+              class="text-cyan-600 dark:text-cyan-400 font-semibold mb-3 flex items-center gap-2"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Subscription Details
+            </h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Valid Until:</span>
+                <span class="text-gray-900 dark:text-gray-200">{{
+                  orgDetails.subscription.endDate | date : "mediumDate"
+                }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Days Remaining:</span>
+                <span
+                  [ngClass]="
+                    getRemainingDays() > 30
+                      ? 'text-green-400'
+                      : getRemainingDays() > 7
+                      ? 'text-yellow-400'
+                      : 'text-red-400'
+                  "
+                >
+                  {{ getRemainingDays() }} days
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400">Monthly Price:</span>
+                <span class="text-cyan-600 dark:text-cyan-400 font-semibold"
+                  >KES {{ orgDetails.subscription.price | number }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end space-x-4" *ngIf="isEditMode">
+        <button
+          type="button"
+          (click)="toggleEditMode()"
+          class="px-8 py-3 rounded-xl bg-gray-200 dark:bg-slate-900/50 hover:bg-gray-300 dark:hover:bg-slate-900/50 text-gray-900 dark:text-gray-200 border border-gray-300 dark:border-gray-600/50 hover:border-gray-400 dark:hover:border-gray-500/50 transition-all duration-300"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="isLoading || !orgForm.valid"
+          class="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+        >
+          <span [class.opacity-0]="isLoading" class="relative z-10"
+            >Save Changes</span
+          >
+          <div
+            *ngIf="isLoading"
+            class="absolute inset-0 flex items-center justify-center"
+          >
+            <svg
+              class="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </div>
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"
+          ></div>
+        </button>
+      </div>
+    </form>
+
+    <!-- Loading Overlay -->
+    <div
+      *ngIf="isLoading && !isEditMode"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-cyan-500/30">
+        <div class="flex items-center space-x-4">
+          <svg
+            class="animate-spin h-8 w-8 text-cyan-400"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <span class="text-cyan-600 dark:text-cyan-400 text-lg"
+            >Loading organization details...</span
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1170 @@
+﻿<div
+  class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-4 md:p-8"
+>
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div
+      class="bg-white/70 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl shadow-2xl p-3 sm:p-6 mb-4 sm:mb-6 border-2 border-gray-200/50 dark:border-slate-700"
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <h1
+          class="text-xl sm:text-3xl font-bold text-gray-900 dark:text-slate-200 flex items-center gap-2 sm:gap-3"
+        >
+          <div
+            class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0"
+          >
+            <svg
+              class="w-5 h-5 sm:w-6 sm:h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+              />
+            </svg>
+          </div>
+          Batch Management
+        </h1>
+        <div class="flex gap-2 sm:gap-3">
+          <button
+            (click)="openAllocationModal()"
+            class="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center gap-2 text-xs sm:text-sm"
+          >
+            <svg
+              class="w-4 h-4 sm:w-5 sm:h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+            <span class="hidden sm:inline">Allocate Stock</span>
+            <span class="sm:hidden">Allocate</span>
+          </button>
+          <button
+            (click)="openCreateModal()"
+            class="px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 flex items-center gap-2 shadow-lg text-xs sm:text-sm"
+          >
+            <svg
+              class="w-4 h-4 sm:w-5 sm:h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            <span class="hidden sm:inline">New Batch</span>
+            <span class="sm:hidden">New</span>
+          </button>
+          <button
+            (click)="refreshData()"
+            class="px-3 sm:px-4 py-2 bg-gray-100 dark:bg-slate-900/80 hover:bg-gray-200 dark:hover:bg-slate-900/60 text-gray-700 dark:text-slate-300 rounded-lg transition-colors duration-200"
+          >
+            <svg
+              class="w-4 h-4 sm:w-5 sm:h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Alert Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
+        <div
+          class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-700"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-medium">
+                Total Batches
+              </p>
+              <p class="text-lg sm:text-2xl font-bold text-blue-900 dark:text-blue-100">
+                {{ batches.length }}
+              </p>
+            </div>
+            <div
+              class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-200 dark:bg-blue-700 rounded-lg items-center justify-center hidden sm:flex"
+            >
+              <svg
+                class="w-6 h-6 text-blue-600 dark:text-blue-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30 p-3 sm:p-4 rounded-lg border border-yellow-200 dark:border-yellow-700 cursor-pointer hover:shadow-lg transition-shadow"
+          (click)="activeTab = 'pending'"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p
+                class="text-xs sm:text-sm text-yellow-600 dark:text-yellow-400 font-medium"
+              >
+                Pending
+              </p>
+              <p
+                class="text-lg sm:text-2xl font-bold text-yellow-900 dark:text-yellow-100"
+              >
+                {{ pendingBatches.length }}
+              </p>
+            </div>
+            <div
+              class="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-200 dark:bg-yellow-700 rounded-lg items-center justify-center hidden sm:flex"
+            >
+              <svg
+                class="w-6 h-6 text-yellow-600 dark:text-yellow-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 p-3 sm:p-4 rounded-lg border border-orange-200 dark:border-orange-700"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p
+                class="text-xs sm:text-sm text-orange-600 dark:text-orange-400 font-medium"
+              >
+                Expiring Soon
+              </p>
+              <p
+                class="text-lg sm:text-2xl font-bold text-orange-900 dark:text-orange-100"
+              >
+                {{ expiringBatches.length }}
+              </p>
+            </div>
+            <div
+              class="w-10 h-10 sm:w-12 sm:h-12 bg-orange-200 dark:bg-orange-700 rounded-lg items-center justify-center hidden sm:flex"
+            >
+              <svg
+                class="w-6 h-6 text-orange-600 dark:text-orange-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 p-3 sm:p-4 rounded-lg border border-red-200 dark:border-red-700"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium">
+                Expired
+              </p>
+              <p class="text-lg sm:text-2xl font-bold text-red-900 dark:text-red-100">
+                {{ expiredBatches.length }}
+              </p>
+            </div>
+            <div
+              class="w-10 h-10 sm:w-12 sm:h-12 bg-red-200 dark:bg-red-700 rounded-lg items-center justify-center hidden sm:flex"
+            >
+              <svg
+                class="w-6 h-6 text-red-600 dark:text-red-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 p-3 sm:p-4 rounded-lg border border-purple-200 dark:border-purple-700"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p
+                class="text-xs sm:text-sm text-purple-600 dark:text-purple-400 font-medium"
+              >
+                Low Stock
+              </p>
+              <p
+                class="text-lg sm:text-2xl font-bold text-purple-900 dark:text-purple-100"
+              >
+                {{ lowStockBatches.length }}
+              </p>
+            </div>
+            <div
+              class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-200 dark:bg-purple-700 rounded-lg items-center justify-center hidden sm:flex"
+            >
+              <svg
+                class="w-6 h-6 text-purple-600 dark:text-purple-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div
+      class="bg-white/70 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl shadow-lg p-3 sm:p-6 mb-4 sm:mb-6 border-2 border-gray-200/50 dark:border-slate-700"
+    >
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div>
+          <label
+            class="block text-xs sm:text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 sm:mb-2"
+            >Search</label
+          >
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (input)="onSearchChange()"
+            placeholder="Batch number or product..."
+            class="w-full px-3 sm:px-4 py-2 text-sm border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          />
+        </div>
+        <div>
+          <label
+            class="block text-xs sm:text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 sm:mb-2"
+            >Product</label
+          >
+          <select
+            [(ngModel)]="selectedProductId"
+            (change)="onProductChange()"
+            class="w-full px-3 sm:px-4 py-2 text-sm border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          >
+            <option [value]="null">All Products</option>
+            <option *ngFor="let product of products" [value]="product.id">
+              {{ product.name }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label
+            class="block text-xs sm:text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 sm:mb-2"
+            >Status</label
+          >
+          <select
+            [(ngModel)]="selectedStatus"
+            (change)="onStatusChange()"
+            class="w-full px-3 sm:px-4 py-2 text-sm border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          >
+            <option value="ALL">All Statuses</option>
+            <option *ngFor="let status of statusOptions" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label
+            class="block text-xs sm:text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 sm:mb-2"
+            >View</label
+          >
+          <div class="flex gap-1 sm:gap-2 overflow-x-auto">
+            <button
+              (click)="activeTab = 'all'; applyFilters()"
+              [class.bg-purple-600]="activeTab === 'all'"
+              [class.text-white]="activeTab === 'all'"
+              [class.bg-gray-200]="activeTab !== 'all'"
+              [class.text-gray-700]="activeTab !== 'all'"
+              class="flex-1 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
+            >
+              All
+            </button>
+            <button
+              (click)="activeTab = 'pending'"
+              [class.bg-yellow-600]="activeTab === 'pending'"
+              [class.text-white]="activeTab === 'pending'"
+              [class.bg-gray-200]="activeTab !== 'pending'"
+              [class.text-gray-700]="activeTab !== 'pending'"
+              class="flex-1 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
+            >
+              Pending
+            </button>
+            <button
+              (click)="activeTab = 'expiring'"
+              [class.bg-orange-600]="activeTab === 'expiring'"
+              [class.text-white]="activeTab === 'expiring'"
+              [class.bg-gray-200]="activeTab !== 'expiring'"
+              [class.text-gray-700]="activeTab !== 'expiring'"
+              class="flex-1 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
+            >
+              Expiring
+            </button>
+            <button
+              (click)="activeTab = 'expired'"
+              [class.bg-red-600]="activeTab === 'expired'"
+              [class.text-white]="activeTab === 'expired'"
+              [class.bg-gray-200]="activeTab !== 'expired'"
+              [class.text-gray-700]="activeTab !== 'expired'"
+              class="flex-1 px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
+            >
+              Expired
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch List -->
+    <div
+      class="bg-white/70 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl shadow-lg border-2 border-gray-200/50 dark:border-slate-700 overflow-hidden"
+    >
+      <!-- Table (Desktop) -->
+      <div class="hidden sm:block overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50 dark:bg-slate-900/50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Batch Number</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Product</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Quantity</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Value</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Expiry</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-slate-700">
+            <tr *ngIf="isLoading">
+              <td colspan="7" class="px-6 py-8 text-center">
+                <div class="flex items-center justify-center">
+                  <div class="animate-spin h-8 w-8 border-4 border-purple-600 border-t-transparent rounded-full"></div>
+                  <span class="ml-3 text-gray-600 dark:text-slate-400">Loading batches...</span>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="!isLoading && filteredBatches.length === 0">
+              <td colspan="7" class="px-6 py-8 text-center text-gray-500 dark:text-slate-400">No batches found</td>
+            </tr>
+            <tr
+              *ngFor="let batch of filteredBatches; trackBy: trackByBatchId"
+              class="hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors"
+            >
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900 dark:text-slate-200">{{ batch.batch_number }}</div>
+                <div class="text-xs text-gray-500 dark:text-slate-400">{{ formatDate(batch.received_date) }}</div>
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-slate-200"
+              >
+                {{ getProductName(batch.product_id) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900 dark:text-slate-200">
+                  {{ batch.quantity_available }} / {{ batch.quantity_received }}
+                </div>
+                <div class="text-xs text-gray-500 dark:text-slate-400">
+                  {{
+                    (
+                      (batch.quantity_available / batch.quantity_received) *
+                      100
+                    ).toFixed(0)
+                  }}% remaining
+                </div>
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-slate-200"
+              >
+                KSH {{ getBatchValue(batch).toFixed(2) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span [class]="getExpiryStatus(batch).class" class="text-sm">{{
+                  getExpiryStatus(batch).text
+                }}</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex flex-col gap-1">
+                  <span
+                    [class]="getStatusColor(batch.status)"
+                    class="px-3 py-1 rounded-full text-xs font-medium text-center"
+                    >{{ batch.status }}</span
+                  >
+                  <span
+                    *ngIf="!batch.is_approved"
+                    class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-medium text-center"
+                    >Needs Approval</span
+                  >
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <div class="flex gap-2 flex-wrap">
+                  <!-- View Details Button -->
+                  <button
+                    (click)="viewBatchDetails(batch)"
+                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    title="View Details"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  </button>
+
+                  <!-- Approve Button (Only for Pending) -->
+                  <button
+                    *ngIf="batch.status === 'PENDING' && !batch.is_approved"
+                    (click)="approveBatch(batch)"
+                    class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
+                    title="Approve Batch"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </button>
+
+                  <!-- Reject Button (Only for Pending) -->
+                  <button
+                    *ngIf="batch.status === 'PENDING' && !batch.is_approved"
+                    (click)="rejectBatch(batch)"
+                    class="text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300"
+                    title="Reject Batch"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </button>
+
+                  <!-- Delete Button (Only for non-approved) -->
+                  <button
+                    *ngIf="!batch.is_approved"
+                    (click)="deletePendingBatch(batch)"
+                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                    title="Delete Batch"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+
+                  <!-- Serial Numbers Button -->
+                  <button
+                    (click)="openSerialNumbersModal(batch)"
+                    class="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300"
+                    title="Serial Numbers"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Card View (Mobile) -->
+      <div class="sm:hidden p-3 space-y-2">
+        <div *ngIf="isLoading" class="py-8 text-center">
+          <div class="flex items-center justify-center">
+            <div class="animate-spin h-6 w-6 border-4 border-purple-600 border-t-transparent rounded-full"></div>
+            <span class="ml-3 text-sm text-gray-600 dark:text-slate-400">Loading batches...</span>
+          </div>
+        </div>
+        <div *ngIf="!isLoading && filteredBatches.length === 0" class="py-8 text-center text-sm text-gray-500 dark:text-slate-400">No batches found</div>
+        <div *ngFor="let batch of filteredBatches; trackBy: trackByBatchId"
+          class="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-3 border border-gray-200 dark:border-slate-700"
+        >
+          <div class="flex items-start justify-between mb-2">
+            <div class="min-w-0 flex-1 mr-2">
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-slate-200 truncate">{{ batch.batch_number }}</h4>
+              <p class="text-xs text-gray-600 dark:text-slate-400 truncate">{{ getProductName(batch.product_id) }}</p>
+            </div>
+            <div class="flex flex-col items-end gap-1 flex-shrink-0">
+              <span [class]="getStatusColor(batch.status)" class="px-2 py-0.5 rounded-full text-[10px] leading-4 font-medium">{{ batch.status }}</span>
+              <span *ngIf="!batch.is_approved" class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-[10px] leading-4 font-medium">Needs Approval</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-xs mb-2">
+            <div>
+              <p class="text-gray-500 dark:text-slate-400">Qty</p>
+              <p class="font-medium text-gray-900 dark:text-slate-200">{{ batch.quantity_available }} / {{ batch.quantity_received }}</p>
+            </div>
+            <div>
+              <p class="text-gray-500 dark:text-slate-400">Value</p>
+              <p class="font-medium text-gray-900 dark:text-slate-200">KSH {{ getBatchValue(batch).toFixed(2) }}</p>
+            </div>
+            <div>
+              <p class="text-gray-500 dark:text-slate-400">Expiry</p>
+              <p [class]="getExpiryStatus(batch).class" class="text-xs font-medium">{{ getExpiryStatus(batch).text }}</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-slate-700">
+            <span class="text-[10px] text-gray-500 dark:text-slate-400">{{ formatDate(batch.received_date) }}</span>
+            <div class="flex gap-3">
+              <button (click)="viewBatchDetails(batch)" class="text-blue-600 dark:text-blue-400" title="View Details">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+              </button>
+              <button *ngIf="batch.status === 'PENDING' && !batch.is_approved" (click)="approveBatch(batch)" class="text-green-600 dark:text-green-400" title="Approve">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </button>
+              <button *ngIf="batch.status === 'PENDING' && !batch.is_approved" (click)="rejectBatch(batch)" class="text-orange-600 dark:text-orange-400" title="Reject">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </button>
+              <button *ngIf="!batch.is_approved" (click)="deletePendingBatch(batch)" class="text-red-600 dark:text-red-400" title="Delete">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </button>
+              <button (click)="openSerialNumbersModal(batch)" class="text-purple-600 dark:text-purple-400" title="Serial Numbers">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Batch Modal -->
+<div
+  *ngIf="showCreateModal"
+  class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 sm:p-4"
+>
+  <div
+    class="bg-white dark:bg-slate-900 rounded-t-xl sm:rounded-xl shadow-2xl sm:max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+  >
+    <div class="p-4 sm:p-6 border-b border-gray-200 dark:border-slate-700">
+      <h2 class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-slate-200">
+        Create New Batch
+      </h2>
+    </div>
+    <div class="p-4 sm:p-6 space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div class="sm:col-span-2">
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1 sm:mb-2"
+            >Product *</label
+          >
+          <select
+            [(ngModel)]="batchForm.product_id"
+            class="w-full px-4 py-2 border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          >
+            <option value="0">Select Product</option>
+            <option *ngFor="let product of products" [value]="product.id">
+              {{ product.name }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Batch Number *</label
+          >
+          <input
+            type="text"
+            [(ngModel)]="batchForm.batch_number"
+            class="w-full px-4 py-2 border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          />
+        </div>
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Quantity Received *</label
+          >
+          <input
+            type="number"
+            [(ngModel)]="batchForm.quantity_received"
+            min="1"
+            class="w-full px-4 py-2 border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          />
+        </div>
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Buying Price *</label
+          >
+          <input
+            type="number"
+            [(ngModel)]="batchForm.buying_price"
+            min="0"
+            step="0.01"
+            class="w-full px-4 py-2 border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          />
+        </div>
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Supplier</label
+          >
+          <select
+            [(ngModel)]="batchForm.supplier_id"
+            class="w-full px-4 py-2 border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          >
+            <option [value]="undefined">Select Supplier (Optional)</option>
+            <option *ngFor="let supplier of suppliers" [value]="supplier.id">
+              {{ supplier.name }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Manufacturing Date</label
+          >
+          <input
+            type="date"
+            [(ngModel)]="batchForm.manufacturing_date"
+            class="w-full px-4 py-2 border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          />
+        </div>
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Expiry Date</label
+          >
+          <input
+            type="date"
+            [(ngModel)]="batchForm.expiry_date"
+            class="w-full px-4 py-2 border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          />
+        </div>
+        <div class="sm:col-span-2">
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Notes</label
+          >
+          <textarea
+            [(ngModel)]="batchForm.notes"
+            rows="3"
+            class="w-full px-4 py-2 border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-900/80 dark:text-slate-200"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+    <div
+      class="p-4 sm:p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-3"
+    >
+      <button
+        (click)="closeCreateModal()"
+        class="px-6 py-2 bg-gray-200 dark:bg-slate-900/80 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-900/60 transition-colors"
+      >
+        Cancel
+      </button>
+      <button
+        (click)="createBatch()"
+        [disabled]="isCreating"
+        class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all disabled:opacity-50"
+      >
+        <span *ngIf="!isCreating">Create Batch</span>
+        <span *ngIf="isCreating" class="flex items-center gap-2">
+          <div
+            class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"
+          ></div>
+          Creating...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Allocation Modal -->
+<div
+  *ngIf="showAllocationModal"
+  class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+>
+  <div
+    class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+  >
+    <div class="p-6 border-b border-gray-200 dark:border-slate-700">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-slate-200">
+        Stock Allocation ({{ allocationMethod }})
+      </h2>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Product</label
+          >
+          <select
+            [(ngModel)]="allocationProductId"
+            class="w-full px-4 py-2 border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900/80 dark:text-slate-200"
+          >
+            <option [value]="null">Select Product</option>
+            <option *ngFor="let product of products" [value]="product.id">
+              {{ product.name }}
+            </option>
+          </select>
+        </div>
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Quantity</label
+          >
+          <input
+            type="number"
+            [(ngModel)]="allocationQuantity"
+            min="1"
+            class="w-full px-4 py-2 border-2 border-gray-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-900/80 dark:text-slate-200"
+          />
+        </div>
+        <div class="col-span-2">
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Method</label
+          >
+          <div class="flex gap-4">
+            <label class="flex items-center">
+              <input
+                type="radio"
+                [(ngModel)]="allocationMethod"
+                value="FIFO"
+                class="mr-2"
+              />
+              <span class="text-sm text-gray-700 dark:text-slate-300"
+                >FIFO (First-In-First-Out)</span
+              >
+            </label>
+            <label class="flex items-center">
+              <input
+                type="radio"
+                [(ngModel)]="allocationMethod"
+                value="FEFO"
+                class="mr-2"
+              />
+              <span class="text-sm text-gray-700 dark:text-slate-300"
+                >FEFO (First-Expire-First-Out)</span
+              >
+            </label>
+          </div>
+        </div>
+      </div>
+      <button
+        (click)="performAllocation()"
+        [disabled]="isAllocating"
+        class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+      >
+        <span *ngIf="!isAllocating">Calculate Allocation</span>
+        <span
+          *ngIf="isAllocating"
+          class="flex items-center justify-center gap-2"
+        >
+          <div
+            class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"
+          ></div>
+          Calculating...
+        </span>
+      </button>
+
+      <div
+        *ngIf="allocationResult"
+        class="mt-6 bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-700"
+      >
+        <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">
+          Allocation Result
+        </h3>
+        <div class="space-y-3">
+          <div
+            *ngFor="let item of allocationResult.allocated"
+            class="bg-white dark:bg-slate-800 rounded-lg p-3 border border-blue-200 dark:border-blue-600"
+          >
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-medium text-gray-900 dark:text-slate-200">
+                  {{ item.batch_number }}
+                </p>
+                <p class="text-sm text-gray-600 dark:text-slate-400">
+                  Quantity: {{ item.quantity }} &#64; KSH
+                  {{ item.buying_price }}
+                </p>
+              </div>
+              <p class="text-lg font-semibold text-blue-600 dark:text-blue-400">
+                KSH {{ item.total_cost.toFixed(2) }}
+              </p>
+            </div>
+          </div>
+          <div class="border-t border-blue-200 dark:border-blue-700 pt-3 mt-3">
+            <div
+              class="flex justify-between text-lg font-bold text-blue-900 dark:text-blue-100"
+            >
+              <span>Total: {{ allocationResult.total_allocated }} units</span>
+              <span>KSH {{ allocationResult.total_cost.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end"
+    >
+      <button
+        (click)="closeAllocationModal()"
+        class="px-6 py-2 bg-gray-200 dark:bg-slate-900/80 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-900/60 transition-colors"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Batch Details Modal -->
+<div
+  *ngIf="showDetailsModal && selectedBatch"
+  class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+>
+  <div
+    class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+  >
+    <div class="p-6 border-b border-gray-200 dark:border-slate-700">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-slate-200">
+          Batch Details
+        </h2>
+        <button
+          (click)="closeDetailsModal()"
+          class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="p-6 space-y-6">
+      <!-- Approval Status Banner -->
+      <div
+        *ngIf="!selectedBatch.is_approved"
+        class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4"
+      >
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <svg
+              class="w-6 h-6 text-yellow-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <p class="font-semibold text-yellow-900 dark:text-yellow-100">
+                Pending Approval
+              </p>
+              <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                This batch needs approval before stock is updated
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button
+              (click)="approveBatch(selectedBatch)"
+              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium"
+            >
+              Approve
+            </button>
+            <button
+              (click)="rejectBatch(selectedBatch)"
+              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approval Info (if approved) -->
+      <div
+        *ngIf="selectedBatch.is_approved"
+        class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4"
+      >
+        <div class="flex items-center gap-3">
+          <svg
+            class="w-6 h-6 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div>
+            <p class="font-semibold text-green-900 dark:text-green-100">
+              Approved
+            </p>
+            <p class="text-sm text-green-700 dark:text-green-300">
+              By {{ selectedBatch.approved_by_name }} on
+              {{ formatDate(selectedBatch.approved_at!) }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rejection Info (if rejected) -->
+      <div
+        *ngIf="selectedBatch.rejected_at"
+        class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4"
+      >
+        <div class="flex items-center gap-3">
+          <svg
+            class="w-6 h-6 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div class="flex-1">
+            <p class="font-semibold text-red-900 dark:text-red-100">Rejected</p>
+            <p class="text-sm text-red-700 dark:text-red-300">
+              By {{ selectedBatch.rejected_by_name }} on
+              {{ formatDate(selectedBatch.rejected_at!) }}
+            </p>
+            <p class="text-sm text-red-600 dark:text-red-400 mt-1">
+              Reason: {{ selectedBatch.rejection_reason }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch Information Grid -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm text-gray-500 dark:text-slate-400">Batch Number</p>
+          <p class="font-semibold text-gray-900 dark:text-slate-200">
+            {{ selectedBatch.batch_number }}
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-slate-400">Product</p>
+          <p class="font-semibold text-gray-900 dark:text-slate-200">
+            {{ getProductName(selectedBatch.product_id) }}
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-slate-400">Status</p>
+          <span
+            [class]="getStatusColor(selectedBatch.status)"
+            class="px-3 py-1 rounded-full text-xs font-medium"
+          >
+            {{ selectedBatch.status }}
+          </span>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-slate-400">
+            Current Product Stock
+          </p>
+          <p class="font-semibold text-gray-900 dark:text-slate-200">
+            {{ getCurrentProductStock(selectedBatch.product_id) }} units
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-slate-400">
+            Quantity Received
+          </p>
+          <p class="font-semibold text-gray-900 dark:text-slate-200">
+            {{ selectedBatch.quantity_received }} units
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-slate-400">
+            Quantity Available
+          </p>
+          <p class="font-semibold text-gray-900 dark:text-slate-200">
+            {{ selectedBatch.quantity_available }} units
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-slate-400">Unit Cost</p>
+          <p class="font-semibold text-gray-900 dark:text-slate-200">
+            KSH {{ selectedBatch.buying_price }}
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-slate-400">Total Value</p>
+          <p class="font-semibold text-gray-900 dark:text-slate-200">
+            KSH {{ getBatchValue(selectedBatch).toFixed(2) }}
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-slate-400">Received Date</p>
+          <p class="font-semibold text-gray-900 dark:text-slate-200">
+            {{ formatDate(selectedBatch.received_date) }}
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-slate-400">Expiry Date</p>
+          <p
+            [class]="getExpiryStatus(selectedBatch).class"
+            class="font-semibold"
+          >
+            {{ getExpiryStatus(selectedBatch).text }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div *ngIf="selectedBatch.notes">
+        <p class="text-sm text-gray-500 dark:text-slate-400 mb-2">Notes</p>
+        <p
+          class="text-gray-900 dark:text-slate-200 bg-gray-50 dark:bg-slate-900/80 rounded-lg p-3"
+        >
+          {{ selectedBatch.notes }}
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-between"
+    >
+      <div class="flex gap-2">
+        <button
+          *ngIf="!selectedBatch.is_approved"
+          (click)="deletePendingBatch(selectedBatch)"
+          class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+        >
+          Delete Batch
+        </button>
+      </div>
+      <button
+        (click)="closeDetailsModal()"
+        class="px-6 py-2 bg-gray-200 dark:bg-slate-900/80 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-900/60 transition-colors"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</div>

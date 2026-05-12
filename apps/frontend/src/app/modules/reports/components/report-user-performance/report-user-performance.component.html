@@ -1,0 +1,302 @@
+<div
+  class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-200"
+>
+  <div
+    class="px-3 sm:px-4 py-4 sm:py-6 md:px-8 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div
+      class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <h1
+          class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 flex-shrink-0 text-violet-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          User Performance Report
+        </h1>
+        <p class="text-sm sm:text-base text-gray-600 dark:text-slate-400 mt-1">
+          Sales performance by user with revenue, transactions, and commissions
+        </p>
+      </div>
+      <a
+        routerLink="/reports-hub"
+        class="text-purple-600 dark:text-purple-400 hover:underline text-sm flex items-center mt-2 md:mt-0"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 mr-1"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M15 19l-7-7 7-7"></path></svg
+        >Back to Reports Hub</a
+      >
+    </div>
+  </div>
+
+  <!-- Date Filter -->
+  <div
+    class="px-3 sm:px-4 py-3 sm:py-4 md:px-8 bg-gray-100 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 sm:gap-4">
+      <div class="flex flex-wrap gap-1.5 sm:gap-2">
+        <button
+          *ngFor="let r of ['today', 'week', 'month', 'quarter', 'year']"
+          (click)="setDateRange(r)"
+          type="button"
+          [ngClass]="{
+            'bg-purple-600 text-white': currentDateRange === r,
+            'bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300':
+              currentDateRange !== r,
+          }"
+          class="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 capitalize"
+        >
+          {{ r }}
+        </button>
+      </div>
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <input
+          type="date"
+          [(ngModel)]="startDate"
+          class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+        />
+        <span class="text-gray-500">to</span>
+        <input
+          type="date"
+          [(ngModel)]="endDate"
+          class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+        />
+        <button
+          (click)="fetchReport()"
+          class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="flex items-center justify-center py-20">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"
+    ></div>
+  </div>
+  <div
+    *ngIf="errorMessage && !loading"
+    class="max-w-7xl mx-auto px-4 md:px-8 mt-4"
+  >
+    <div
+      class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 p-4 rounded-lg flex justify-between items-center"
+    >
+      <span>{{ errorMessage }}</span
+      ><button
+        (click)="fetchReport()"
+        class="text-white bg-red-700 px-3 py-1 rounded text-sm"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <div
+    *ngIf="data && !loading"
+    class="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6"
+  >
+    <!-- Summary KPIs -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 text-center"
+      >
+        <p class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+          Total Users
+        </p>
+        <p class="text-lg sm:text-2xl font-bold mt-1">
+          {{ data.summary?.totalUsers || 0 }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 text-center"
+      >
+        <p class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+          Active Users
+        </p>
+        <p class="text-lg sm:text-2xl font-bold text-green-600 mt-1">
+          {{ data.summary?.activeUsers || 0 }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 text-center"
+      >
+        <p class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+          Total Revenue
+        </p>
+        <p class="text-lg sm:text-2xl font-bold text-purple-600 mt-1">
+          {{ formatCurrency(data.summary?.totalRevenue) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 text-center"
+      >
+        <p class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+          Total Commissions
+        </p>
+        <p class="text-lg sm:text-2xl font-bold text-amber-600 mt-1">
+          {{ formatCurrency(data.summary?.totalCommissions) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 text-center"
+      >
+        <p class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+          Top Performer
+        </p>
+        <p class="text-lg font-bold text-yellow-600 mt-1 truncate">
+          {{ data.summary?.topPerformer || "N/A" }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Revenue Chart -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      *ngIf="revenueChartOptions?.series"
+    >
+      <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+        Revenue by User (Top 10)
+      </h3>
+      <apx-chart
+        [series]="revenueChartOptions.series"
+        [chart]="revenueChartOptions.chart"
+        [plotOptions]="revenueChartOptions.plotOptions"
+        [xaxis]="revenueChartOptions.xaxis"
+        [yaxis]="revenueChartOptions.yaxis"
+        [colors]="revenueChartOptions.colors"
+        [dataLabels]="revenueChartOptions.dataLabels"
+        [tooltip]="revenueChartOptions.tooltip"
+        [theme]="revenueChartOptions.theme"
+        [grid]="revenueChartOptions.grid"
+      ></apx-chart>
+    </div>
+
+    <!-- Users Table -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden"
+    >
+      <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-slate-700">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+          User Performance Details
+        </h3>
+      </div>
+      <!-- Mobile Cards -->
+      <div class="block md:hidden p-3 space-y-2">
+        <div *ngFor="let user of data.users; let i = index" class="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-slate-700">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold mr-2" [ngClass]="getRankClass(i)">{{ i + 1 }}</span>
+              <div>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ user.fullName || 'N/A' }}</p>
+                <span class="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded">{{ user.role }}</span>
+              </div>
+            </div>
+            <span class="text-sm font-bold text-green-600">{{ formatCurrency(user.totalRevenue) }}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 mt-2 text-xs text-gray-500 dark:text-slate-400">
+            <span>Orders: <span class="font-medium text-gray-900 dark:text-white">{{ user.orderCount || 0 }}</span></span>
+            <span>Credit: <span class="font-medium text-gray-900 dark:text-white">{{ user.creditSaleCount || 0 }}</span></span>
+            <span>Commission: <span class="font-medium text-amber-600">{{ formatCurrency(user.totalCommission) }}</span></span>
+          </div>
+        </div>
+        <div *ngIf="!data.users?.length" class="p-8 text-center text-gray-400 dark:text-slate-500">No user data available for this period.</div>
+      </div>
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead
+            class="bg-gray-50 dark:bg-slate-700/50 text-left text-xs uppercase text-gray-500 dark:text-slate-400"
+          >
+            <tr>
+              <th class="px-4 py-3">#</th>
+              <th class="px-4 py-3">User</th>
+              <th class="px-4 py-3">Role</th>
+              <th class="px-4 py-3 text-right">Orders</th>
+              <th class="px-4 py-3 text-right">Credit Sales</th>
+              <th class="px-4 py-3 text-right">Total Revenue</th>
+              <th class="px-4 py-3 text-right">Cash</th>
+              <th class="px-4 py-3 text-right">M-Pesa</th>
+              <th class="px-4 py-3 text-right">Bank</th>
+              <th class="px-4 py-3 text-right">Commission</th>
+              <th class="px-4 py-3 text-right">Avg Order</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+            <tr
+              *ngFor="let user of data.users; let i = index"
+              class="hover:bg-gray-50 dark:hover:bg-slate-700/30"
+            >
+              <td class="px-4 py-3">
+                <span
+                  class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold"
+                  [ngClass]="getRankClass(i)"
+                  >{{ i + 1 }}</span
+                >
+              </td>
+              <td class="px-4 py-3">
+                <p class="font-medium text-gray-900 dark:text-white">
+                  {{ user.fullName || "N/A" }}
+                </p>
+                <p class="text-xs text-gray-400">{{ user.email }}</p>
+              </td>
+              <td class="px-4 py-3">
+                <span
+                  class="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded"
+                  >{{ user.role }}</span
+                >
+              </td>
+              <td class="px-4 py-3 text-right">{{ user.orderCount || 0 }}</td>
+              <td class="px-4 py-3 text-right">
+                {{ user.creditSaleCount || 0 }}
+              </td>
+              <td class="px-4 py-3 text-right font-semibold text-green-600">
+                {{ formatCurrency(user.totalRevenue) }}
+              </td>
+              <td class="px-4 py-3 text-right">
+                {{ formatCurrency(user.cashCollected) }}
+              </td>
+              <td class="px-4 py-3 text-right">
+                {{ formatCurrency(user.mpesaCollected) }}
+              </td>
+              <td class="px-4 py-3 text-right">
+                {{ formatCurrency(user.bankCollected) }}
+              </td>
+              <td class="px-4 py-3 text-right text-amber-600">
+                {{ formatCurrency(user.totalCommission) }}
+              </td>
+              <td class="px-4 py-3 text-right">
+                {{ formatCurrency(user.averageOrderValue) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        *ngIf="!data.users?.length"
+        class="hidden md:block p-8 text-center text-gray-400 dark:text-slate-500"
+      >
+        No user data available for this period.
+      </div>
+    </div>
+  </div>
+</div>

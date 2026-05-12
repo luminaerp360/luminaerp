@@ -1,0 +1,1659 @@
+<div class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-200">
+  <!-- Header Section -->
+  <div class="px-3 sm:px-4 py-4 sm:py-6 md:px-8 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="mb-2 md:mb-0">
+          <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 sm:h-8 sm:w-8 mr-2 text-purple-500 flex-shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            Sales Reports Dashboard
+          </h1>
+          <p class="text-gray-600 dark:text-slate-400 mt-1">
+            Analyze your business performance in one place
+          </p>
+        </div>
+
+        <div class="flex space-x-2">
+          <button
+            (click)="downloadReport()"
+            class="px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center transition-colors text-sm sm:text-base"
+            [disabled]="!reportData || loading"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message Banner -->
+  <div
+    *ngIf="errorMessage && !loading"
+    class="max-w-7xl mx-auto px-4 md:px-8 mt-4"
+  >
+    <div
+      class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 p-4 rounded-lg flex justify-between items-center"
+    >
+      <div class="flex items-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 mr-2"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+      <button
+        (click)="retryLoadCharts()"
+        class="text-white bg-red-700 hover:bg-red-600 px-3 py-1 rounded text-sm"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="px-3 sm:px-4 py-3 sm:py-4 md:px-8 bg-gray-100 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700">
+    <div class="max-w-7xl mx-auto">
+      <form
+        [formGroup]="reportForm"
+        (ngSubmit)="fetchReportData()"
+        class="space-y-4"
+      >
+        <!-- Date Range Filter Pills -->
+        <div>
+          <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-slate-300"
+            >Time Period</label
+          >
+          <div class="flex flex-wrap gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              (click)="setDateRange('today')"
+              [ngClass]="{
+                'bg-purple-600 text-white': currentDateRange === 'today',
+                'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600':
+                  currentDateRange !== 'today'
+              }"
+              class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              (click)="setDateRange('yesterday')"
+              [ngClass]="{
+                'bg-purple-600 text-white': currentDateRange === 'yesterday',
+                'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600':
+                  currentDateRange !== 'yesterday'
+              }"
+              class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+            >
+              Yesterday
+            </button>
+            <button
+              type="button"
+              (click)="setDateRange('thisWeek')"
+              [ngClass]="{
+                'bg-purple-600 text-white': currentDateRange === 'thisWeek',
+                'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600':
+                  currentDateRange !== 'thisWeek'
+              }"
+              class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+            >
+              This Week
+            </button>
+            <button
+              type="button"
+              (click)="setDateRange('thisMonth')"
+              [ngClass]="{
+                'bg-purple-600 text-white': currentDateRange === 'thisMonth',
+                'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600':
+                  currentDateRange !== 'thisMonth'
+              }"
+              class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+            >
+              This Month
+            </button>
+            <button
+              type="button"
+              (click)="setDateRange('lastMonth')"
+              [ngClass]="{
+                'bg-purple-600 text-white': currentDateRange === 'lastMonth',
+                'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600':
+                  currentDateRange !== 'lastMonth'
+              }"
+              class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+            >
+              Last Month
+            </button>
+            <button
+              type="button"
+              (click)="setDateRange('custom')"
+              [ngClass]="{
+                'bg-purple-600 text-white': currentDateRange === 'custom',
+                'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600':
+                  currentDateRange !== 'custom'
+              }"
+              class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+            >
+              Custom Range
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Date Range Inputs (shown only when custom is selected) -->
+        <div
+          *ngIf="currentDateRange === 'custom'"
+          class="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-slate-300"
+              >Start Date</label
+            >
+            <input
+              type="date"
+              formControlName="startDate"
+              class="w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-slate-300"
+              >End Date</label
+            >
+            <input
+              type="date"
+              formControlName="endDate"
+              class="w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white"
+            />
+          </div>
+        </div>
+
+        <!-- Other Controls -->
+        <div
+          class="flex flex-col md:flex-row md:justify-between md:items-center gap-4"
+        >
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id="includeOneTimeProducts"
+              formControlName="includeOneTimeProducts"
+              class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-slate-600 rounded"
+            />
+            <label
+              for="includeOneTimeProducts"
+              class="ml-2 text-sm text-gray-700 dark:text-slate-300"
+              >Include one-time products</label
+            >
+          </div>
+
+          <!-- Apply Button (only needed for custom range) -->
+          <button
+            *ngIf="currentDateRange === 'custom'"
+            type="submit"
+            [disabled]="loading"
+            class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center transition-colors text-white"
+          >
+            <svg
+              *ngIf="loading"
+              class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <svg
+              *ngIf="!loading"
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-1"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            Apply Filters
+          </button>
+        </div>
+
+        <!-- Active Date Range Display -->
+        <div
+          *ngIf="reportData"
+          class="py-2 px-4 bg-gray-100 dark:bg-slate-700/50 rounded-lg text-sm text-gray-700 dark:text-slate-300"
+        >
+          Showing data from:
+          <span class="font-medium text-gray-900 dark:text-white">{{
+            formatDateDisplay(reportForm.get("startDate")?.value)
+          }}</span>
+          to
+          <span class="font-medium text-gray-900 dark:text-white">{{
+            formatDateDisplay(reportForm.get("endDate")?.value)
+          }}</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div *ngIf="loading" class="flex justify-center items-center py-20">
+    <div class="flex flex-col items-center">
+      <svg
+        class="animate-spin h-12 w-12 text-purple-500 mb-4"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
+      </svg>
+      <p class="text-lg font-medium text-gray-700 dark:text-slate-300">Loading report data...</p>
+    </div>
+  </div>
+
+  <!-- No Data State -->
+  <div
+    *ngIf="!loading && !reportData"
+    class="flex justify-center items-center py-20"
+  >
+    <div
+      class="text-center max-w-md mx-auto p-6 bg-white dark:bg-slate-900 rounded-xl shadow-lg"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-16 w-16 mx-auto text-gray-400 dark:text-slate-500 mb-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
+        <path
+          d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"
+        ></path>
+        <polyline points="13 2 13 9 20 9"></polyline>
+      </svg>
+      <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Report Data</h3>
+      <p class="text-gray-600 dark:text-slate-400 mb-4">
+        Select a date range and generate a report to see your sales analytics.
+      </p>
+      <button
+        (click)="fetchReportData()"
+        class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg"
+      >
+        Generate Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Report Content -->
+  <div
+    *ngIf="!loading && reportData"
+    class="px-3 sm:px-4 py-4 sm:py-6 md:px-8 max-w-7xl mx-auto"
+  >
+    <!-- Tab Navigation -->
+    <div class="mb-6 border-b border-gray-200 dark:border-slate-700">
+      <div class="flex -mb-px overflow-x-auto scrollbar-hide">
+        <button
+          (click)="setActiveTab('overview')"
+          [ngClass]="{
+            'border-purple-500 text-purple-500': activeTab === 'overview',
+            'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-400':
+              activeTab !== 'overview'
+          }"
+          class="mr-4 py-2 px-1 font-medium text-sm border-b-2 transition-colors whitespace-nowrap"
+        >
+          Overview
+        </button>
+        <button
+          (click)="setActiveTab('daily')"
+          [ngClass]="{
+            'border-purple-500 text-purple-500': activeTab === 'daily',
+            'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-400':
+              activeTab !== 'daily'
+          }"
+          class="mr-4 py-2 px-1 font-medium text-sm border-b-2 transition-colors whitespace-nowrap"
+        >
+          Daily Trends
+        </button>
+        <button
+          (click)="setActiveTab('products')"
+          [ngClass]="{
+            'border-purple-500 text-purple-500': activeTab === 'products',
+            'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-400':
+              activeTab !== 'products'
+          }"
+          class="mr-4 py-2 px-1 font-medium text-sm border-b-2 transition-colors whitespace-nowrap"
+        >
+          Products Analysis
+        </button>
+        <button
+          (click)="setActiveTab('users')"
+          [ngClass]="{
+            'border-purple-500 text-purple-500': activeTab === 'users',
+            'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-400':
+              activeTab !== 'users'
+          }"
+          class="mr-4 py-2 px-1 font-medium text-sm border-b-2 transition-colors whitespace-nowrap"
+        >
+          User Performance
+        </button>
+      </div>
+    </div>
+
+    <!-- Overview Tab -->
+    <div *ngIf="activeTab === 'overview'">
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <!-- Total Sales Card -->
+        <div
+          class="bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-900 rounded-lg shadow-lg p-3 sm:p-4 border border-gray-200 dark:border-slate-700"
+        >
+          <div class="flex items-center">
+            <div class="p-2 sm:p-3 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 sm:h-6 sm:w-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                ></path>
+              </svg>
+            </div>
+            <div class="ml-3 sm:ml-4">
+              <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-slate-400">Total Sales</p>
+              <p class="text-base sm:text-xl font-bold text-gray-900 dark:text-white">
+                {{ formatCurrency(reportData.summary.totalSales) }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-3">
+            <p class="text-xs text-gray-500 dark:text-slate-400">
+              {{
+                reportData.summary.orderCount +
+                  reportData.summary.creditSaleCount
+              }}
+              transactions
+            </p>
+          </div>
+        </div>
+
+        <!-- Cash Sales Card -->
+        <div
+          class="bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-900 rounded-lg shadow-lg p-3 sm:p-4 border border-gray-200 dark:border-slate-700"
+        >
+          <div class="flex items-center">
+            <div class="p-2 sm:p-3 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                <circle cx="12" cy="12" r="2"></circle>
+                <path d="M6 12h.01M18 12h.01"></path>
+              </svg>
+            </div>
+            <div class="ml-3 sm:ml-4">
+              <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-slate-400">Cash Sales</p>
+              <p class="text-base sm:text-xl font-bold text-gray-900 dark:text-white">
+                {{ formatCurrency(reportData.paymentBreakdown.cash) }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-3">
+            <p class="text-xs text-gray-500 dark:text-slate-400">
+              {{
+                calculatePercentage(
+                  reportData.paymentBreakdown.cash,
+                  reportData.summary.totalSales
+                )
+              }}
+              of total
+            </p>
+          </div>
+        </div>
+
+        <!-- M-Pesa Card -->
+        <div
+          class="bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-900 rounded-lg shadow-lg p-3 sm:p-4 border border-gray-200 dark:border-slate-700"
+        >
+          <div class="flex items-center">
+            <div class="p-2 sm:p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <div class="ml-3 sm:ml-4">
+              <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-slate-400">M-Pesa</p>
+              <p class="text-base sm:text-xl font-bold text-gray-900 dark:text-white">
+                {{ formatCurrency(reportData.paymentBreakdown.mpesa) }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-3">
+            <p class="text-xs text-gray-500 dark:text-slate-400">
+              {{
+                calculatePercentage(
+                  reportData.paymentBreakdown.mpesa,
+                  reportData.summary.totalSales
+                )
+              }}
+              of total
+            </p>
+          </div>
+        </div>
+
+        <!-- Credit Sales Card -->
+        <div
+          class="bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-900 rounded-lg shadow-lg p-3 sm:p-4 border border-gray-200 dark:border-slate-700"
+        >
+          <div class="flex items-center">
+            <div class="p-2 sm:p-3 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+              </svg>
+            </div>
+            <div class="ml-3 sm:ml-4">
+              <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-slate-400">Credit Sales</p>
+              <p class="text-base sm:text-xl font-bold text-gray-900 dark:text-white">
+                {{ formatCurrency(reportData.paymentBreakdown.credit) }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-3">
+            <p class="text-xs text-gray-500 dark:text-slate-400">
+              {{
+                calculatePercentage(
+                  reportData.paymentBreakdown.credit,
+                  reportData.summary.totalSales
+                )
+              }}
+              of total
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row 1 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Payment Distribution Chart -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Payment Distribution
+          </h3>
+
+          <!-- Chart loading state -->
+          <div
+            *ngIf="chartsLoading"
+            class="h-80 flex items-center justify-center"
+          >
+            <div class="flex flex-col items-center">
+              <svg
+                class="animate-spin h-8 w-8 text-purple-500 mb-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <p class="text-sm text-gray-600 dark:text-slate-300">Loading chart data...</p>
+            </div>
+          </div>
+
+          <!-- Chart container -->
+          <div [hidden]="chartsLoading" class="h-80">
+            <apx-chart
+              #paymentChart
+              [series]="paymentChartOptions.series!"
+              [chart]="paymentChartOptions.chart!"
+              [labels]="paymentChartOptions.labels!"
+              [colors]="paymentChartOptions.colors!"
+              [dataLabels]="paymentChartOptions.dataLabels!"
+              [legend]="paymentChartOptions.legend!"
+              [tooltip]="paymentChartOptions.tooltip!"
+              [plotOptions]="paymentChartOptions.plotOptions!"
+            ></apx-chart>
+          </div>
+        </div>
+
+        <!-- Category Distribution -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Categories</h3>
+
+          <!-- Chart loading state -->
+          <div
+            *ngIf="chartsLoading"
+            class="h-80 flex items-center justify-center"
+          >
+            <div class="flex flex-col items-center">
+              <svg
+                class="animate-spin h-8 w-8 text-purple-500 mb-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <p class="text-sm text-gray-600 dark:text-slate-300">Loading chart data...</p>
+            </div>
+          </div>
+
+          <!-- Chart container -->
+          <div [hidden]="chartsLoading" class="h-80">
+            <apx-chart
+              #categoryChart
+              [series]="categoryChartOptions.series!"
+              [chart]="categoryChartOptions.chart!"
+              [labels]="categoryChartOptions.labels!"
+              [colors]="categoryChartOptions.colors!"
+              [dataLabels]="categoryChartOptions.dataLabels!"
+              [legend]="categoryChartOptions.legend!"
+              [tooltip]="categoryChartOptions.tooltip!"
+            ></apx-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row 2 -->
+      <div class="grid grid-cols-1 gap-6 mb-6">
+        <!-- Hourly Sales Chart -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Hourly Sales Distribution
+          </h3>
+
+          <!-- Chart loading state -->
+          <div
+            *ngIf="chartsLoading"
+            class="h-80 flex items-center justify-center"
+          >
+            <div class="flex flex-col items-center">
+              <svg
+                class="animate-spin h-8 w-8 text-purple-500 mb-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <p class="text-sm text-gray-600 dark:text-slate-300">Loading chart data...</p>
+            </div>
+          </div>
+
+          <!-- Chart container -->
+          <div [hidden]="chartsLoading" class="h-80">
+            <apx-chart
+              #hourlyChart
+              [series]="hourlyChartOptions.series!"
+              [chart]="hourlyChartOptions.chart!"
+              [xaxis]="hourlyChartOptions.xaxis!"
+              [yaxis]="hourlyChartOptions.yaxis!"
+              [dataLabels]="hourlyChartOptions.dataLabels!"
+              [grid]="hourlyChartOptions.grid!"
+              [stroke]="hourlyChartOptions.stroke!"
+              [tooltip]="hourlyChartOptions.tooltip!"
+              [colors]="hourlyChartOptions.colors!"
+              [fill]="hourlyChartOptions.fill!"
+            >
+            </apx-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- VAT and Discount Section -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6">
+        <!-- VAT & Discount Chart -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">VAT & Discount</h3>
+
+          <!-- Chart loading state -->
+          <div
+            *ngIf="chartsLoading"
+            class="h-64 flex items-center justify-center"
+          >
+            <div class="flex flex-col items-center">
+              <svg
+                class="animate-spin h-8 w-8 text-purple-500 mb-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <p class="text-sm text-gray-600 dark:text-slate-300">Loading chart data...</p>
+            </div>
+          </div>
+
+          <!-- Chart container -->
+          <div [hidden]="chartsLoading" class="h-64">
+            <apx-chart
+              #vatDiscountChart
+              [series]="vatDiscountChartOptions.series!"
+              [chart]="vatDiscountChartOptions.chart!"
+              [labels]="vatDiscountChartOptions.labels!"
+              [colors]="vatDiscountChartOptions.colors!"
+              [dataLabels]="vatDiscountChartOptions.dataLabels!"
+              [legend]="vatDiscountChartOptions.legend!"
+              [tooltip]="vatDiscountChartOptions.tooltip!"
+              [plotOptions]="vatDiscountChartOptions.plotOptions!"
+            >
+            </apx-chart>
+          </div>
+        </div>
+
+        <!-- VAT Breakdown -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">VAT Breakdown</h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-sm text-gray-600 dark:text-slate-400">VAT from Cash Sales</span>
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                  formatCurrency(
+                    reportData.vatAndDiscountBreakdown.vatByCashSales
+                  )
+                }}</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                <div
+                  class="bg-purple-500 h-2 rounded-full"
+                  [style.width]="
+                    calculatePercentage(
+                      reportData.vatAndDiscountBreakdown.vatByCashSales,
+                      reportData.vatAndDiscountBreakdown.totalVat
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-sm text-gray-600 dark:text-slate-400"
+                  >VAT from Credit Sales</span
+                >
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                  formatCurrency(
+                    reportData.vatAndDiscountBreakdown.vatByCreditSales
+                  )
+                }}</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                <div
+                  class="bg-blue-500 h-2 rounded-full"
+                  [style.width]="
+                    calculatePercentage(
+                      reportData.vatAndDiscountBreakdown.vatByCreditSales,
+                      reportData.vatAndDiscountBreakdown.totalVat
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Discount Breakdown -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Discount Breakdown
+          </h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-sm text-gray-600 dark:text-slate-400"
+                  >Discount on Cash Sales</span
+                >
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                  formatCurrency(
+                    reportData.vatAndDiscountBreakdown.discountByCashSales
+                  )
+                }}</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                <div
+                  class="bg-orange-500 h-2 rounded-full"
+                  [style.width]="
+                    calculatePercentage(
+                      reportData.vatAndDiscountBreakdown.discountByCashSales,
+                      reportData.vatAndDiscountBreakdown.totalDiscount
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-sm text-gray-600 dark:text-slate-400"
+                  >Discount on Credit Sales</span
+                >
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                  formatCurrency(
+                    reportData.vatAndDiscountBreakdown.discountByCreditSales
+                  )
+                }}</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                <div
+                  class="bg-cyan-500 h-2 rounded-full"
+                  [style.width]="
+                    calculatePercentage(
+                      reportData.vatAndDiscountBreakdown.discountByCreditSales,
+                      reportData.vatAndDiscountBreakdown.totalDiscount
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Trends Tab -->
+    <div *ngIf="activeTab === 'daily'">
+      <!-- Daily Trend Chart -->
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700 mb-6"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Daily Sales Trends
+        </h3>
+
+        <!-- Chart loading state -->
+        <div
+          *ngIf="chartsLoading"
+          class="h-96 flex items-center justify-center"
+        >
+          <div class="flex flex-col items-center">
+            <svg
+              class="animate-spin h-8 w-8 text-purple-500 mb-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <p class="text-sm text-slate-300">Loading chart data...</p>
+          </div>
+        </div>
+
+        <!-- Chart container -->
+        <div [hidden]="chartsLoading" class="h-96">
+          <apx-chart
+            #dailyTrendChart
+            [series]="dailyTrendChartOptions.series!"
+            [chart]="dailyTrendChartOptions.chart!"
+            [xaxis]="dailyTrendChartOptions.xaxis!"
+            [yaxis]="dailyTrendChartOptions.yaxis!"
+            [dataLabels]="dailyTrendChartOptions.dataLabels!"
+            [grid]="dailyTrendChartOptions.grid!"
+            [stroke]="dailyTrendChartOptions.stroke!"
+            [tooltip]="dailyTrendChartOptions.tooltip!"
+            [colors]="dailyTrendChartOptions.colors!"
+            [fill]="dailyTrendChartOptions.fill!"
+          >
+          </apx-chart>
+        </div>
+      </div>
+
+      <!-- Daily Transactions Table -->
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden"
+      >
+        <div class="p-5 border-b border-gray-200 dark:border-slate-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Daily Transactions</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+            <thead class="bg-gray-50 dark:bg-slate-900">
+              <tr>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Date
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Total Sales
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Cash Sales
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Credit Sales
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Transactions
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  VAT
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Discount
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
+              <tr *ngFor="let day of reportData.dailyTrends" class="hover:bg-gray-50 dark:hover:bg-slate-700">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ day.formattedDate | date : "MMM d, yyyy" }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(day.totalSales) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(day.cashSales) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(day.creditSales) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ day.transactionCount }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(day.vatAmount) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(day.discountAmount) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Analysis Tab -->
+    <div *ngIf="activeTab === 'products'">
+      <!-- One-Time vs Regular Products -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            One-Time vs Regular Products
+          </h3>
+
+          <!-- Chart loading state -->
+          <div
+            *ngIf="chartsLoading"
+            class="h-80 flex items-center justify-center"
+          >
+            <div class="flex flex-col items-center">
+              <svg
+                class="animate-spin h-8 w-8 text-purple-500 mb-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <p class="text-sm text-gray-600 dark:text-slate-300">Loading chart data...</p>
+            </div>
+          </div>
+
+          <!-- Chart container -->
+          <div [hidden]="chartsLoading" class="h-80">
+            <apx-chart
+              #oneTimeProductsChart
+              [series]="oneTimeProductsChartOptions.series!"
+              [chart]="oneTimeProductsChartOptions.chart!"
+              [labels]="oneTimeProductsChartOptions.labels!"
+              [colors]="oneTimeProductsChartOptions.colors!"
+              [dataLabels]="oneTimeProductsChartOptions.dataLabels!"
+              [legend]="oneTimeProductsChartOptions.legend!"
+              [tooltip]="oneTimeProductsChartOptions.tooltip!"
+            >
+            </apx-chart>
+          </div>
+        </div>
+
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            One-Time Products Summary
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="bg-gray-50 dark:bg-slate-900/60 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
+              <p class="text-sm text-gray-600 dark:text-slate-400 mb-1">Total Items Sold</p>
+              <p class="text-xl font-bold text-gray-900 dark:text-white">
+                {{ reportData.oneTimeProductsAnalysis.totalCount }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">One-time products</p>
+            </div>
+          </div>
+
+          <h4 class="text-md font-medium text-gray-900 dark:text-white mb-3">
+            Distribution by Sale Type
+          </h4>
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-sm text-gray-600 dark:text-slate-400">Cash Sales</span>
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                  formatCurrency(reportData.oneTimeProductsAnalysis.byCashSales)
+                }}</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                <div
+                  class="bg-cyan-500 h-2 rounded-full"
+                  [style.width]="
+                    calculatePercentage(
+                      reportData.oneTimeProductsAnalysis.byCashSales,
+                      reportData.oneTimeProductsAnalysis.totalSales
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-sm text-gray-600 dark:text-slate-400">Credit Sales</span>
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                  formatCurrency(
+                    reportData.oneTimeProductsAnalysis.byCreditSales
+                  )
+                }}</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                <div
+                  class="bg-green-500 h-2 rounded-full"
+                  [style.width]="
+                    calculatePercentage(
+                      reportData.oneTimeProductsAnalysis.byCreditSales,
+                      reportData.oneTimeProductsAnalysis.totalSales
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Selling Items -->
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden mb-6"
+      >
+        <div class="p-5 border-b border-gray-200 dark:border-slate-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Top Selling Products</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+            <thead class="bg-gray-50 dark:bg-slate-900">
+              <tr>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Product
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Category
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Quantity
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Revenue
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Profit
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Type
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
+              <tr *ngFor="let item of reportData.itemsSold.slice(0, 10)" class="hover:bg-gray-50 dark:hover:bg-slate-700">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ item.name }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-slate-300">
+                  {{ item.categoryName }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ item.quantity }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(item.revenue) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(item.profit) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <span
+                    *ngIf="item.isOneTimeProduct"
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300"
+                    >One-time</span
+                  >
+                  <span
+                    *ngIf="!item.isOneTimeProduct"
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                    >Regular</span
+                  >
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Category Breakdown -->
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden"
+      >
+        <div class="p-5 border-b border-gray-200 dark:border-slate-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Category Sales Breakdown
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+            <thead class="bg-gray-50 dark:bg-slate-900">
+              <tr>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Category
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Total Sales
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Items Sold
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Cash Sales
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Credit Sales
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                >
+                  Profit Margin
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
+              <tr *ngFor="let category of reportData.categoryBreakdown" class="hover:bg-gray-50 dark:hover:bg-slate-700">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ category.name }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(category.totalSales) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ category.itemCount }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(category.cashSales) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(category.creditSales) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ category.profitMargin.toFixed(1) }}%
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Performance Tab -->
+    <div *ngIf="activeTab === 'users'">
+      <!-- User Performance Table -->
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden mb-6"
+      >
+        <div class="p-5 border-b border-gray-200 dark:border-slate-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            User Sales Performance
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+            <thead class="bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20 transition-all duration-300">
+              <tr>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  User
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Total Sales
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Cash Sales
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Credit Sales
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Transactions
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Pending Amount
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  VAT
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Discount
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
+              <tr *ngFor="let user of reportData.userSalesBreakdown" class="hover:bg-gray-50 dark:hover:bg-slate-700">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div
+                      class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center"
+                    >
+                      <span class="text-white font-medium text-sm">{{
+                        user.fullName.substring(0, 2).toUpperCase()
+                      }}</span>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ user.fullName }}
+                      </div>
+                      <div class="text-sm text-gray-500 dark:text-slate-400">{{ user.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(user.totalSales) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(user.cashSales.total) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(user.creditSales.total) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ user.totalTransactions }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(user.totalPending) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(user.totalVat) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {{ formatCurrency(user.totalDiscount) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- User Performance Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <!-- Top Performer Card -->
+        <div
+          *ngIf="reportData.userSalesBreakdown.length > 0"
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Performer</h3>
+          <div class="flex items-center mb-4">
+            <div
+              class="flex-shrink-0 h-16 w-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center"
+            >
+              <span class="text-white font-medium text-xl">{{
+                reportData.userSalesBreakdown[0].fullName
+                  .substring(0, 2)
+                  .toUpperCase()
+              }}</span>
+            </div>
+            <div class="ml-4">
+              <p class="text-xl font-semibold text-gray-900 dark:text-white">
+                {{ reportData.userSalesBreakdown[0].fullName }}
+              </p>
+              <p class="text-sm text-gray-500 dark:text-slate-400">
+                {{ reportData.userSalesBreakdown[0].email }}
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-600 dark:text-slate-400">Total Sales</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                formatCurrency(reportData.userSalesBreakdown[0].totalSales)
+              }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-600 dark:text-slate-400">Cash Sales</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                formatCurrency(reportData.userSalesBreakdown[0].cashSales.total)
+              }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-600 dark:text-slate-400">Credit Sales</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                formatCurrency(
+                  reportData.userSalesBreakdown[0].creditSales.total
+                )
+              }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-gray-600 dark:text-slate-400">Transactions</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                reportData.userSalesBreakdown[0].totalTransactions
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Cash vs Credit -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Cash vs Credit Distribution
+          </h3>
+
+          <div class="space-y-6">
+            <div *ngFor="let user of reportData.userSalesBreakdown.slice(0, 3)">
+              <div class="flex justify-between mb-1">
+                <span class="text-sm text-gray-900 dark:text-white">{{ user.fullName }}</span>
+                <span class="text-xs text-gray-500 dark:text-slate-400">{{
+                  formatCurrency(user.totalSales)
+                }}</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2.5 flex">
+                <div
+                  class="bg-green-500 h-2.5 rounded-l-full"
+                  [style.width]="
+                    calculatePercentage(user.cashSales.total, user.totalSales)
+                  "
+                ></div>
+                <div
+                  class="bg-orange-500 h-2.5 rounded-r-full"
+                  [style.width]="
+                    calculatePercentage(user.creditSales.total, user.totalSales)
+                  "
+                ></div>
+              </div>
+              <div class="flex justify-between mt-1 text-xs text-gray-500 dark:text-slate-400">
+                <span
+                  >Cash:
+                  {{
+                    calculatePercentage(user.cashSales.total, user.totalSales)
+                  }}</span
+                >
+                <span
+                  >Credit:
+                  {{
+                    calculatePercentage(user.creditSales.total, user.totalSales)
+                  }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Credits -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-slate-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Pending Credit Status
+          </h3>
+
+          <div class="space-y-4">
+            <div *ngFor="let user of reportData.userSalesBreakdown.slice(0, 5)">
+              <div class="flex justify-between mb-1">
+                <span class="text-sm text-gray-900 dark:text-white">{{ user.fullName }}</span>
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                  formatCurrency(user.totalPending)
+                }}</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                <div
+                  class="h-2 rounded-full"
+                  [ngClass]="{
+                    'bg-red-500':
+                      user.totalPending / user.creditSales.total > 0.7,
+                    'bg-yellow-500':
+                      user.totalPending / user.creditSales.total > 0.4 &&
+                      user.totalPending / user.creditSales.total <= 0.7,
+                    'bg-green-500':
+                      user.totalPending / user.creditSales.total <= 0.4
+                  }"
+                  [style.width]="
+                    calculatePercentage(
+                      user.totalPending,
+                      user.creditSales.total
+                    )
+                  "
+                ></div>
+              </div>
+              <div class="flex justify-between mt-1 text-xs">
+                <span class="text-gray-500 dark:text-slate-400"
+                  >{{
+                    calculatePercentage(
+                      user.totalPending,
+                      user.creditSales.total
+                    )
+                  }}
+                  of credit sales</span
+                >
+                <span
+                  [ngClass]="{
+                    'text-red-500':
+                      user.totalPending / user.creditSales.total > 0.7,
+                    'text-yellow-500':
+                      user.totalPending / user.creditSales.total > 0.4 &&
+                      user.totalPending / user.creditSales.total <= 0.7,
+                    'text-green-500':
+                      user.totalPending / user.creditSales.total <= 0.4
+                  }"
+                >
+                  {{
+                    user.creditSales.total > 0
+                      ? (
+                          (user.creditSales.paidAmount /
+                            user.creditSales.total) *
+                          100
+                        ).toFixed(1)
+                      : 0
+                  }}% collected
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Error Indicator (add this where needed) -->
+  <div
+    *ngIf="!chartsLoading && !chartsReady && reportData"
+    class="flex justify-center items-center py-6"
+  >
+    <div class="text-center max-w-md p-6 bg-white dark:bg-slate-900 rounded-xl shadow-lg">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-12 w-12 mx-auto text-amber-500 mb-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+      >
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Chart Loading Issue</h3>
+      <p class="text-gray-600 dark:text-slate-400 mb-4">
+        There was a problem loading the charts. Your data is still available.
+      </p>
+      <button
+        (click)="forceRepaintCharts()"
+        class="px-4 py-2 bg-amber-600 hover:bg-amber-700 rounded-lg"
+      >
+        Retry Loading Charts
+      </button>
+    </div>
+  </div>
+
+  <!-- Fixed Footer -->
+  <footer class="bg-gray-100 dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 py-4 mt-8">
+    <div class="max-w-7xl mx-auto px-4 md:px-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div class="text-center md:text-left">
+          <p class="text-sm text-gray-600 dark:text-slate-400">
+            {{ reportData?.organization?.name }} &copy; {{ getCurrentYear() }}
+          </p>
+        </div>
+        <div class="flex justify-center md:justify-end mt-4 md:mt-0">
+          <p class="text-xs text-gray-500 dark:text-slate-500">
+            Report generated on
+            {{
+              reportData?.metadata?.generatedAt | date : "MMM d, yyyy, h:mm a"
+            }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>

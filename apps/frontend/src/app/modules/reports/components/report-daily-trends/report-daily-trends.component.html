@@ -1,0 +1,307 @@
+<div
+  class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-200"
+>
+  <div
+    class="px-3 sm:px-4 py-4 sm:py-6 md:px-8 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div
+      class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <h1
+          class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 flex-shrink-0 text-cyan-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          Daily Trends Report
+        </h1>
+        <p class="text-sm sm:text-base text-gray-600 dark:text-slate-400 mt-1">
+          Day-by-day revenue, expenses, and profit trends
+        </p>
+      </div>
+      <a
+        routerLink="/reports-hub"
+        class="text-purple-600 dark:text-purple-400 hover:underline text-sm flex items-center mt-2 md:mt-0"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 mr-1"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M15 19l-7-7 7-7"></path></svg
+        >Back to Reports Hub</a
+      >
+    </div>
+  </div>
+
+  <!-- Date Filter -->
+  <div
+    class="px-3 sm:px-4 py-3 sm:py-4 md:px-8 bg-gray-100 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 sm:gap-4">
+      <div class="flex flex-wrap gap-1.5 sm:gap-2">
+        <button
+          *ngFor="let r of ['today', 'week', 'month', 'quarter', 'year']"
+          (click)="setDateRange(r)"
+          type="button"
+          [ngClass]="{
+            'bg-purple-600 text-white': currentDateRange === r,
+            'bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300':
+              currentDateRange !== r,
+          }"
+          class="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 capitalize"
+        >
+          {{ r }}
+        </button>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <input
+          type="date"
+          [(ngModel)]="startDate"
+          class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+        />
+        <span class="text-gray-500">to</span>
+        <input
+          type="date"
+          [(ngModel)]="endDate"
+          class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+        />
+        <button
+          (click)="fetchReport()"
+          class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="flex items-center justify-center py-20">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"
+    ></div>
+  </div>
+  <div
+    *ngIf="errorMessage && !loading"
+    class="max-w-7xl mx-auto px-4 md:px-8 mt-4"
+  >
+    <div
+      class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 p-4 rounded-lg flex justify-between items-center"
+    >
+      <span>{{ errorMessage }}</span
+      ><button
+        (click)="fetchReport()"
+        class="text-white bg-red-700 px-3 py-1 rounded text-sm"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <div
+    *ngIf="data && !loading"
+    class="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6"
+  >
+    <!-- Summary KPIs -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 text-center"
+      >
+        <p class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+          Total Revenue
+        </p>
+        <p class="text-xl font-bold text-green-600 mt-1">
+          {{ formatCurrency(data.summary?.totalRevenue) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 text-center"
+      >
+        <p class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+          Total Expenses
+        </p>
+        <p class="text-xl font-bold text-red-600 mt-1">
+          {{ formatCurrency(data.summary?.totalExpenses) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 text-center"
+      >
+        <p class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+          Total Profit
+        </p>
+        <p
+          class="text-xl font-bold mt-1"
+          [ngClass]="
+            data.summary?.totalProfit >= 0 ? 'text-green-600' : 'text-red-600'
+          "
+        >
+          {{ formatCurrency(data.summary?.totalProfit) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 text-center"
+      >
+        <p class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+          Avg Daily Revenue
+        </p>
+        <p class="text-xl font-bold text-purple-600 mt-1">
+          {{ formatCurrency(data.summary?.averageDailyRevenue) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-700 text-center"
+      >
+        <p class="text-xs text-gray-500 dark:text-slate-400 uppercase">
+          Best Day
+        </p>
+        <p class="text-sm font-bold text-yellow-600 mt-1">
+          {{ data.summary?.bestDay?.date || "N/A" }}
+        </p>
+        <p class="text-xs text-gray-400">
+          {{ formatCurrency(data.summary?.bestDay?.revenue) }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Revenue vs Expenses Chart -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      *ngIf="revenueExpenseChartOptions?.series"
+    >
+      <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+        Revenue vs Expenses
+      </h3>
+      <apx-chart
+        [series]="revenueExpenseChartOptions.series"
+        [chart]="revenueExpenseChartOptions.chart"
+        [stroke]="revenueExpenseChartOptions.stroke"
+        [fill]="revenueExpenseChartOptions.fill"
+        [xaxis]="revenueExpenseChartOptions.xaxis"
+        [yaxis]="revenueExpenseChartOptions.yaxis"
+        [colors]="revenueExpenseChartOptions.colors"
+        [tooltip]="revenueExpenseChartOptions.tooltip"
+        [theme]="revenueExpenseChartOptions.theme"
+        [grid]="revenueExpenseChartOptions.grid"
+        [legend]="revenueExpenseChartOptions.legend"
+      ></apx-chart>
+    </div>
+
+    <!-- Daily Profit Chart -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      *ngIf="profitChartOptions?.series"
+    >
+      <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+        Daily Profit / Loss
+      </h3>
+      <apx-chart
+        [series]="profitChartOptions.series"
+        [chart]="profitChartOptions.chart"
+        [plotOptions]="profitChartOptions.plotOptions"
+        [xaxis]="profitChartOptions.xaxis"
+        [yaxis]="profitChartOptions.yaxis"
+        [tooltip]="profitChartOptions.tooltip"
+        [theme]="profitChartOptions.theme"
+        [grid]="profitChartOptions.grid"
+        [dataLabels]="profitChartOptions.dataLabels"
+      ></apx-chart>
+    </div>
+
+    <!-- Daily Data Table -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden"
+    >
+      <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-slate-700">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+          Daily Breakdown
+        </h3>
+      </div>
+      <!-- Mobile Cards -->
+      <div class="block md:hidden p-3 space-y-2">
+        <div *ngFor="let day of data.dailyData" class="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-slate-700">
+          <div class="flex justify-between items-center">
+            <p class="text-sm font-bold text-gray-900 dark:text-white">{{ day.date }}</p>
+            <span class="text-sm font-bold" [ngClass]="day.profit >= 0 ? 'text-green-600' : 'text-red-600'">{{ formatCurrency(day.profit) }}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 mt-2 text-xs text-gray-500 dark:text-slate-400">
+            <span>Revenue: <span class="font-medium text-green-600">{{ formatCurrency(day.totalRevenue) }}</span></span>
+            <span>Expenses: <span class="font-medium text-red-600">{{ formatCurrency(day.expenses) }}</span></span>
+            <span>Orders: <span class="font-medium text-gray-900 dark:text-white">{{ day.orderCount || 0 }}</span></span>
+            <span>Credit: <span class="font-medium text-gray-900 dark:text-white">{{ day.creditSaleCount || 0 }}</span></span>
+          </div>
+        </div>
+        <div *ngIf="!data.dailyData?.length" class="p-8 text-center text-gray-400 dark:text-slate-500">No daily data available.</div>
+      </div>
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead
+            class="bg-gray-50 dark:bg-slate-700/50 text-left text-xs uppercase text-gray-500 dark:text-slate-400"
+          >
+            <tr>
+              <th class="px-4 py-3">Date</th>
+              <th class="px-4 py-3 text-right">Orders</th>
+              <th class="px-4 py-3 text-right">Credit Sales</th>
+              <th class="px-4 py-3 text-right">Revenue</th>
+              <th class="px-4 py-3 text-right">Expenses</th>
+              <th class="px-4 py-3 text-right">Profit</th>
+              <th class="px-4 py-3 text-right">Cash</th>
+              <th class="px-4 py-3 text-right">M-Pesa</th>
+              <th class="px-4 py-3 text-right">Bank</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
+            <tr
+              *ngFor="let day of data.dailyData"
+              class="hover:bg-gray-50 dark:hover:bg-slate-700/30"
+            >
+              <td class="px-4 py-3 font-medium">{{ day.date }}</td>
+              <td class="px-4 py-3 text-right">{{ day.orderCount || 0 }}</td>
+              <td class="px-4 py-3 text-right">
+                {{ day.creditSaleCount || 0 }}
+              </td>
+              <td class="px-4 py-3 text-right text-green-600 font-medium">
+                {{ formatCurrency(day.totalRevenue) }}
+              </td>
+              <td class="px-4 py-3 text-right text-red-600">
+                {{ formatCurrency(day.expenses) }}
+              </td>
+              <td
+                class="px-4 py-3 text-right font-semibold"
+                [ngClass]="day.profit >= 0 ? 'text-green-600' : 'text-red-600'"
+              >
+                {{ formatCurrency(day.profit) }}
+              </td>
+              <td class="px-4 py-3 text-right">
+                {{ formatCurrency(day.cashCollected) }}
+              </td>
+              <td class="px-4 py-3 text-right">
+                {{ formatCurrency(day.mpesaCollected) }}
+              </td>
+              <td class="px-4 py-3 text-right">
+                {{ formatCurrency(day.bankCollected) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        *ngIf="!data.dailyData?.length"
+        class="p-8 text-center text-gray-400 dark:text-slate-500"
+      >
+        No daily data available.
+      </div>
+    </div>
+  </div>
+</div>

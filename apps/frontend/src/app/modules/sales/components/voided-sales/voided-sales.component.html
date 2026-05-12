@@ -1,0 +1,127 @@
+<div class="container mx-auto px-4 py-8 bg-gray-900 text-gray-100 min-h-screen">
+  <h2 class="text-3xl font-bold mb-6">Voided Sales</h2>
+
+  <form (ngSubmit)="getVoidedSalesForRange()" class="mb-8">
+    <div class="flex flex-wrap -mx-2 mb-4">
+      <div class="px-2 mb-4 md:mb-0 w-full md:w-1/4">
+        <label for="startDate" class="block mb-2">Start Date:</label>
+        <input
+          type="date"
+          id="startDate"
+          class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+          [(ngModel)]="startDate"
+          name="startDate"
+          required
+        />
+      </div>
+      <div class="px-2 mb-4 md:mb-0 w-full md:w-1/4">
+        <label for="endDate" class="block mb-2">End Date:</label>
+        <input
+          type="date"
+          id="endDate"
+          class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+          [(ngModel)]="endDate"
+          name="endDate"
+          required
+        />
+      </div>
+      <div class="px-2 w-full md:w-1/4 flex items-end">
+        <button
+          type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center justify-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 mr-2"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Get Voided Sales
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div *ngIf="loading" class="flex justify-center items-center py-12">
+    <svg
+      class="animate-spin h-8 w-8 text-blue-500"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        class="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        stroke-width="4"
+      ></circle>
+      <path
+        class="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      ></path>
+    </svg>
+  </div>
+
+  <div *ngIf="error" class="bg-red-600 text-white p-4 rounded mb-6">
+    {{ error }}
+  </div>
+
+  <div *ngIf="sales.length > 0 && !loading" class="overflow-x-auto">
+    <table class="w-full table-auto">
+      <thead class="bg-gray-800">
+        <tr>
+          <th class="px-4 py-2 text-left">Order ID</th>
+          <th class="px-4 py-2 text-left">Total</th>
+          <th class="px-4 py-2 text-left">Voided By</th>
+          <th class="px-4 py-2 text-left">Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let sale of sales" class="border-b border-gray-700">
+          <td class="px-4 py-2">{{ sale.id }}</td>
+          <td class="px-4 py-2">
+            {{ sale.total | currency : "KSH " : "symbol" : "1.0-2" }}
+          </td>
+          <td class="px-4 py-2">{{ sale.voidedBy }}</td>
+          <td class="px-4 py-2">
+            <button
+              (click)="openDialog(sale)"
+              class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline flex items-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 mr-1"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              View
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div
+    *ngIf="sales.length === 0 && !loading && !error"
+    class="bg-blue-900 text-white p-4 rounded mt-6"
+  >
+    No voided sales found for the selected date range.
+  </div>
+</div>

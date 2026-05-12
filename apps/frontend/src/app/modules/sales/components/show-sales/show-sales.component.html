@@ -1,0 +1,596 @@
+﻿<!-- show-sales.component.html -->
+<section
+  class="container px-2 sm:px-4 mx-auto bg-white dark:bg-slate-900 min-h-screen transition-colors duration-300"
+>
+  <!-- Search Bar -->
+  <div
+    class="bg-white dark:bg-slate-900/90 rounded-xl border-2 border-gray-200 dark:border-slate-700 p-3 sm:p-4 mb-3 sm:mb-4 shadow-sm"
+  >
+    <div class="flex items-center space-x-2">
+      <div class="relative flex-1">
+        <div
+          class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+        >
+          <i class="bi bi-search text-gray-400 dark:text-slate-400"></i>
+        </div>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="onSearch()"
+          placeholder="Search receipt or customer..."
+          class="w-full pl-10 pr-10 py-2.5 sm:py-3 bg-gray-50 dark:bg-slate-900/80 border-2 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 dark:placeholder-slate-400"
+        />
+        <button
+          *ngIf="searchQuery"
+          (click)="clearSearch()"
+          class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+        >
+          <i class="bi bi-x-circle"></i>
+        </button>
+      </div>
+      <button
+        (click)="onSearch()"
+        class="px-4 sm:px-6 py-2.5 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 shadow-sm hover:shadow-md"
+      >
+        <i class="bi bi-search"></i>
+        <span class="hidden sm:inline">Search</span>
+      </button>
+    </div>
+    <p class="text-xs mt-2 ml-1">
+      <span *ngIf="!searchQuery" class="text-gray-500 dark:text-slate-400">
+        <i class="bi bi-info-circle mr-1"></i>
+        Press Enter or click Search to find sales by receipt number or customer
+        name
+      </span>
+      <span
+        *ngIf="searchQuery"
+        class="text-indigo-600 dark:text-indigo-400 font-medium"
+      >
+        <i class="bi bi-lightning-charge mr-1"></i>
+        Searching all sales (date filters ignored when searching)
+      </span>
+    </p>
+  </div>
+
+  <!-- Enhanced Filter Section -->
+  <div
+    class="bg-gray-50 dark:bg-slate-900/90 rounded-xl sm:rounded-2xl border-2 border-gray-200 dark:border-slate-700 p-2 sm:p-4 lg:p-6 mb-3 sm:mb-6 shadow-sm"
+  >
+    <div class="flex flex-col space-y-2 sm:space-y-4">
+      <!-- Filter Type Selector -->
+      <div class="flex flex-wrap gap-1.5 sm:gap-2">
+        <button
+          (click)="selectFilterType('quick')"
+          [class]="
+            'px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all ' +
+            (filterType === 'quick'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+              : 'bg-white dark:bg-slate-900/80 text-gray-600 dark:text-slate-400 border-2 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-900/60')
+          "
+        >
+          <i class="bi bi-lightning-charge mr-2"></i>Quick Filters
+        </button>
+        <button
+          (click)="selectFilterType('single')"
+          [class]="
+            'px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all ' +
+            (filterType === 'single'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+              : 'bg-white dark:bg-slate-900/80 text-gray-600 dark:text-slate-400 border-2 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-900/60')
+          "
+        >
+          <i class="bi bi-calendar-day mr-2"></i>Single Date
+        </button>
+        <button
+          (click)="selectFilterType('range')"
+          [class]="
+            'px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all ' +
+            (filterType === 'range'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+              : 'bg-white dark:bg-slate-900/80 text-gray-600 dark:text-slate-400 border-2 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-900/60')
+          "
+        >
+          <i class="bi bi-calendar-range mr-2"></i>Date Range
+        </button>
+      </div>
+
+      <!-- Current Filter Display -->
+      <div
+        class="flex items-center justify-between bg-white dark:bg-slate-900/50 border-2 border-gray-200 dark:border-slate-700 rounded-xl p-2 sm:p-4 transition-all"
+      >
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <div
+            class="p-1.5 sm:p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg"
+          >
+            <i
+              class="bi bi-funnel text-sm sm:text-base text-indigo-600 dark:text-indigo-400"
+            ></i>
+          </div>
+          <div>
+            <span
+              class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs block"
+              >Current Filter</span
+            >
+            <span
+              class="text-gray-900 dark:text-white font-bold text-sm sm:text-base"
+              >{{ getFilterLabel() }}</span
+            >
+          </div>
+        </div>
+        <div class="text-right">
+          <span
+            class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-xs block"
+            >Total Sales</span
+          >
+          <div
+            class="text-emerald-600 dark:text-emerald-400 font-black text-base sm:text-xl"
+          >
+            {{ totalSales | currency: "KSH " : "symbol" : "1.0-2" }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Filters -->
+      <div
+        *ngIf="filterType === 'quick'"
+        class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-7 gap-1.5 sm:gap-3"
+      >
+        <button
+          *ngFor="let filter of quickFilters"
+          (click)="selectQuickFilter(filter.value)"
+          [class]="
+            'p-1.5 sm:p-3 rounded-lg sm:rounded-xl text-sm font-bold transition-all duration-200 flex flex-col items-center space-y-0.5 sm:space-y-2 border sm:border-2 ' +
+            (selectedQuickFilter === filter.value
+              ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 border-indigo-500 text-white shadow-lg transform scale-105'
+              : 'bg-white dark:bg-slate-900/80 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-900/60 hover:border-indigo-400')
+          "
+        >
+          <i [class]="filter.icon + ' text-base sm:text-xl'"></i>
+          <span
+            class="text-[8px] sm:text-[10px] uppercase tracking-wider leading-tight"
+            >{{ filter.label }}</span
+          >
+        </button>
+      </div>
+
+      <!-- Single Date Picker -->
+      <div
+        *ngIf="filterType === 'single'"
+        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <div>
+          <label
+            for="singleDate"
+            class="block text-xs font-bold text-gray-600 dark:text-slate-300 mb-2 uppercase tracking-wide"
+          >
+            <i class="bi bi-calendar-day mr-2 text-indigo-500"></i>Select Date
+          </label>
+          <input
+            type="date"
+            id="singleDate"
+            [(ngModel)]="selectedDay"
+            (change)="getSales()"
+            class="w-full p-3 bg-white dark:bg-slate-900/80 border-2 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          />
+        </div>
+        <div class="flex items-end">
+          <button
+            (click)="getSales()"
+            [disabled]="!selectedDay"
+            class="w-full p-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 dark:disabled:bg-slate-900/50 disabled:text-gray-400 dark:disabled:text-slate-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20"
+          >
+            <i class="bi bi-search mr-2"></i>Apply Filter
+          </button>
+        </div>
+      </div>
+
+      <!-- Date Range Picker -->
+      <div
+        *ngIf="filterType === 'range'"
+        class="grid grid-cols-1 md:grid-cols-3 gap-4"
+      >
+        <div>
+          <label
+            for="rangeStartDate"
+            class="block text-xs font-bold text-gray-600 dark:text-slate-300 mb-2 uppercase tracking-wide"
+          >
+            <i class="bi bi-calendar-event mr-2 text-indigo-500"></i>Start Date
+          </label>
+          <input
+            type="date"
+            id="rangeStartDate"
+            [(ngModel)]="startDate"
+            class="w-full p-3 bg-white dark:bg-slate-900/80 border-2 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          />
+        </div>
+        <div>
+          <label
+            for="rangeEndDate"
+            class="block text-xs font-bold text-gray-600 dark:text-slate-300 mb-2 uppercase tracking-wide"
+          >
+            <i class="bi bi-calendar-check mr-2 text-indigo-500"></i>End Date
+          </label>
+          <input
+            type="date"
+            id="rangeEndDate"
+            [(ngModel)]="endDate"
+            class="w-full p-3 bg-white dark:bg-slate-900/80 border-2 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          />
+        </div>
+        <div class="flex items-end">
+          <button
+            (click)="getSalesForRange()"
+            [disabled]="!startDate || !endDate"
+            class="w-full p-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 dark:disabled:bg-slate-900/50 disabled:text-gray-400 dark:disabled:text-slate-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20"
+          >
+            <i class="bi bi-search mr-2"></i>Apply Range
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Section -->
+  <div class="sm:flex sm:items-center sm:justify-between py-3 sm:py-6">
+    <div>
+      <div class="flex items-center gap-x-2 sm:gap-x-3">
+        <h2
+          class="text-lg sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight"
+        >
+          Sales Report
+        </h2>
+        <span
+          class="px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 rounded-full border border-indigo-100 dark:border-indigo-800"
+        >
+          {{ sales.length }}
+          {{ sales.length === 1 ? "transaction" : "transactions" }}
+        </span>
+      </div>
+      <p
+        class="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-slate-400 font-medium"
+      >
+        Detailed transaction history for {{ getFilterLabel() }}
+      </p>
+    </div>
+
+    <div class="flex items-center mt-3 sm:mt-4 gap-x-2 sm:gap-x-3">
+      <button
+        class="flex items-center justify-center w-1/2 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-gray-700 dark:text-slate-300 transition-all duration-200 bg-white dark:bg-slate-900/80 border-2 border-gray-200 dark:border-slate-700 rounded-xl gap-x-1.5 sm:gap-x-2 sm:w-auto hover:bg-gray-50 dark:hover:bg-slate-900/60 shadow-sm"
+      >
+        <i class="bi bi-printer text-base sm:text-lg"></i>
+        <span>Print Report</span>
+      </button>
+
+      <!-- Add new Sale button - always visible if they have sales access -->
+      <button
+        routerLink="/sales"
+        class="flex items-center justify-center w-1/2 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold tracking-wide text-white transition-all duration-200 bg-indigo-600 rounded-xl shrink-0 sm:w-auto gap-x-1.5 sm:gap-x-2 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20"
+      >
+        <i class="bi bi-plus-circle-fill text-base sm:text-lg"></i>
+        <span>New Sale</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div
+    *ngIf="isLoading"
+    class="flex flex-col justify-center items-center py-20"
+  >
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500/20 border-t-indigo-600 mb-4"
+    ></div>
+    <span class="text-gray-500 dark:text-slate-400 font-bold animate-pulse"
+      >Loading sales data...</span
+    >
+  </div>
+
+  <!-- Empty State -->
+  <div
+    *ngIf="!isLoading && sales.length === 0"
+    class="flex flex-col justify-center items-center py-16"
+  >
+    <div class="text-center max-w-md">
+      <div
+        class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-indigo-50 dark:bg-indigo-900/20 mb-4"
+      >
+        <i
+          class="bi bi-receipt text-3xl text-indigo-500 dark:text-indigo-400"
+        ></i>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+        No Sales Yet
+      </h3>
+      <p class="text-gray-500 dark:text-slate-400 text-sm mb-6">
+        Get started by creating your first sale transaction.
+      </p>
+      <button
+        routerLink="/sales"
+        class="inline-flex items-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-all shadow-md shadow-indigo-500/25 text-sm"
+      >
+        <i class="bi bi-plus-circle-fill mr-2"></i>
+        New Sale
+      </button>
+    </div>
+  </div>
+
+  <!-- Sales Table - Desktop -->
+  <div
+    *ngIf="!isLoading && sales.length > 0"
+    class="hidden sm:flex flex-col mt-4"
+  >
+    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+        <div
+          class="overflow-hidden border-2 border-gray-200 dark:border-slate-700 md:rounded-2xl shadow-xl"
+        >
+          <table class="min-w-full border-separate border-spacing-0">
+            <thead class="sticky top-0 z-20">
+              <tr
+                class="bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20 transition-all duration-300"
+              >
+                <th
+                  scope="col"
+                  class="py-4 px-4 text-xs font-black text-left text-white uppercase tracking-[0.1em] rounded-tl-xl"
+                >
+                  <div class="flex items-center gap-x-3">
+                    <input
+                      type="checkbox"
+                      class="text-white border-white/30 rounded bg-white/10 focus:ring-purple-400"
+                    />
+                    <span>Receipt No</span>
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  class="px-4 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Date
+                </th>
+                <th
+                  scope="col"
+                  class="px-4 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  class="px-4 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Total Amount
+                </th>
+                <th scope="col" class="relative py-4 px-4 rounded-tr-xl">
+                  <span class="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+
+            <tbody
+              class="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700"
+            >
+              <tr
+                *ngFor="let sale of sales"
+                class="hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors"
+              >
+                <td
+                  class="px-4 py-4 text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap"
+                >
+                  <div class="inline-flex items-center gap-x-3">
+                    <input
+                      type="checkbox"
+                      class="text-indigo-600 border-gray-300 dark:border-slate-700 rounded bg-white dark:bg-slate-900 focus:ring-indigo-500"
+                    />
+                    <span
+                      class="px-2 py-1 bg-gray-100 dark:bg-slate-900/80 rounded-lg text-xs font-mono"
+                      >#{{ sale.id }}</span
+                    >
+                  </div>
+                </td>
+                <td
+                  class="px-4 py-4 text-sm text-gray-600 dark:text-slate-300 font-medium whitespace-nowrap"
+                >
+                  {{ sale.createdAt | date: "mediumDate" }}
+                  <span class="text-[10px] text-gray-400 block">{{
+                    sale.createdAt | date: "shortTime"
+                  }}</span>
+                </td>
+                <td class="px-4 py-4 text-sm font-medium whitespace-nowrap">
+                  <div
+                    class="inline-flex items-center px-2.5 py-1 rounded-full gap-x-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                  >
+                    <span class="relative flex h-2 w-2">
+                      <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+                      ></span>
+                      <span
+                        class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"
+                      ></span>
+                    </span>
+                    <span
+                      class="text-xs font-bold uppercase letter-spacing-widest"
+                      >Paid</span
+                    >
+                  </div>
+                </td>
+                <td class="px-4 py-4 text-sm whitespace-nowrap">
+                  <span class="text-indigo-600 dark:text-indigo-400 font-black">
+                    {{ currencySymbol || "KSh" }}
+                    {{ sale.total | number: "1.0-0" }}
+                  </span>
+                </td>
+                <!-- Actions column -->
+                <td class="px-4 py-4 text-sm whitespace-nowrap text-right">
+                  <div class="flex items-center justify-end gap-x-2">
+                    <!-- View button - always visible -->
+                    <button
+                      (click)="openViewDialog(sale)"
+                      class="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+                      title="View details"
+                    >
+                      <i class="bi bi-eye text-lg"></i>
+                    </button>
+
+                    <!-- Update Sale Button - only show if user can update -->
+                    <button
+                      *ngIf="canUpdateSale"
+                      (click)="navigate(sale)"
+                      class="p-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
+                      title="Edit sale"
+                    >
+                      <i class="bi bi-pencil-square text-lg"></i>
+                    </button>
+
+                    <!-- Print Thermal Receipt -->
+                    <button
+                      (click)="printThermalReceipt(sale)"
+                      class="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
+                      title="Thermal Receipt"
+                    >
+                      <i class="bi bi-printer text-lg"></i>
+                    </button>
+
+                    <!-- Print Regular Receipt -->
+                    <button
+                      (click)="printReceipt(sale)"
+                      class="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                      title="A4 Receipt"
+                    >
+                      <i class="bi bi-file-earmark-text text-lg"></i>
+                    </button>
+
+                    <!-- Custom Template Print/PDF -->
+                    <button
+                      (click)="openDocPrintModal(sale)"
+                      class="p-2 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                      title="Custom Print / PDF Download"
+                    >
+                      <i class="bi bi-sliders text-lg"></i>
+                    </button>
+
+                    <!-- Void Sale Button -->
+                    <button
+                      *ngIf="canDeleteSale"
+                      (click)="softDelete(sale.id!)"
+                      class="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                      title="Void sale"
+                    >
+                      <i class="bi bi-trash text-lg"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sales Cards - Mobile -->
+  <div *ngIf="!isLoading && sales.length > 0" class="sm:hidden mt-3 space-y-3">
+    <div
+      *ngFor="let sale of sales"
+      class="bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-700 rounded-xl p-3 shadow-sm"
+    >
+      <!-- Card Header -->
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-x-2">
+          <input
+            type="checkbox"
+            class="text-indigo-600 border-gray-300 dark:border-slate-700 rounded bg-white dark:bg-slate-900 focus:ring-indigo-500 h-4 w-4"
+          />
+          <span
+            class="px-2 py-0.5 bg-gray-100 dark:bg-slate-900/80 rounded-lg text-xs font-mono font-bold text-gray-900 dark:text-white"
+            >#{{ sale.id }}</span
+          >
+        </div>
+        <div
+          class="inline-flex items-center px-2 py-0.5 rounded-full gap-x-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+        >
+          <span class="relative flex h-1.5 w-1.5">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+            ></span>
+            <span
+              class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"
+            ></span>
+          </span>
+          <span class="text-[10px] font-bold uppercase">Paid</span>
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="flex items-center justify-between mb-2.5">
+        <div class="text-xs text-gray-500 dark:text-slate-400">
+          <i class="bi bi-calendar3 mr-1"></i>
+          {{ sale.createdAt | date: "mediumDate" }}
+          <span class="text-gray-400 ml-1">{{
+            sale.createdAt | date: "shortTime"
+          }}</span>
+        </div>
+        <span class="text-indigo-600 dark:text-indigo-400 font-black text-sm">
+          {{ currencySymbol || "KSh" }} {{ sale.total | number: "1.0-0" }}
+        </span>
+      </div>
+
+      <!-- Card Actions -->
+      <div
+        class="flex items-center justify-end gap-x-1 pt-2 border-t border-gray-100 dark:border-slate-700"
+      >
+        <button
+          (click)="openViewDialog(sale)"
+          class="p-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+          title="View details"
+        >
+          <i class="bi bi-eye"></i>
+        </button>
+        <button
+          *ngIf="canUpdateSale"
+          (click)="navigate(sale)"
+          class="p-1.5 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
+          title="Edit sale"
+        >
+          <i class="bi bi-pencil-square"></i>
+        </button>
+        <button
+          (click)="printThermalReceipt(sale)"
+          class="p-1.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
+          title="Thermal Receipt"
+        >
+          <i class="bi bi-printer"></i>
+        </button>
+        <button
+          (click)="printReceipt(sale)"
+          class="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+          title="A4 Receipt"
+        >
+          <i class="bi bi-file-earmark-text"></i>
+        </button>
+        <button
+          (click)="openDocPrintModal(sale)"
+          class="p-1.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+          title="Custom Print / PDF"
+        >
+          <i class="bi bi-sliders"></i>
+        </button>
+        <button
+          *ngIf="canDeleteSale"
+          (click)="softDelete(sale.id!)"
+          class="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+          title="Void sale"
+        >
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Document Print Settings Modal -->
+<app-document-print-settings
+  [docType]="'sale'"
+  [data]="docPrintData"
+  [isOpen]="docPrintModalOpen"
+  (closed)="closeDocPrintModal()"
+>
+</app-document-print-settings>

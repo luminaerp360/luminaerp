@@ -1,0 +1,189 @@
+/* receivable-form.component.scss */
+.receivable-form-container {
+  max-width: 900px;
+  margin: 0 auto;
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    .modal-title {
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: color 0.2s;
+
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
+
+  .modal-body {
+    transition: background-color 0.2s;
+
+    .form-label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      display: block;
+      transition: color 0.2s;
+    }
+
+    .form-control, .form-select {
+      transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+
+      &:focus {
+        outline: none;
+      }
+
+      &.is-invalid {
+        border-color: #dc2626 !important;
+
+        &:focus {
+          box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+        }
+      }
+    }
+
+    .invalid-feedback {
+      display: block;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+      transition: color 0.2s;
+    }
+
+    .net-amount-display {
+      transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    // Date picker input styling
+    .relative {
+      position: relative;
+
+      .form-control {
+        padding-right: 2.5rem; // Make room for the calendar icon
+      }
+
+      i {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        transition: color 0.2s;
+      }
+    }
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+
+  // Dark mode specific adjustments
+  @media (prefers-color-scheme: dark) {
+    .form-control::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .receivable-form-container {
+    .modal-body {
+      padding: 1rem;
+
+      .row {
+        --bs-gutter-x: 1rem;
+      }
+    }
+
+    .modal-footer {
+      padding: 1rem;
+      flex-direction: column;
+
+      .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
+// Custom scrollbar for textarea
+.form-control[type="textarea"] {
+  resize: vertical;
+  min-height: 80px;
+}
+
+// Focus states for better accessibility
+.form-control:focus, .form-select:focus {
+  outline: none;
+}
+
+// Loading spinner animation
+.fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Flowbite Date Picker Dark Mode Support
+:host ::ng-deep {
+  // Date picker dropdown styling for dark mode
+  .datepicker {
+    background-color: theme('colors.gray.800');
+    border-color: theme('colors.gray.700');
+    color: theme('colors.gray.100');
+
+    .datepicker-header {
+      background-color: theme('colors.gray.900');
+      border-bottom-color: theme('colors.gray.700');
+    }
+
+    .datepicker-body {
+      background-color: theme('colors.gray.800');
+    }
+
+    .datepicker-cell {
+      color: theme('colors.gray.100');
+
+      &:hover {
+        background-color: theme('colors.gray.700');
+      }
+
+      &.selected {
+        background-color: theme('colors.indigo.600');
+        color: white;
+      }
+
+      &.today {
+        background-color: theme('colors.blue.600');
+        color: white;
+      }
+    }
+
+    .datepicker-footer {
+      background-color: theme('colors.gray.900');
+      border-top-color: theme('colors.gray.700');
+    }
+  }
+}

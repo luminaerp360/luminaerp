@@ -1,0 +1,271 @@
+﻿<section
+  class="container px-4 mx-auto min-h-screen transition-colors duration-300"
+>
+  <!-- Header Section -->
+  <div class="sm:flex sm:items-center sm:justify-between py-6">
+    <div>
+      <div class="flex items-center gap-x-3">
+        <h2
+          class="text-2xl font-black text-gray-900 dark:text-white tracking-tight"
+        >
+          Create Support Ticket
+        </h2>
+        <span
+          class="px-3 py-1 text-xs font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 rounded-full border border-purple-100 dark:border-purple-800"
+        >
+          New Ticket
+        </span>
+      </div>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 font-medium">
+        Report an issue or request assistance from our support team
+      </p>
+    </div>
+
+    <div class="flex items-center mt-4 gap-x-3">
+      <button
+        routerLink="/tickets"
+        type="button"
+        class="flex items-center justify-center px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-300 transition-all duration-200 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-xl gap-x-2 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm"
+      >
+        <i class="bi bi-arrow-left text-lg"></i>
+        <span>Back to Tickets</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Form Section -->
+  <div class="flex justify-center mt-4">
+    <div class="w-full max-w-4xl">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl overflow-hidden"
+      >
+        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
+          <h3 class="text-xl font-black text-white tracking-tight">
+            Ticket Details
+          </h3>
+          <p class="text-purple-100 text-sm mt-1">
+            Fill in the information below to create your support ticket
+          </p>
+        </div>
+
+        <div class="p-6">
+          <form
+            [formGroup]="ticketForm"
+            (ngSubmit)="onSubmit()"
+            class="space-y-6"
+          >
+            <!-- Title -->
+            <div>
+              <label
+                for="title"
+                class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide"
+              >
+                <i class="bi bi-tag mr-2 text-purple-500"></i>Ticket Title
+                <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="title"
+                formControlName="title"
+                placeholder="Brief description of the issue"
+                class="w-full p-3 bg-white dark:bg-slate-800 border-2 text-gray-900 dark:text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                [class.border-red-500]="
+                  ticketForm.get('title')?.invalid &&
+                  ticketForm.get('title')?.touched
+                "
+                [class.border-gray-200]="
+                  !(
+                    ticketForm.get('title')?.invalid &&
+                    ticketForm.get('title')?.touched
+                  )
+                "
+                [class.dark:border-red-500]="
+                  ticketForm.get('title')?.invalid &&
+                  ticketForm.get('title')?.touched
+                "
+                [class.dark:border-gray-700]="
+                  !(
+                    ticketForm.get('title')?.invalid &&
+                    ticketForm.get('title')?.touched
+                  )
+                "
+              />
+              <p
+                *ngIf="
+                  ticketForm.get('title')?.invalid &&
+                  ticketForm.get('title')?.touched
+                "
+                class="mt-2 text-xs text-red-500 font-medium"
+              >
+                <i class="bi bi-exclamation-circle mr-1"></i>Title is required
+                (minimum 5 characters)
+              </p>
+            </div>
+
+            <!-- Category and Priority Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Category -->
+              <div>
+                <label
+                  for="category"
+                  class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide"
+                >
+                  <i class="bi bi-grid mr-2 text-purple-500"></i>Category
+                  <span class="text-red-500">*</span>
+                </label>
+                <select
+                  id="category"
+                  formControlName="category"
+                  class="w-full p-3 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                >
+                  <option *ngFor="let cat of categories" [value]="cat">
+                    {{ getCategoryLabel(cat) }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Priority -->
+              <div>
+                <label
+                  for="priority"
+                  class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide"
+                >
+                  <i class="bi bi-exclamation-triangle mr-2 text-purple-500"></i
+                  >Priority <span class="text-red-500">*</span>
+                </label>
+                <select
+                  id="priority"
+                  formControlName="priority"
+                  class="w-full p-3 bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                >
+                  <option
+                    *ngFor="let priority of priorities"
+                    [value]="priority"
+                  >
+                    {{ priority }}
+                  </option>
+                </select>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  <span class="font-bold">LOW:</span> Minor |
+                  <span class="font-bold">MEDIUM:</span> Standard |
+                  <span class="font-bold">HIGH:</span> Important |
+                  <span class="font-bold">URGENT:</span> Critical
+                </p>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label
+                for="description"
+                class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide"
+              >
+                <i class="bi bi-file-text mr-2 text-purple-500"></i>Description
+                <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                id="description"
+                formControlName="description"
+                rows="6"
+                placeholder="Provide detailed information about the issue, including steps to reproduce if applicable..."
+                class="w-full p-3 bg-white dark:bg-slate-800 border-2 text-gray-900 dark:text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none"
+                [class.border-red-500]="
+                  ticketForm.get('description')?.invalid &&
+                  ticketForm.get('description')?.touched
+                "
+                [class.border-gray-200]="
+                  !(
+                    ticketForm.get('description')?.invalid &&
+                    ticketForm.get('description')?.touched
+                  )
+                "
+                [class.dark:border-red-500]="
+                  ticketForm.get('description')?.invalid &&
+                  ticketForm.get('description')?.touched
+                "
+                [class.dark:border-gray-700]="
+                  !(
+                    ticketForm.get('description')?.invalid &&
+                    ticketForm.get('description')?.touched
+                  )
+                "
+              ></textarea>
+              <p
+                *ngIf="
+                  ticketForm.get('description')?.invalid &&
+                  ticketForm.get('description')?.touched
+                "
+                class="mt-2 text-xs text-red-500 font-medium"
+              >
+                <i class="bi bi-exclamation-circle mr-1"></i>Description is
+                required (minimum 10 characters)
+              </p>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex gap-3 pt-4">
+              <button
+                type="submit"
+                [disabled]="isSubmitting"
+                class="flex items-center justify-center px-6 py-3 text-sm font-bold tracking-wide text-white transition-all duration-200 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl gap-x-2 hover:from-purple-700 hover:to-indigo-700 shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div
+                  *ngIf="isSubmitting"
+                  class="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white"
+                ></div>
+                <i *ngIf="!isSubmitting" class="bi bi-send-fill text-lg"></i>
+                <span>{{
+                  isSubmitting ? "Creating..." : "Create Ticket"
+                }}</span>
+              </button>
+              <button
+                type="button"
+                routerLink="/tickets"
+                [disabled]="isSubmitting"
+                class="flex items-center justify-center px-6 py-3 text-sm font-bold text-gray-700 dark:text-gray-300 transition-all duration-200 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-xl gap-x-2 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>Cancel</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Help Section -->
+      <div
+        class="bg-purple-50 dark:bg-purple-900/20 rounded-2xl border border-purple-100 dark:border-purple-800 p-6 mt-6"
+      >
+        <h6
+          class="text-sm font-black text-gray-900 dark:text-white mb-3 uppercase tracking-wide"
+        >
+          <i
+            class="bi bi-lightbulb mr-2 text-purple-600 dark:text-purple-400"
+          ></i
+          >Tips for Creating a Ticket
+        </h6>
+        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+          <li class="flex items-start">
+            <i class="bi bi-check-circle-fill text-purple-500 mr-2 mt-0.5"></i>
+            <span>Be specific and clear in your title</span>
+          </li>
+          <li class="flex items-start">
+            <i class="bi bi-check-circle-fill text-purple-500 mr-2 mt-0.5"></i>
+            <span>Provide step-by-step details in the description</span>
+          </li>
+          <li class="flex items-start">
+            <i class="bi bi-check-circle-fill text-purple-500 mr-2 mt-0.5"></i>
+            <span>Include any error messages you received</span>
+          </li>
+          <li class="flex items-start">
+            <i class="bi bi-check-circle-fill text-purple-500 mr-2 mt-0.5"></i>
+            <span>Select the appropriate priority and category</span>
+          </li>
+          <li class="flex items-start">
+            <i class="bi bi-check-circle-fill text-purple-500 mr-2 mt-0.5"></i>
+            <span>You'll be notified when support responds</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

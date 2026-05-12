@@ -1,0 +1,666 @@
+<!-- Header -->
+<div class="mb-6">
+  <div
+    class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-lg shadow-lg p-6"
+  >
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+          <svg
+            class="w-8 h-8"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+            />
+          </svg>
+          Customer Wallets
+        </h1>
+        <p class="text-emerald-100 mt-1">
+          Manage customer wallet balances and deposits
+        </p>
+      </div>
+      <button
+        (click)="loadCustomers()"
+        class="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-400 transition-colors flex items-center gap-2 font-medium"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="loading" class="flex justify-center items-center py-20">
+  <div
+    class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-emerald-600"
+  ></div>
+</div>
+
+<!-- Content -->
+<div *ngIf="!loading && data" class="space-y-6">
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-emerald-500"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 font-medium">Total Wallet Balances</p>
+          <p class="text-3xl font-bold text-gray-800">
+            {{ formatCurrency(totalWalletBalance) }}
+          </p>
+        </div>
+        <div class="bg-emerald-100 p-3 rounded-lg">
+          <svg
+            class="w-8 h-8 text-emerald-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-teal-500"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 font-medium">
+            Customers with Balance
+          </p>
+          <p class="text-3xl font-bold text-gray-800">
+            {{ customersWithBalance }}
+          </p>
+        </div>
+        <div class="bg-teal-100 p-3 rounded-lg">
+          <svg
+            class="w-8 h-8 text-teal-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg shadow p-6 border-l-4 border-blue-500"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600 font-medium">Total Customers</p>
+          <p class="text-3xl font-bold text-gray-800">
+            {{ totalCustomers }}
+          </p>
+        </div>
+        <div class="bg-blue-100 p-3 rounded-lg">
+          <svg
+            class="w-8 h-8 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filter Bar -->
+  <div
+    class="bg-white dark:bg-slate-900 rounded-lg shadow p-4 flex flex-col md:flex-row gap-4 items-center"
+  >
+    <div class="relative flex-1 w-full">
+      <svg
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        />
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()"
+        placeholder="Search by customer name, phone or email..."
+        class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+      />
+    </div>
+    <button
+      (click)="onSearch()"
+      class="px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+    >
+      Search
+    </button>
+    <button
+      (click)="toggleFilter()"
+      [class]="
+        showOnlyWithBalance
+          ? 'px-5 py-2.5 bg-emerald-100 text-emerald-800 border-2 border-emerald-400 rounded-lg font-medium transition-colors'
+          : 'px-5 py-2.5 bg-gray-100 text-gray-600 border-2 border-gray-200 rounded-lg font-medium hover:bg-gray-200 transition-colors'
+      "
+    >
+      {{ showOnlyWithBalance ? "✓ With Balance Only" : "Show All" }}
+    </button>
+  </div>
+
+  <!-- Customer Wallets Table -->
+  <div class="bg-white dark:bg-slate-900 rounded-lg shadow overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50 dark:bg-slate-800">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Customer
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Contact
+            </th>
+            <th
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Wallet Balance
+            </th>
+            <th
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Outstanding Debt
+            </th>
+            <th
+              class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Invoices
+            </th>
+            <th
+              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200">
+          <tr
+            *ngFor="let customer of customers"
+            class="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+          >
+            <!-- Customer Name -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                  [ngClass]="
+                    customer.walletBalance > 0
+                      ? 'bg-emerald-500'
+                      : 'bg-gray-400'
+                  "
+                >
+                  {{ (customer.fullName[0] || "?").toUpperCase() }}
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900">
+                    {{ customer.fullName }}
+                  </p>
+                  <p class="text-xs text-gray-500">ID: {{ customer.id }}</p>
+                </div>
+              </div>
+            </td>
+
+            <!-- Contact -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <p class="text-sm text-gray-900">{{ customer.phoneNumber }}</p>
+              <p class="text-xs text-gray-500">{{ customer.email || "-" }}</p>
+            </td>
+
+            <!-- Wallet Balance -->
+            <td class="px-6 py-4 whitespace-nowrap text-right">
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold"
+                [ngClass]="getWalletBadgeClass(customer.walletBalance)"
+              >
+                <svg
+                  *ngIf="customer.walletBalance > 0"
+                  class="w-4 h-4 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                  />
+                </svg>
+                {{ formatCurrency(customer.walletBalance) }}
+              </span>
+            </td>
+
+            <!-- Outstanding Debt -->
+            <td class="px-6 py-4 whitespace-nowrap text-right">
+              <span
+                class="text-sm font-medium"
+                [ngClass]="
+                  customer.outstandingBalance > 0
+                    ? 'text-red-600'
+                    : 'text-green-600'
+                "
+              >
+                {{ formatCurrency(customer.outstandingBalance) }}
+              </span>
+            </td>
+
+            <!-- Invoices -->
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <span
+                *ngIf="customer.outstandingInvoices > 0"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+              >
+                {{ customer.outstandingInvoices }} unpaid
+              </span>
+              <span
+                *ngIf="customer.outstandingInvoices === 0"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+              >
+                All paid
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-6 py-4 whitespace-nowrap text-right">
+              <div class="flex items-center justify-end gap-2">
+                <button
+                  (click)="openDepositModal(customer)"
+                  class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1"
+                  title="Deposit to wallet"
+                >
+                  <svg
+                    class="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                  Deposit
+                </button>
+                <button
+                  (click)="viewCustomerWallet(customer.id)"
+                  class="px-3 py-1.5 bg-teal-100 text-teal-700 text-xs font-medium rounded-lg hover:bg-teal-200 transition-colors"
+                  title="View wallet details"
+                >
+                  View
+                </button>
+                <button
+                  *ngIf="customer.outstandingInvoices > 0"
+                  (click)="viewOutstandingInvoices(customer.id)"
+                  class="px-3 py-1.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-lg hover:bg-purple-200 transition-colors"
+                  title="View outstanding invoices"
+                >
+                  Invoices
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="customers.length === 0">
+            <td colspan="6" class="px-6 py-12 text-center">
+              <svg
+                class="mx-auto h-12 w-12 text-gray-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                />
+              </svg>
+              <p class="mt-2 text-sm text-gray-500">
+                {{
+                  showOnlyWithBalance
+                    ? "No customers with wallet balance found"
+                    : "No customers found"
+                }}
+              </p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      *ngIf="data && data.pagination.totalPages > 1"
+      class="bg-gray-50 dark:bg-slate-800 px-6 py-3 flex items-center justify-between border-t border-gray-200"
+    >
+      <p class="text-sm text-gray-600">
+        Showing {{ (page - 1) * limit + 1 }} to
+        {{ Math.min(page * limit, data.pagination.total) }} of
+        {{ data.pagination.total }} customers
+      </p>
+      <div class="flex items-center gap-2">
+        <button
+          (click)="goToPage(page - 1)"
+          [disabled]="!data.pagination.hasPrevPage"
+          class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        <span class="text-sm text-gray-600">
+          Page {{ page }} of {{ data.pagination.totalPages }}
+        </span>
+        <button
+          (click)="goToPage(page + 1)"
+          [disabled]="!data.pagination.hasNextPage"
+          class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- No Data State -->
+<div *ngIf="!loading && !data" class="text-center py-20">
+  <svg
+    class="mx-auto h-12 w-12 text-gray-400"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+    />
+  </svg>
+  <h3 class="mt-2 text-sm font-medium text-gray-900">No data available</h3>
+</div>
+
+<!-- ================================ -->
+<!-- DEPOSIT MODAL                    -->
+<!-- ================================ -->
+<div
+  *ngIf="showDepositModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center pt-20"
+>
+  <div
+    class="relative w-11/12 md:w-1/2 lg:w-5/12 shadow-2xl rounded-xl bg-white dark:bg-slate-900 border border-gray-200"
+  >
+    <!-- Modal Header -->
+    <div
+      class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-t-xl px-6 py-4 flex justify-between items-center"
+    >
+      <div>
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          Deposit to Wallet
+        </h3>
+        <p class="text-emerald-100 text-sm mt-0.5">
+          {{ selectedCustomer?.fullName }}
+        </p>
+      </div>
+      <button
+        (click)="closeDepositModal()"
+        class="text-white/80 hover:text-white transition-colors"
+      >
+        <svg
+          class="h-6 w-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 space-y-4">
+      <!-- Current Balance Info -->
+      <div
+        class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3">
+          <div class="bg-emerald-100 p-2 rounded-lg">
+            <svg
+              class="w-6 h-6 text-emerald-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs text-emerald-600 font-medium">Current Balance</p>
+            <p class="text-xl font-bold text-emerald-800">
+              {{ formatCurrency(selectedCustomer?.walletBalance || 0) }}
+            </p>
+          </div>
+        </div>
+        <div *ngIf="selectedCustomer?.outstandingBalance" class="text-right">
+          <p class="text-xs text-gray-500">Outstanding Debt</p>
+          <p class="text-sm font-semibold text-red-600">
+            {{ formatCurrency(selectedCustomer?.outstandingBalance || 0) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Deposit Amount -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Deposit Amount *</label
+        >
+        <div class="relative">
+          <span
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium"
+            >KSH</span
+          >
+          <input
+            type="number"
+            [(ngModel)]="depositAmount"
+            min="0.01"
+            step="0.01"
+            placeholder="0.00"
+            class="w-full pl-14 pr-4 py-3 border-2 border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-xl font-bold"
+          />
+        </div>
+      </div>
+
+      <!-- Payment Method -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Payment Method *</label
+        >
+        <select
+          [(ngModel)]="selectedPaymentMethod"
+          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+        >
+          <option [ngValue]="null">Select payment method</option>
+          <option *ngFor="let method of paymentMethods" [ngValue]="method">
+            {{ method.displayName || method.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Transaction Code -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Transaction Code</label
+        >
+        <input
+          type="text"
+          [(ngModel)]="depositTransactionCode"
+          placeholder="E.g., MPESA code, check number"
+          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <!-- Payment Date -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Payment Date</label
+        >
+        <input
+          type="date"
+          [(ngModel)]="depositDate"
+          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <!-- Notes -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Notes</label
+        >
+        <textarea
+          [(ngModel)]="depositNotes"
+          rows="2"
+          placeholder="Deposit notes (optional)"
+          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+        ></textarea>
+      </div>
+
+      <!-- New Balance Preview -->
+      <div
+        *ngIf="depositAmount > 0"
+        class="bg-blue-50 border border-blue-200 rounded-lg p-3"
+      >
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-blue-700 font-medium"
+            >New Balance After Deposit:</span
+          >
+          <span class="text-lg font-bold text-blue-800">
+            {{
+              formatCurrency(
+                (selectedCustomer?.walletBalance || 0) + depositAmount
+              )
+            }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div
+      class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 rounded-b-xl"
+    >
+      <button
+        (click)="closeDepositModal()"
+        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+      >
+        Cancel
+      </button>
+      <button
+        (click)="recordDeposit()"
+        [disabled]="depositing || !depositAmount || depositAmount <= 0"
+        class="px-6 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-lg hover:from-emerald-700 hover:to-teal-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        <svg
+          *ngIf="depositing"
+          class="animate-spin h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          ></path>
+        </svg>
+        {{ depositing ? "Processing..." : "Record Deposit" }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,905 @@
+﻿<section
+  class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100"
+>
+  <div
+    *ngIf="loading"
+    class="fixed inset-0 bg-gray-50/50 dark:bg-slate-900/50 flex items-center justify-center z-50"
+  >
+    <div class="flex flex-col items-center">
+      <div
+        class="w-12 h-12 border-t-2 border-purple-500 border-solid rounded-full animate-spin"
+      ></div>
+      <p class="mt-4 text-purple-500">Loading purchases...</p>
+    </div>
+  </div>
+
+  <div class="container px-3 sm:px-4 mx-auto py-4 sm:py-8">
+    <!-- Search & Filters -->
+    <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+      <div class="relative flex-1 max-w-sm">
+        <input
+          (input)="onInputChange()"
+          type="text"
+          placeholder="Search by PO# or product..."
+          [(ngModel)]="query"
+          class="w-full h-12 px-4 pl-10 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-colors"
+        />
+        <svg
+          class="w-5 h-5 absolute left-3 top-3.5 text-gray-500 dark:text-gray-400"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+      </div>
+      <select
+        [(ngModel)]="statusFilter"
+        (ngModelChange)="onStatusChange()"
+        class="h-12 px-4 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+      >
+        <option value="">All Statuses</option>
+        <option value="PENDING">Pending</option>
+        <option value="APPROVED">Approved</option>
+        <option value="REJECTED">Rejected</option>
+        <option value="PARTIALLY_RECEIVED">Partially Received</option>
+        <option value="RECEIVED">Received</option>
+        <option value="CANCELLED">Cancelled</option>
+      </select>
+    </div>
+
+    <!-- Header -->
+    <div
+      class="flex flex-col md:flex-row md:items-center md:justify-between mb-6"
+    >
+      <div class="flex items-center gap-x-3 mb-4 md:mb-0">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          Store Purchases
+        </h2>
+        <span
+          class="px-3 py-1 text-xs text-purple-400 bg-purple-900/50 rounded-full"
+          >{{ storePurchases.length }} Orders</span
+        >
+      </div>
+      <button
+        (click)="openAddDialog()"
+        class="flex items-center justify-center px-4 py-2 text-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors duration-200 gap-x-2 shadow-md"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+          />
+        </svg>
+        <span>New Purchase Order</span>
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div
+      class="bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden"
+    >
+      <div class="hidden sm:block">
+        <div class="overflow-x-auto">
+          <table
+            class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+          >
+            <thead class="bg-gradient-to-r from-purple-600 to-indigo-600">
+              <tr>
+                <th
+                  class="px-4 py-4 text-xs font-black text-left text-white uppercase w-8"
+                ></th>
+                <th
+                  class="px-4 py-4 text-xs font-black text-left text-white uppercase"
+                >
+                  PO Number
+                </th>
+                <th
+                  class="px-4 py-4 text-xs font-black text-left text-white uppercase"
+                >
+                  Items
+                </th>
+                <th
+                  class="px-4 py-4 text-xs font-black text-right text-white uppercase"
+                >
+                  Total Amount
+                </th>
+                <th
+                  class="px-4 py-4 text-xs font-black text-left text-white uppercase"
+                >
+                  Created By
+                </th>
+                <th
+                  class="px-4 py-4 text-xs font-black text-left text-white uppercase"
+                >
+                  Date
+                </th>
+                <th
+                  class="px-4 py-4 text-xs font-black text-left text-white uppercase"
+                >
+                  Status
+                </th>
+                <th
+                  class="px-4 py-4 text-xs font-black text-left text-white uppercase"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <ng-container *ngFor="let purchase of storePurchases">
+                <!-- Main Row -->
+                <tr
+                  class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors duration-200 cursor-pointer"
+                  (click)="toggleExpand(purchase.id)"
+                >
+                  <td class="px-4 py-4">
+                    <svg
+                      class="w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-200"
+                      [class.rotate-90]="expandedPurchaseId === purchase.id"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </td>
+                  <td class="px-4 py-4">
+                    <div
+                      class="text-sm font-mono font-semibold text-purple-600 dark:text-purple-400"
+                    >
+                      {{ purchase.purchaseNumber || "—" }}
+                    </div>
+                  </td>
+                  <td class="px-4 py-4">
+                    <span
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300"
+                    >
+                      {{ purchase.items.length || 0 }} item{{
+                        purchase.items.length !== 1 ? "s" : ""
+                      }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-4 text-right">
+                    <div
+                      class="text-sm font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                      KSH {{ purchase.totalAmount | number: "1.2-2" }}
+                    </div>
+                  </td>
+                  <td class="px-4 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                      {{
+                        purchase.creator?.fullName || purchase.receivedBy || "—"
+                      }}
+                    </div>
+                  </td>
+                  <td class="px-4 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ purchase.createdAt | date: "mediumDate" }}
+                    </div>
+                  </td>
+                  <td class="px-4 py-4 whitespace-nowrap">
+                    <span
+                      [class]="
+                        'px-3 py-1 text-xs font-semibold rounded-full ' +
+                        getStatusColor(purchase.status)
+                      "
+                      >{{ purchase.status }}</span
+                    >
+                  </td>
+                  <td
+                    class="px-4 py-4 whitespace-nowrap text-sm font-medium"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <div class="flex items-center gap-1">
+                      <button
+                        *ngIf="purchase.status === 'PENDING'"
+                        (click)="approvePurchase(purchase.id)"
+                        class="px-2.5 py-1 text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30 rounded hover:bg-green-200 dark:hover:bg-green-900/50 text-xs transition-colors"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        *ngIf="purchase.status === 'PENDING'"
+                        (click)="rejectPurchase(purchase.id)"
+                        class="px-2.5 py-1 text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30 rounded hover:bg-red-200 dark:hover:bg-red-900/50 text-xs transition-colors"
+                      >
+                        Reject
+                      </button>
+                      <button
+                        *ngIf="
+                          purchase.status === 'APPROVED' ||
+                          purchase.status === 'PARTIALLY_RECEIVED'
+                        "
+                        (click)="receivePurchase(purchase)"
+                        class="px-2.5 py-1 text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 text-xs transition-colors"
+                      >
+                        Receive
+                      </button>
+                      <button
+                        *ngIf="
+                          purchase.status === 'RECEIVED' ||
+                          purchase.status === 'PARTIALLY_RECEIVED'
+                        "
+                        (click)="printGrn(purchase.id)"
+                        class="px-2.5 py-1 text-teal-600 bg-teal-100 dark:text-teal-400 dark:bg-teal-900/30 rounded hover:bg-teal-200 dark:hover:bg-teal-900/50 text-xs transition-colors"
+                      >
+                        GRN
+                      </button>
+                      <button
+                        *ngIf="purchase.status === 'PENDING'"
+                        (click)="openUpdateDialog(purchase)"
+                        class="px-2.5 py-1 text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/30 rounded hover:bg-purple-200 dark:hover:bg-purple-900/50 text-xs transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        *ngIf="
+                          purchase.status === 'PENDING' ||
+                          purchase.status === 'APPROVED'
+                        "
+                        (click)="cancelPurchase(purchase.id)"
+                        class="px-2.5 py-1 text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30 rounded hover:bg-orange-200 dark:hover:bg-orange-900/50 text-xs transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        *ngIf="
+                          purchase.status === 'PENDING' ||
+                          purchase.status === 'CANCELLED'
+                        "
+                        (click)="deleteStorePurchase(purchase.id)"
+                        class="px-2.5 py-1 text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30 rounded hover:bg-red-200 dark:hover:bg-red-900/50 text-xs transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Expanded Detail Row -->
+                <tr *ngIf="expandedPurchaseId === purchase.id">
+                  <td
+                    colspan="8"
+                    class="px-4 py-4 bg-gray-50 dark:bg-slate-900/50"
+                  >
+                    <div class="ml-8 space-y-4">
+                      <!-- Metadata -->
+                      <div class="flex flex-wrap gap-6 text-sm">
+                        <div *ngIf="purchase.supplier">
+                          <span class="text-gray-500 dark:text-gray-400"
+                            >Supplier:</span
+                          >
+                          <span
+                            class="ml-1 font-medium text-gray-900 dark:text-gray-100"
+                            >{{ purchase.supplier?.name || "—" }}</span
+                          >
+                        </div>
+                        <div *ngIf="purchase.deliveryDate">
+                          <span class="text-gray-500 dark:text-gray-400"
+                            >Delivery:</span
+                          >
+                          <span
+                            class="ml-1 font-medium text-gray-900 dark:text-gray-100"
+                            >{{
+                              purchase.deliveryDate | date: "mediumDate"
+                            }}</span
+                          >
+                        </div>
+                        <div *ngIf="purchase.approver">
+                          <span class="text-gray-500 dark:text-gray-400"
+                            >Approved by:</span
+                          >
+                          <span
+                            class="ml-1 font-medium text-green-600 dark:text-green-400"
+                            >{{ purchase.approver.fullName }}</span
+                          >
+                        </div>
+                        <div *ngIf="purchase.rejector">
+                          <span class="text-gray-500 dark:text-gray-400"
+                            >Rejected by:</span
+                          >
+                          <span
+                            class="ml-1 font-medium text-red-600 dark:text-red-400"
+                            >{{ purchase.rejector.fullName }}</span
+                          >
+                        </div>
+                        <div *ngIf="purchase.rejectionReason">
+                          <span class="text-gray-500 dark:text-gray-400"
+                            >Reason:</span
+                          >
+                          <span
+                            class="ml-1 font-medium text-red-600 dark:text-red-400"
+                            >{{ purchase.rejectionReason }}</span
+                          >
+                        </div>
+                      </div>
+                      <div
+                        *ngIf="purchase.notes"
+                        class="text-sm text-gray-500 dark:text-gray-400 italic"
+                      >
+                        Notes: {{ purchase.notes }}
+                      </div>
+
+                      <!-- Items Sub-Table -->
+                      <table
+                        class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 rounded-lg overflow-hidden"
+                      >
+                        <thead class="bg-gray-100 dark:bg-slate-700">
+                          <tr>
+                            <th
+                              class="px-4 py-2 text-xs font-semibold text-left text-gray-600 dark:text-gray-300 uppercase"
+                            >
+                              Product
+                            </th>
+                            <th
+                              class="px-4 py-2 text-xs font-semibold text-right text-gray-600 dark:text-gray-300 uppercase"
+                            >
+                              Ordered
+                            </th>
+                            <th
+                              class="px-4 py-2 text-xs font-semibold text-right text-gray-600 dark:text-gray-300 uppercase"
+                            >
+                              Received
+                            </th>
+                            <th
+                              class="px-4 py-2 text-xs font-semibold text-right text-gray-600 dark:text-gray-300 uppercase"
+                            >
+                              Unit Price
+                            </th>
+                            <th
+                              class="px-4 py-2 text-xs font-semibold text-right text-gray-600 dark:text-gray-300 uppercase"
+                            >
+                              Total
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody
+                          class="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-slate-800"
+                        >
+                          <tr *ngFor="let item of purchase.items">
+                            <td
+                              class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100"
+                            >
+                              {{
+                                item.storeProduct?.productName ||
+                                  "Product #" + item.storeProductId
+                              }}
+                            </td>
+                            <td
+                              class="px-4 py-2 text-sm text-right text-gray-600 dark:text-gray-400"
+                            >
+                              {{ item.quantity }}
+                            </td>
+                            <td class="px-4 py-2 text-sm text-right">
+                              <span
+                                [class]="
+                                  item.receivedQuantity >= item.quantity
+                                    ? 'text-green-600 dark:text-green-400 font-medium'
+                                    : item.receivedQuantity > 0
+                                      ? 'text-orange-600 dark:text-orange-400 font-medium'
+                                      : 'text-gray-400'
+                                "
+                              >
+                                {{ item.receivedQuantity || 0 }} /
+                                {{ item.quantity }}
+                              </span>
+                            </td>
+                            <td
+                              class="px-4 py-2 text-sm text-right text-gray-600 dark:text-gray-400"
+                            >
+                              KSH {{ item.unitPrice | number: "1.2-2" }}
+                            </td>
+                            <td
+                              class="px-4 py-2 text-sm text-right font-semibold text-gray-900 dark:text-gray-100"
+                            >
+                              KSH {{ item.totalPrice | number: "1.2-2" }}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <!-- Receive History -->
+                      <div
+                        *ngIf="
+                          purchase.status === 'RECEIVED' ||
+                          purchase.status === 'PARTIALLY_RECEIVED'
+                        "
+                        class="mt-4"
+                      >
+                        <h4
+                          class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2"
+                        >
+                          <svg
+                            class="w-4 h-4 text-teal-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          Receive History
+                          <span
+                            *ngIf="receiveHistory[purchase.id]?.length"
+                            class="text-xs font-normal text-gray-400"
+                            >({{
+                              receiveHistory[purchase.id]?.length
+                            }}
+                            receive{{
+                              receiveHistory[purchase.id]?.length !== 1
+                                ? "s"
+                                : ""
+                            }})</span
+                          >
+                        </h4>
+                        <div
+                          *ngIf="historyLoading[purchase.id]"
+                          class="text-sm text-gray-400 py-2"
+                        >
+                          Loading receive history...
+                        </div>
+                        <div
+                          *ngIf="
+                            !historyLoading[purchase.id] &&
+                            receiveHistory[purchase.id]?.length
+                          "
+                          class="space-y-2"
+                        >
+                          <div
+                            *ngFor="
+                              let receive of receiveHistory[purchase.id];
+                              let i = index
+                            "
+                            class="bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+                          >
+                            <div class="flex items-center justify-between mb-2">
+                              <div class="flex items-center gap-3">
+                                <span
+                                  class="text-xs font-mono font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-2 py-0.5 rounded"
+                                  >{{ receive.grnNumber }}</span
+                                >
+                                <span
+                                  class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                  {{ receive.receivedAt | date: "medium" }}
+                                </span>
+                                <span
+                                  *ngIf="receive.receivedBy"
+                                  class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                  by
+                                  <span class="font-medium">{{
+                                    receive.receivedBy.fullName
+                                  }}</span>
+                                </span>
+                              </div>
+                              <button
+                                (click)="
+                                  printReceiveGrn(purchase.id, receive.id);
+                                  $event.stopPropagation()
+                                "
+                                class="flex items-center gap-1 px-2.5 py-1 text-xs text-teal-600 bg-teal-100 dark:text-teal-400 dark:bg-teal-900/30 rounded hover:bg-teal-200 dark:hover:bg-teal-900/50 transition-colors"
+                              >
+                                <svg
+                                  class="w-3.5 h-3.5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                                  />
+                                </svg>
+                                Print GRN
+                              </button>
+                            </div>
+                            <div
+                              *ngIf="receive.notes"
+                              class="text-xs text-gray-500 dark:text-gray-400 italic mb-2"
+                            >
+                              Notes: {{ receive.notes }}
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                              <span
+                                *ngFor="let ri of receive.items"
+                                class="inline-flex items-center gap-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded"
+                              >
+                                <span class="font-medium">{{
+                                  ri.storePurchaseItem?.storeProduct
+                                    ?.productName ||
+                                    "Item #" + ri.storePurchaseItemId
+                                }}</span>
+                                <span
+                                  class="text-teal-600 dark:text-teal-400 font-semibold"
+                                  >&times;{{ ri.receivedQuantity }}</span
+                                >
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          *ngIf="
+                            !historyLoading[purchase.id] &&
+                            !receiveHistory[purchase.id]?.length
+                          "
+                          class="text-sm text-gray-400 dark:text-gray-500 py-2"
+                        >
+                          No receive history found
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+
+              <tr *ngIf="storePurchases.length === 0 && !loading">
+                <td colspan="8" class="px-6 py-12 text-center">
+                  <svg
+                    class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                  <p class="mt-2 text-gray-500 dark:text-gray-400">
+                    No purchase orders found
+                  </p>
+                  <p class="text-sm text-gray-400 dark:text-gray-500">
+                    Create a new purchase order to get started
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="sm:hidden space-y-3">
+      <div
+        *ngFor="let purchase of storePurchases"
+        class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+      >
+        <!-- Main card - tappable -->
+        <div class="p-4 space-y-3" (click)="toggleExpand(purchase.id)">
+          <div class="flex items-center justify-between">
+            <div
+              class="text-sm font-mono font-semibold text-purple-600 dark:text-purple-400"
+            >
+              {{ purchase.purchaseNumber || "—" }}
+            </div>
+            <span
+              [class]="
+                'px-2.5 py-0.5 text-xs font-semibold rounded-full ' +
+                getStatusColor(purchase.status)
+              "
+              >{{ purchase.status }}</span
+            >
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span class="text-gray-400 dark:text-gray-500">Items</span>
+              <p class="font-medium text-gray-700 dark:text-gray-300">
+                {{ purchase.items.length || 0 }} item{{
+                  purchase.items.length !== 1 ? "s" : ""
+                }}
+              </p>
+            </div>
+            <div>
+              <span class="text-gray-400 dark:text-gray-500">Total</span>
+              <p class="font-semibold text-gray-900 dark:text-gray-100">
+                KSH {{ purchase.totalAmount | number: "1.2-2" }}
+              </p>
+            </div>
+            <div>
+              <span class="text-gray-400 dark:text-gray-500">Created By</span>
+              <p class="font-medium text-gray-700 dark:text-gray-300">
+                {{ purchase.creator?.fullName || purchase.receivedBy || "—" }}
+              </p>
+            </div>
+            <div>
+              <span class="text-gray-400 dark:text-gray-500">Date</span>
+              <p class="font-medium text-gray-700 dark:text-gray-300">
+                {{ purchase.createdAt | date: "mediumDate" }}
+              </p>
+            </div>
+          </div>
+          <svg
+            class="w-4 h-4 text-gray-400 mx-auto transition-transform duration-200"
+            [class.rotate-180]="expandedPurchaseId === purchase.id"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </div>
+        <!-- Expanded detail -->
+        <div
+          *ngIf="expandedPurchaseId === purchase.id"
+          class="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900/50 p-4 space-y-3"
+        >
+          <!-- Metadata -->
+          <div class="space-y-1 text-xs">
+            <div *ngIf="purchase.supplier" class="flex gap-1">
+              <span class="text-gray-500 dark:text-gray-400">Supplier:</span
+              ><span class="font-medium text-gray-900 dark:text-gray-100">{{
+                purchase.supplier?.name || "—"
+              }}</span>
+            </div>
+            <div *ngIf="purchase.deliveryDate" class="flex gap-1">
+              <span class="text-gray-500 dark:text-gray-400">Delivery:</span
+              ><span class="font-medium text-gray-900 dark:text-gray-100">{{
+                purchase.deliveryDate | date: "mediumDate"
+              }}</span>
+            </div>
+            <div *ngIf="purchase.approver" class="flex gap-1">
+              <span class="text-gray-500 dark:text-gray-400">Approved by:</span
+              ><span class="font-medium text-green-600 dark:text-green-400">{{
+                purchase.approver.fullName
+              }}</span>
+            </div>
+            <div *ngIf="purchase.rejector" class="flex gap-1">
+              <span class="text-gray-500 dark:text-gray-400">Rejected by:</span
+              ><span class="font-medium text-red-600 dark:text-red-400">{{
+                purchase.rejector.fullName
+              }}</span>
+            </div>
+            <div *ngIf="purchase.rejectionReason" class="flex gap-1">
+              <span class="text-gray-500 dark:text-gray-400">Reason:</span
+              ><span class="font-medium text-red-600 dark:text-red-400">{{
+                purchase.rejectionReason
+              }}</span>
+            </div>
+          </div>
+          <div
+            *ngIf="purchase.notes"
+            class="text-xs text-gray-500 dark:text-gray-400 italic"
+          >
+            Notes: {{ purchase.notes }}
+          </div>
+          <!-- Items -->
+          <div class="space-y-2">
+            <p
+              class="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase"
+            >
+              Items
+            </p>
+            <div
+              *ngFor="let item of purchase.items"
+              class="bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-gray-100 dark:border-gray-700 text-xs"
+            >
+              <p class="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                {{
+                  item.storeProduct?.productName ||
+                    "Product #" + item.storeProductId
+                }}
+              </p>
+              <div
+                class="flex justify-between text-gray-500 dark:text-gray-400"
+              >
+                <span>Ordered: {{ item.quantity }}</span>
+                <span
+                  [class]="
+                    item.receivedQuantity >= item.quantity
+                      ? 'text-green-600'
+                      : item.receivedQuantity > 0
+                        ? 'text-orange-600'
+                        : ''
+                  "
+                  >Rcvd: {{ item.receivedQuantity || 0 }}/{{
+                    item.quantity
+                  }}</span
+                >
+                <span class="font-semibold text-gray-900 dark:text-gray-100"
+                  >KSH {{ item.totalPrice | number: "1.2-2" }}</span
+                >
+              </div>
+            </div>
+          </div>
+          <!-- Mobile Receive History -->
+          <div
+            *ngIf="
+              purchase.status === 'RECEIVED' ||
+              purchase.status === 'PARTIALLY_RECEIVED'
+            "
+            class="space-y-2"
+          >
+            <p
+              class="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase flex items-center gap-1"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Receive History
+            </p>
+            <div
+              *ngIf="historyLoading[purchase.id]"
+              class="text-xs text-gray-400 py-1"
+            >
+              Loading...
+            </div>
+            <div
+              *ngFor="let receive of receiveHistory[purchase.id]"
+              class="bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-teal-100 dark:border-teal-900/50 text-xs"
+            >
+              <div class="flex items-center justify-between mb-1.5">
+                <span
+                  class="font-mono font-bold text-teal-600 dark:text-teal-400 text-[11px]"
+                  >{{ receive.grnNumber }}</span
+                >
+                <button
+                  (click)="
+                    printReceiveGrn(purchase.id, receive.id);
+                    $event.stopPropagation()
+                  "
+                  class="px-2 py-0.5 text-[10px] text-teal-600 bg-teal-100 dark:text-teal-400 dark:bg-teal-900/30 rounded hover:bg-teal-200 transition-colors"
+                >
+                  Print GRN
+                </button>
+              </div>
+              <div class="text-gray-500 dark:text-gray-400 mb-1">
+                {{ receive.receivedAt | date: "medium" }}
+                <span *ngIf="receive.receivedBy"
+                  >· {{ receive.receivedBy.fullName }}</span
+                >
+              </div>
+              <div class="flex flex-wrap gap-1">
+                <span
+                  *ngFor="let ri of receive.items"
+                  class="inline-flex items-center gap-0.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 px-1.5 py-0.5 rounded text-[10px]"
+                >
+                  {{
+                    ri.storePurchaseItem?.storeProduct?.productName || "Item"
+                  }}
+                  <span class="text-teal-600 dark:text-teal-400 font-semibold"
+                    >&times;{{ ri.receivedQuantity }}</span
+                  >
+                </span>
+              </div>
+            </div>
+          </div>
+          <!-- Actions -->
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button
+              *ngIf="purchase.status === 'PENDING'"
+              (click)="approvePurchase(purchase.id); $event.stopPropagation()"
+              class="px-3 py-1.5 text-xs text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+            >
+              Approve
+            </button>
+            <button
+              *ngIf="purchase.status === 'PENDING'"
+              (click)="rejectPurchase(purchase.id); $event.stopPropagation()"
+              class="px-3 py-1.5 text-xs text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+            >
+              Reject
+            </button>
+            <button
+              *ngIf="
+                purchase.status === 'APPROVED' ||
+                purchase.status === 'PARTIALLY_RECEIVED'
+              "
+              (click)="receivePurchase(purchase); $event.stopPropagation()"
+              class="px-3 py-1.5 text-xs text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+            >
+              Receive
+            </button>
+            <button
+              *ngIf="
+                purchase.status === 'RECEIVED' ||
+                purchase.status === 'PARTIALLY_RECEIVED'
+              "
+              (click)="printGrn(purchase.id); $event.stopPropagation()"
+              class="px-3 py-1.5 text-xs text-teal-600 bg-teal-100 dark:text-teal-400 dark:bg-teal-900/30 rounded-lg hover:bg-teal-200 dark:hover:bg-teal-900/50 transition-colors"
+            >
+              GRN
+            </button>
+            <button
+              *ngIf="purchase.status === 'PENDING'"
+              (click)="openUpdateDialog(purchase); $event.stopPropagation()"
+              class="px-3 py-1.5 text-xs text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/30 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+            >
+              Edit
+            </button>
+            <button
+              *ngIf="
+                purchase.status === 'PENDING' || purchase.status === 'APPROVED'
+              "
+              (click)="cancelPurchase(purchase.id); $event.stopPropagation()"
+              class="px-3 py-1.5 text-xs text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              *ngIf="
+                purchase.status === 'PENDING' || purchase.status === 'CANCELLED'
+              "
+              (click)="
+                deleteStorePurchase(purchase.id); $event.stopPropagation()
+              "
+              class="px-3 py-1.5 text-xs text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Empty state -->
+      <div
+        *ngIf="storePurchases.length === 0 && !loading"
+        class="text-center py-12"
+      >
+        <svg
+          class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+          />
+        </svg>
+        <p class="mt-2 text-gray-500 dark:text-gray-400">
+          No purchase orders found
+        </p>
+        <p class="text-sm text-gray-400 dark:text-gray-500">
+          Create a new purchase order to get started
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

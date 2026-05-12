@@ -1,0 +1,111 @@
+LUMINA ERP - MIGRATION FROM PM2 TO DOCKER (BLUE/GREEN)
+======================================================
+
+STATUS: Migration script DONE. PM2 stopped. Docker setup ready.
+Sites are DOWN until Docker images are built and deployed.
+
+======================================================
+STEP 1: Login to GitHub Container Registry (on server)
+======================================================
+
+Run this on the server:
+
+docker login ghcr.io -u shaphankirui
+
+For the password, create a Personal Access Token:
+1. Go to: https://github.com/settings/tokens
+2. Click "Generate new token (classic)"
+3. Select scopes: read:packages, write:packages
+4. Copy the token and paste it as the password
+
+======================================================
+STEP 2: Trigger Docker image build (on GitHub website)
+======================================================
+
+1. Go to: https://github.com/shaphankirui/Lumina-erp/actions
+2. Click "Deploy Lumina ERP" on the left sidebar
+3. Click the "Run workflow" dropdown button
+4. Select "all" from the dropdown
+5. Click "Run workflow"
+
+This builds images on GitHub servers (5-10 min) and deploys automatically.
+
+======================================================
+STEP 3: Verify everything works
+======================================================
+
+Wait for the GitHub Action to finish (check the Actions tab).
+Then visit:
+- https://erp.lumina360.tech
+- https://api.lumina360.tech
+
+Check status on server:
+
+cd /opt/lumina-erp && bash deploy/deploy.sh status
+
+======================================================
+STEP 2B: Deploy with health check fix
+======================================================
+
+cd /opt/lumina-erp
+
+git pull origin main
+
+bash deploy/deploy.sh
+
+======================================================
+FUTURE DEPLOYMENTS (after this setup)
+======================================================
+
+Option A: Automatic (just push to GitHub)
+- git push origin main
+- GitHub Actions builds and deploys automatically
+
+Option B: Manual (on server)
+- cd /opt/lumina-erp
+- bash deploy/deploy.sh              (deploy everything)
+- bash deploy/deploy.sh backend      (backend only)
+- bash deploy/deploy.sh frontend     (frontend only)
+- bash deploy/deploy.sh admin        (admin only)
+- bash deploy/deploy.sh rollback     (instant rollback)
+- bash deploy/deploy.sh status       (check what is running)
+
+======================================================
+ADMIN APP - DOCKER DEPLOYMENT SETUP
+======================================================
+
+The lumina-admin Angular 19 app is now part of the Docker blue/green setup.
+Blue: port 5001, Green: port 5002. Domain: admin.lumina360.tech
+
+--- ON SERVER: One-time setup ---
+
+# 1. Copy admin source code to server
+cd /opt/lumina-erp
+git pull origin main
+
+# 2. Copy admin app (if it's a separate repo, copy it into lumina-admin/)
+#    If admin code is already inside the monorepo under lumina-admin/, skip this.
+#    Otherwise, clone or copy the admin app into /opt/lumina-erp/lumina-admin/
+
+# 3. Build admin Docker image locally (since GitHub Actions billing is blocked)
+docker build -t ghcr.io/shaphankirui/lumina-admin:latest -f lumina-admin/Dockerfile.prod lumina-admin/
+
+# 4. Set up SSL cert for admin domain
+sudo certbot --nginx -d admin.lumina360.tech
+
+# 5. Copy nginx config for admin
+sudo cp deploy/nginx-admin.conf /etc/nginx/sites-available/admin.lumina360.tech
+sudo ln -sf /etc/nginx/sites-available/admin.lumina360.tech /etc/nginx/sites-enabled/
+
+# 6. Create initial admin upstream config
+sudo mkdir -p /etc/nginx/conf.d/upstreams
+echo 'upstream lumina_admin { server 127.0.0.1:5001; }' | sudo tee /etc/nginx/conf.d/upstreams/lumina-admin-upstream.conf
+
+# 7. Test and reload nginx
+sudo nginx -t && sudo systemctl reload nginx
+
+# 8. Deploy all (includes admin)
+bash deploy/deploy.sh
+
+--- Verify ---
+Visit: https://admin.lumina360.tech

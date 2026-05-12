@@ -1,0 +1,465 @@
+﻿<div
+  class="min-h-screen w-full flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800"
+>
+  <!-- Page Header -->
+  <div
+    class="px-3 sm:px-6 py-3 sm:py-5 border-b border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center"
+      >
+        <svg
+          class="w-7 h-7 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+          />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Create Stock Transfer</h1>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          Move inventory between your organizations
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+      <a
+        routerLink="/stock-transfer"
+        class="px-3 sm:px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600/60 rounded-lg border border-gray-300 dark:border-gray-600/40 text-xs sm:text-sm font-medium transition-colors"
+        >Back to Transfers</a
+      >
+      <button
+        (click)="submit()"
+        [disabled]="
+          submitting || !transferForm.valid || getValidItemsCount() === 0
+        "
+        class="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-green-500 to-green-600 rounded-lg text-white text-sm sm:text-base font-medium hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        <div
+          *ngIf="submitting"
+          class="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"
+        ></div>
+        <svg
+          *ngIf="!submitting"
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+        <span *ngIf="!submitting">Create Transfer</span>
+        <span *ngIf="submitting">Saving...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Form Body -->
+  <div class="flex-1 overflow-hidden">
+    <form [formGroup]="transferForm" class="h-full">
+      <div class="h-full grid grid-cols-1 xl:grid-cols-3 gap-0">
+        <!-- Left: Product list & search -->
+        <div class="xl:col-span-2 flex flex-col border-r border-gray-200/50 dark:border-gray-700/40">
+          <!-- Organization + Notes -->
+          <div class="p-4 sm:p-6 space-y-4 sm:space-y-6 border-b border-gray-200/50 dark:border-gray-700/40 bg-white/70 dark:bg-slate-800/40">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                  >From Organization</label
+                >
+                <select
+                  formControlName="fromOrganizationId"
+                  class="w-full px-4 py-3 text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/40 border border-gray-300 dark:border-gray-600/50 rounded-lg cursor-not-allowed"
+                >
+                  <option
+                    *ngFor="let org of userOrganizations"
+                    [value]="org.id"
+                  >
+                    {{ org.name }}
+                    <span *ngIf="org.id === currentOrgId">(Current)</span>
+                  </option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                  >To Organization *</label
+                >
+                <select
+                  formControlName="toOrganizationId"
+                  class="w-full px-4 py-3 text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                  [ngClass]="{
+                    'border-red-500/60':
+                      transferForm.get('toOrganizationId')?.touched &&
+                      transferForm.get('toOrganizationId')?.invalid
+                  }"
+                >
+                  <option value="">Select Destination</option>
+                  <option
+                    *ngFor="let org of userOrganizations"
+                    [value]="org.id"
+                    [disabled]="org.id === currentOrgId"
+                  >
+                    {{ org.name }}
+                  </option>
+                </select>
+                <p
+                  *ngIf="
+                    transferForm.get('toOrganizationId')?.touched &&
+                    transferForm.get('toOrganizationId')?.invalid
+                  "
+                  class="text-xs text-red-400 mt-1"
+                >
+                  Destination organization is required
+                </p>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                  >Notes</label
+                >
+                <input
+                  formControlName="notes"
+                  type="text"
+                  placeholder="Optional notes..."
+                  class="w-full px-4 py-3 text-sm text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Search Bar -->
+          <div
+            class="p-4 sm:p-6 border-b border-gray-200/50 dark:border-gray-700/40 bg-gray-50 dark:bg-slate-800/30 flex items-center gap-3 sm:gap-4 flex-wrap"
+          >
+            <div class="relative group">
+              <div
+                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+              >
+                <svg
+                  class="h-5 w-5 text-gray-400 dark:text-gray-400 group-focus-within:text-blue-400 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 4a4 4 0 106.32 3.16A4 4 0 008 4zm-6 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 12z"
+                  />
+                </svg>
+              </div>
+              <input
+                [(ngModel)]="searchQuery"
+                (ngModelChange)="searchProducts()"
+                [ngModelOptions]="{ standalone: true }"
+                type="text"
+                placeholder="Search products..."
+                class="w-full sm:w-80 max-w-sm py-3 pl-12 pr-10 text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              />
+              <button
+                *ngIf="searchQuery"
+                type="button"
+                (click)="searchQuery = ''; searchProducts()"
+                class="absolute right-3 top-3 text-gray-400 hover:text-gray-200"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              {{ filteredProducts.length }} product(s) found
+            </div>
+          </div>
+
+          <!-- Products Grid/List -->
+          <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div *ngIf="loading" class="flex items-center justify-center py-20">
+              <div
+                class="h-12 w-12 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"
+              ></div>
+            </div>
+
+            <div
+              *ngIf="!loading && filteredProducts.length === 0"
+              class="py-16 text-center text-gray-500 dark:text-gray-400"
+            >
+              <p class="text-lg font-medium mb-2">No products found</p>
+              <p class="text-sm">Adjust your search or clear the filter.</p>
+              <button
+                type="button"
+                (click)="searchQuery = ''; searchProducts()"
+                class="mt-4 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 text-sm"
+              >
+                Clear Search
+              </button>
+            </div>
+
+            <div
+              *ngIf="!loading && filteredProducts.length > 0"
+              class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+            >
+              <div
+                *ngFor="let product of filteredProducts"
+                (click)="addProductToTransfer(product)"
+                class="p-4 border border-gray-200 dark:border-gray-600/30 rounded-xl hover:border-blue-500/50 hover:bg-gray-50 dark:hover:bg-gray-700/40 cursor-pointer transition-all group relative"
+              >
+                <div class="flex flex-col space-y-2">
+                  <div class="flex items-start justify-between">
+                    <h3
+                      class="font-semibold text-gray-900 dark:text-gray-200 text-sm group-hover:text-blue-300 truncate"
+                    >
+                      {{ product.name }}
+                    </h3>
+                    <div
+                      class="w-7 h-7 bg-blue-600/20 border border-blue-600/30 rounded-lg flex items-center justify-center text-blue-400 opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                    {{ product.productIdNumber }}
+                  </div>
+                  <div
+                    class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    <span>Stock: {{ product.quantity || 0 }}</span>
+                    <span class="font-semibold text-gray-700 dark:text-gray-300"
+                      >KES
+                      {{
+                        product.buyingPrice || $any(product).buying_price || 0
+                          | number : "1.2-2"
+                      }}</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Selected items / summary -->
+        <div class="xl:col-span-1 flex flex-col h-full bg-gray-50 dark:bg-slate-900/60">
+          <div
+            class="p-4 sm:p-6 border-b border-gray-200/50 dark:border-gray-700/40 flex items-center justify-between"
+          >
+            <h2
+              class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-200 flex items-center gap-2"
+            >
+              <svg
+                class="w-5 h-5 text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                />
+              </svg>
+              Selected Items
+            </h2>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ getValidItemsCount() }} / {{ itemsFormArray.length }} valid
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-4 space-y-4">
+            <div
+              *ngIf="itemsFormArray.length === 0"
+              class="text-center py-12 text-gray-500 dark:text-gray-500 text-sm"
+            >
+              No items added yet. Click a product to add it.
+            </div>
+
+            <div
+              *ngFor="let item of itemsFormArray.controls; let i = index"
+              [formGroupName]="i"
+              class="rounded-xl border border-gray-200 dark:border-gray-600/40 bg-white dark:bg-slate-800/40 overflow-hidden"
+            >
+              <div
+                class="p-4 border-b border-gray-200/50 dark:border-gray-700/40 flex items-start gap-3"
+              >
+                <div
+                  class="w-8 h-8 rounded-lg bg-blue-600/30 flex items-center justify-center text-xs font-bold text-blue-200"
+                >
+                  {{ i + 1 }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-200 truncate">
+                      {{ item.get("productName")?.value }}
+                    </h3>
+                    <button
+                      type="button"
+                      (click)="removeItem(i)"
+                      class="text-gray-400 hover:text-red-400 p-1 rounded-lg hover:bg-red-500/10 transition"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="mt-2 grid grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <div class="text-gray-500 dark:text-gray-400 mb-1">Qty</div>
+                      <div class="flex items-center gap-1">
+                        <button
+                          type="button"
+                          (click)="updateQuantity(i, -1)"
+                          class="w-7 h-7 flex items-center justify-center bg-gray-100 dark:bg-gray-700/40 rounded hover:bg-gray-200 dark:hover:bg-gray-700/60"
+                        >
+                          -
+                        </button>
+                        <input
+                          formControlName="quantity"
+                          type="number"
+                          min="1"
+                          class="w-14 text-center bg-gray-100 dark:bg-gray-700/40 rounded px-2 py-1"
+                          [value]="item.get('quantity')?.value || 1"
+                          (input)="onQuantityInput(i, $event)"
+                        />
+                        <button
+                          type="button"
+                          (click)="updateQuantity(i, 1)"
+                          class="w-7 h-7 flex items-center justify-center bg-gray-100 dark:bg-gray-700/40 rounded hover:bg-gray-200 dark:hover:bg-gray-700/60"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-gray-500 dark:text-gray-400 mb-1">Unit (KES)</div>
+                      <input
+                        formControlName="unitPrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        (input)="calculateTotalPrice(i)"
+                        class="w-full bg-gray-100 dark:bg-gray-700/40 rounded px-2 py-1"
+                      />
+                    </div>
+                    <div>
+                      <div class="text-gray-500 dark:text-gray-400 mb-1">Total</div>
+                      <div
+                        class="px-2 py-1 rounded bg-green-600/20 text-green-300 font-semibold text-sm"
+                      >
+                        KES
+                        {{ (item.get("totalPrice")?.value || 0).toFixed(2) }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-2">
+                    <input
+                      formControlName="notes"
+                      type="text"
+                      placeholder="Item notes"
+                      class="w-full bg-gray-100 dark:bg-gray-700/40 rounded px-2 py-2 text-xs"
+                    />
+                  </div>
+                  <input formControlName="productIdNumber" type="hidden" />
+                  <input formControlName="productName" type="hidden" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="p-4 sm:p-6 border-t border-gray-200/50 dark:border-gray-700/40 space-y-4 bg-white/70 dark:bg-slate-800/60">
+            <div class="flex items-center justify-between">
+              <div class="text-sm text-gray-700 dark:text-gray-300">Total Items</div>
+              <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {{ itemsFormArray.length }}
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="text-sm text-gray-700 dark:text-gray-300">Valid Items</div>
+              <div class="text-lg font-semibold text-green-400">
+                {{ getValidItemsCount() }}
+              </div>
+            </div>
+            <div
+              class="flex items-center justify-between pt-2 border-t border-gray-200/50 dark:border-gray-700/50"
+            >
+              <div class="text-sm text-gray-700 dark:text-gray-300">Total Value</div>
+              <div class="text-lg sm:text-2xl font-bold text-blue-300">
+                KES {{ getTotalTransferValue().toFixed(2) }}
+              </div>
+            </div>
+            <button
+              type="button"
+              (click)="submit()"
+              [disabled]="
+                submitting || !transferForm.valid || getValidItemsCount() === 0
+              "
+              class="w-full mt-2 py-3 bg-gradient-to-r from-green-500 to-green-600 rounded-lg text-white font-medium hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <div
+                *ngIf="submitting"
+                class="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"
+              ></div>
+              <svg
+                *ngIf="!submitting"
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <span *ngIf="!submitting">Create Transfer</span>
+              <span *ngIf="submitting">Processing...</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

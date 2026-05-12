@@ -1,0 +1,138 @@
+﻿<!-- payment-history.component.html -->
+<div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-lg">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-2xl font-bold text-white">Payment History</h2>
+        <p class="text-blue-100 text-sm mt-1">
+          Invoice #{{ creditSale?.id }} - {{ creditSale?.customer_name }}
+        </p>
+      </div>
+      <button
+        (click)="close()"
+        class="text-white hover:text-gray-200 transition-colors"
+      >
+        <i class="bi bi-x-lg text-2xl"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gray-50 dark:bg-gray-750">
+    <div class="bg-white dark:bg-gray-700 rounded-lg p-4">
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Credit Amount</p>
+      <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+        {{ creditSale?.credit_amount | currency : "KSH " : "symbol" : "1.0-2" }}
+      </h3>
+    </div>
+    <div class="bg-white dark:bg-gray-700 rounded-lg p-4">
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Total Paid</p>
+      <h3 class="text-2xl font-bold text-green-400 mt-1">
+        {{ (creditSale?.amount_paid || 0) | currency : "KSH " : "symbol" : "1.0-2" }}
+      </h3>
+    </div>
+    <div class="bg-white dark:bg-gray-700 rounded-lg p-4">
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Balance Due</p>
+      <h3 class="text-2xl font-bold text-yellow-400 mt-1">
+        {{ remainingBalance | currency : "KSH " : "symbol" : "1.0-2" }}
+      </h3>
+    </div>
+  </div>
+
+  <!-- Payment List -->
+  <div class="px-6 pb-6">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center py-8">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+      <p class="text-gray-600 dark:text-gray-400 mt-4">Loading payment history...</p>
+    </div>
+
+    <!-- Payment Records -->
+    <div *ngIf="!isLoading && payments.length > 0" class="mt-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-4">
+        <i class="bi bi-receipt mr-2"></i>Payment Records ({{ payments.length }})
+      </h3>
+      <div class="space-y-3">
+        <div
+          *ngFor="let payment of payments; let i = index"
+          class="bg-white dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-650 transition-colors"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="flex items-center space-x-3">
+                <span class="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold">
+                  {{ i + 1 }}
+                </span>
+                <div>
+                  <p class="text-gray-900 dark:text-white font-semibold">
+                    {{ payment.amount | currency : "KSH " : "symbol" : "1.0-2" }}
+                  </p>
+                  <p class="text-gray-600 dark:text-gray-400 text-sm">
+                    {{ payment.createdAt | date : "MMM dd, yyyy 'at' h:mm a" }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span
+                [class]="
+                  'px-3 py-1 rounded-full text-xs font-semibold ' +
+                  getPaymentMethodBadgeClass(payment.paymentMethod)
+                "
+              >
+                {{ getPaymentMethodLabel(payment.paymentMethod) }}
+              </span>
+              <div *ngIf="payment.transactionCode" class="text-right">
+                <p class="text-gray-600 dark:text-gray-400 text-xs">Transaction Code</p>
+                <p class="text-gray-900 dark:text-white text-sm font-mono">{{ payment.transactionCode }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && payments.length === 0" class="text-center py-12">
+      <i class="bi bi-inbox text-6xl text-gray-400 dark:text-gray-600"></i>
+      <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-gray-200">No payments recorded</h3>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        No payment records found for this invoice.
+      </p>
+    </div>
+
+    <!-- Invoice Details -->
+    <div class="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4">
+      <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Invoice Details</h4>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <p class="text-gray-600 dark:text-gray-400">Order Date</p>
+          <p class="text-gray-900 dark:text-white">{{ creditSale?.createdAt | date : "MMM dd, yyyy" }}</p>
+        </div>
+        <div>
+          <p class="text-gray-600 dark:text-gray-400">Due Date</p>
+          <p class="text-gray-900 dark:text-white">{{ creditSale?.payment_date | date : "MMM dd, yyyy" }}</p>
+        </div>
+        <div>
+          <p class="text-gray-600 dark:text-gray-400">Phone Number</p>
+          <p class="text-gray-900 dark:text-white">{{ creditSale?.phone_number || 'N/A' }}</p>
+        </div>
+        <div>
+          <p class="text-gray-600 dark:text-gray-400">Payment Terms</p>
+          <p class="text-gray-900 dark:text-white">{{ creditSale?.payment_terms || 'N/A' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Close Button -->
+    <div class="mt-6 flex justify-end">
+      <button
+        (click)="close()"
+        class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</div>

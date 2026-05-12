@@ -1,0 +1,396 @@
+﻿<!-- Modern Two-Section Quotation System -->
+<div class="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
+  <!-- Header -->
+  <header class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700 p-4">
+    <div class="mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-purple-600 p-2 rounded-lg">
+          <i class="bi bi-file-earmark-text text-white text-xl"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-purple-600 dark:text-purple-400">Quotation Platform</h1>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="hidden md:flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+          <i class="bi bi-person-circle"></i>
+          <span>{{ currentUser?.username || "User" }}</span>
+        </div>
+        <button
+          (click)="routeToQuotations()"
+          class="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 text-gray-700 dark:text-gray-200"
+        >
+          <i class="bi bi-list-ul"></i>
+          <span class="hidden sm:inline">View Quotations</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section Navigation Tabs -->
+  <div class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700">
+    <div class="mx-auto px-4">
+      <nav class="flex space-x-8">
+        <button
+          (click)="activeSection = 'products'"
+          [class]="
+            'py-4 px-2 border-b-2 font-medium text-sm transition-colors ' +
+            (activeSection === 'products'
+              ? 'border-purple-500 text-purple-600 dark:text-purple-400'
+              : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300')
+          "
+        >
+          <i class="bi bi-box-seam mr-2"></i>
+          Products & Cart
+          <span
+            class="ml-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full"
+            >{{ selectedProducts.length }}</span
+          >
+        </button>
+        <button
+          (click)="activeSection = 'checkout'"
+          [class]="
+            'py-4 px-2 border-b-2 font-medium text-sm transition-colors ' +
+            (activeSection === 'checkout'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300')
+          "
+        >
+          <i class="bi bi-person-check mr-2"></i>
+          Customer & Email Settings
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="mx-auto p-4 lg:p-6 max-w-[1920px]">
+    <!-- SECTION 1: PRODUCTS & CART -->
+    <div
+      *ngIf="activeSection === 'products'"
+      class="grid grid-cols-1 lg:grid-cols-5 gap-6"
+    >
+      <!-- Product Selector Component -->
+      <div class="lg:col-span-3">
+        <app-product-selector
+          themeColor="purple"
+          cartTitle="Quotation Cart"
+          checkoutButtonText="Continue to Customer"
+          [showCheckoutButton]="false"
+          [enableBarcodeScanner]="false"
+          [enableCustomProducts]="true"
+          [enableDiscounts]="true"
+          [enableVAT]="true"
+          [showFilters]="true"
+          [gridColumns]="3"
+          [products]="products"
+          [(selectedProducts)]="selectedProducts"
+          (productAdded)="onProductAdded($event)"
+          (vatSettingsChange)="itemVatSettings = $event"
+        ></app-product-selector>
+      </div>
+
+      <!-- Selected Products Summary -->
+      <div class="lg:col-span-2">
+        <div class="sticky top-4">
+          <app-selected-products
+            [products]="selectedProducts"
+            currencySymbol="KSh"
+            (remove)="removeProduct($event)"
+            (changeQty)="updateProductQty($event.id, $event.qty)"
+            (priceChange)="onProductPriceChange($event.id, $event.price)"
+            (priceTypeChange)="
+              updateProductPriceType($event.id, $event.priceType)
+            "
+            (taxTypeChange)="updateProductTaxType($event.id, $event.taxType)"
+          >
+          </app-selected-products>
+
+          <!-- Continue Button -->
+          <button
+            *ngIf="selectedProducts.length > 0"
+            (click)="activeSection = 'checkout'"
+            class="w-full mt-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-4 rounded-xl transition-all duration-200 font-semibold shadow-lg flex items-center justify-center space-x-2"
+          >
+            <span>Continue to Checkout</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: CUSTOMER & EMAIL SETTINGS -->
+    <div *ngIf="activeSection === 'checkout'" class="mx-auto">
+      <app-checkout-summary
+        mode="quotation"
+        themeColor="purple"
+        currencySymbol="KSh"
+        [selectedProducts]="selectedProducts"
+        [customers]="customers"
+        [selectedCustomerId]="selectedCustomerId"
+        [(customerName)]="customerName"
+        [(customerEmail)]="customerEmail"
+        [(customerPhone)]="customerPhone"
+        [posting]="isSubmitting"
+        [isUpdateMode]="isUpdateMode"
+        [totalVat]="calculateTotalVat()"
+        [totalDiscount]="calculateTotalDiscount()"
+        (customerSelected)="selectedCustomerId = $event; onCustomerSelected()"
+        (customerNameChange)="customerName = $event"
+        (customerEmailChange)="customerEmail = $event"
+        (customerPhoneChange)="customerPhone = $event"
+        (addCustomer)="openAddCustomerDialog()"
+        (removeProduct)="removeProduct($event)"
+        (updateProductQty)="updateProductQty($event.id, $event.qty)"
+        (priceChange)="onProductPriceChange($event.id, $event.price)"
+        (priceTypeChange)="updateProductPriceType($event.id, $event.priceType)"
+        (taxTypeChange)="updateProductTaxType($event.id, $event.taxType)"
+        (submit)="onSubmit()"
+        (backToProducts)="activeSection = 'products'"
+      >
+        <!-- Quotation-specific content -->
+        <div credit-terms>
+          <div
+            class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm"
+            [formGroup]="quotationForm"
+          >
+            <div class="flex items-center mb-6">
+              <div class="bg-purple-600 p-2.5 rounded-xl mr-4">
+                <i class="bi bi-envelope text-white text-lg"></i>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Email Settings</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Configure email delivery options</p>
+              </div>
+            </div>
+
+            <div class="space-y-5">
+              <!-- Email Toggle -->
+              <div
+                class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-5 border border-purple-200 dark:border-purple-800/50"
+              >
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 class="font-bold text-purple-700 dark:text-purple-400 text-base">
+                      Auto-Send Email
+                    </h4>
+                    <p class="text-gray-600 dark:text-gray-400 text-xs text-sm">
+                      Send quotation via email automatically
+                    </p>
+                  </div>
+                  <label
+                    class="relative inline-flex items-center cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      formControlName="sendEmail"
+                      [disabled]="!canSendEmail()"
+                      class="sr-only peer"
+                    />
+                    <div
+                      class="w-12 h-6 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600 peer-disabled:opacity-50"
+                    ></div>
+                  </label>
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                  <span *ngIf="canSendEmail()"
+                    >Email will be sent to: {{ customerEmail }}</span
+                  >
+                  <span *ngIf="!canSendEmail()"
+                    >Customer must have a valid email address</span
+                  >
+                </div>
+              </div>
+
+              <!-- Email Capability Warning -->
+              <div
+                *ngIf="selectedCustomer && !canSendEmail()"
+                class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-5 border border-yellow-200 dark:border-yellow-800/50"
+              >
+                <div class="flex items-center">
+                  <i
+                    class="bi bi-exclamation-triangle text-yellow-600 dark:text-yellow-400 mr-3 text-lg"
+                  ></i>
+                  <div>
+                    <h5 class="font-semibold text-yellow-700 dark:text-yellow-400 text-sm mb-1">
+                      Email Warning
+                    </h5>
+                    <p class="text-yellow-600 dark:text-yellow-300 text-xs">
+                      {{ getEmailWarning() }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Additional Notes -->
+              <div
+                class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-5 border border-yellow-200 dark:border-yellow-800/50"
+              >
+                <h4
+                  class="font-bold mb-3 text-yellow-700 dark:text-yellow-400 text-base flex items-center"
+                >
+                  <i class="bi bi-sticky mr-2"></i>Additional Notes
+                </h4>
+                <textarea
+                  formControlName="notes"
+                  placeholder="Add any additional notes or terms for this quotation..."
+                  rows="3"
+                  class="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none placeholder-gray-400 text-gray-900 dark:text-white transition-all text-sm"
+                ></textarea>
+              </div>
+
+              <!-- Email Status -->
+              <div
+                *ngIf="emailStatus"
+                class="rounded-xl p-5 border shadow-sm"
+                [class]="
+                  emailStatus.sent
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50'
+                    : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/50'
+                "
+              >
+                <div class="flex items-center">
+                  <div
+                    [class]="
+                      emailStatus.sent
+                        ? 'bg-green-600 p-2.5 rounded-xl mr-4'
+                        : 'bg-yellow-600 p-2.5 rounded-xl mr-4'
+                    "
+                  >
+                    <i
+                      [class]="
+                        emailStatus.sent
+                          ? 'bi bi-check-circle text-white text-lg'
+                          : 'bi bi-exclamation-triangle text-white text-lg'
+                      "
+                    ></i>
+                  </div>
+                  <div>
+                    <h4
+                      [class]="
+                        emailStatus.sent
+                          ? 'font-bold text-green-700 dark:text-green-400 text-base'
+                          : 'font-bold text-yellow-700 dark:text-yellow-400 text-base'
+                      "
+                    >
+                      Email Status
+                    </h4>
+                    <p
+                      [class]="
+                        emailStatus.sent
+                          ? 'text-green-600 dark:text-green-300 text-xs'
+                          : 'text-yellow-600 dark:text-yellow-300 text-xs'
+                      "
+                    >
+                      {{ emailStatus.message }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </app-checkout-summary>
+    </div>
+  </main>
+</div>
+
+<!-- Enhanced Custom Styles -->
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Custom scrollbar styling */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 20px;
+  }
+
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #d1d5db;
+  }
+
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+
+  /* Enhanced focus states */
+  .focus\:ring-2:focus {
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.3);
+  }
+
+  /* Smooth transitions for all interactive elements */
+  * {
+    transition-property: color, background-color, border-color,
+      text-decoration-color, fill, stroke, opacity, box-shadow, transform,
+      filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  /* Enhanced gradient backgrounds */
+  .bg-gradient-to-r,
+  .bg-gradient-to-br {
+    background-attachment: fixed;
+  }
+
+  /* Hover effects for cards */
+  .hover\:shadow-purple-500\/25:hover {
+    box-shadow: 0 25px 50px -12px rgba(168, 85, 247, 0.25);
+  }
+
+  /* Loading state for buttons */
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  /* Section-specific styling */
+  #activeSection {
+    scroll-behavior: smooth;
+  }
+
+  /* Purple theme colors */
+  .text-purple-400 {
+    color: #c084fc;
+  }
+
+  .bg-purple-600 {
+    background-color: #9333ea;
+  }
+
+  .border-purple-500 {
+    border-color: #a855f7;
+  }
+
+  .ring-purple-500 {
+    --tw-ring-color: #a855f7;
+  }
+</style>

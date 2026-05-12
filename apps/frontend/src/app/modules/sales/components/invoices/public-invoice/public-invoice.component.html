@@ -1,0 +1,359 @@
+﻿<!-- Public Invoice View -->
+<section
+  class="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-200"
+>
+  <!-- Header -->
+  <header
+    class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700 p-4 mb-6 print:hidden"
+  >
+    <div class="container mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-blue-600 p-2 rounded-lg">
+          <i class="bi bi-receipt text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            Invoice
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400 text-sm" *ngIf="invoice">
+            {{ invoice.invoiceNumber }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center space-x-2" *ngIf="invoice && !isLoading">
+        <button
+          (click)="downloadPDF()"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors font-medium flex items-center space-x-2"
+        >
+          <i class="bi bi-download"></i>
+          <span>Download PDF</span>
+        </button>
+        <button
+          (click)="printInvoice()"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-medium flex items-center space-x-2"
+        >
+          <i class="bi bi-printer"></i>
+          <span>Print</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"
+    ></div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="container mx-auto px-4 py-12">
+    <div
+      class="max-w-md mx-auto bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center shadow-sm"
+    >
+      <i class="bi bi-exclamation-triangle text-red-500 text-6xl mb-4"></i>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        Invoice Not Found
+      </h2>
+      <p class="text-gray-600 dark:text-gray-400 mb-4">
+        The invoice you're looking for doesn't exist or the link has expired.
+      </p>
+    </div>
+  </div>
+
+  <!-- Invoice Content -->
+  <div
+    *ngIf="!isLoading && !error && invoice"
+    class="container mx-auto px-4 pb-8"
+  >
+    <div class="max-w-4xl mx-auto">
+      <!-- Main Invoice Card -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg print:shadow-none print:border-0"
+      >
+        <!-- Invoice Header -->
+        <div class="p-8 border-b border-gray-200 dark:border-gray-700">
+          <div class="flex justify-between items-start mb-6">
+            <div>
+              <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                {{ invoice.invoiceNumber }}
+              </h2>
+              <span
+                [class]="
+                  'px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ' +
+                  invoiceService.getStatusColor(invoice.status)
+                "
+              >
+                <i
+                  [class]="
+                    invoiceService.getStatusIcon(invoice.status) + ' mr-1'
+                  "
+                ></i>
+                {{ invoice.status }}
+              </span>
+            </div>
+            <div class="text-right">
+              <p class="text-gray-600 dark:text-gray-400 text-sm">Issue Date</p>
+              <p class="text-gray-900 dark:text-white font-semibold">
+                {{ invoice.issueDate | date: "mediumDate" }}
+              </p>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-2">
+                Due Date
+              </p>
+              <p
+                [class]="
+                  invoiceService.isOverdue(invoice)
+                    ? 'text-red-600 dark:text-red-400 font-semibold'
+                    : 'text-gray-900 dark:text-white font-semibold'
+                "
+              >
+                {{ invoice.dueDate | date: "mediumDate" }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Customer & Organization Info -->
+          <div class="grid grid-cols-2 gap-6 pt-6">
+            <div>
+              <p
+                class="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2"
+              >
+                Bill To
+              </p>
+              <p class="text-gray-900 dark:text-white font-semibold text-lg">
+                {{ invoice.customerName }}
+              </p>
+              <p
+                class="text-gray-700 dark:text-gray-300 text-sm"
+                *ngIf="invoice.customerEmail"
+              >
+                <i class="bi bi-envelope mr-1"></i>{{ invoice.customerEmail }}
+              </p>
+              <p
+                class="text-gray-700 dark:text-gray-300 text-sm"
+                *ngIf="invoice.customerPhone"
+              >
+                <i class="bi bi-telephone mr-1"></i>{{ invoice.customerPhone }}
+              </p>
+              <p
+                class="text-gray-700 dark:text-gray-300 text-sm"
+                *ngIf="invoice.customerAddress"
+              >
+                <i class="bi bi-geo-alt mr-1"></i>{{ invoice.customerAddress }}
+              </p>
+            </div>
+            <div class="text-right">
+              <p
+                class="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2"
+              >
+                From
+              </p>
+              <p class="text-gray-900 dark:text-white font-semibold text-lg">
+                TechLit Solutions
+              </p>
+              <p class="text-gray-700 dark:text-gray-300 text-sm">
+                Nairobi, Kenya
+              </p>
+              <p class="text-gray-700 dark:text-gray-300 text-sm">
+                +254712345678
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice Items -->
+        <div class="p-8">
+          <h3
+            class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center"
+          >
+            <i class="bi bi-list-ul mr-2 text-blue-600 dark:text-blue-400"></i>
+            Invoice Items
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead
+                class="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700"
+              >
+                <tr>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Item
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Qty
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Price
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Tax
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Discount
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tr
+                  *ngFor="let item of invoice.items"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700/30"
+                >
+                  <td class="px-6 py-4">
+                    <div class="text-gray-900 dark:text-white font-medium">
+                      {{ item.productName }}
+                    </div>
+                    <div
+                      class="text-gray-600 dark:text-gray-400 text-sm"
+                      *ngIf="item.description"
+                    >
+                      {{ item.description }}
+                    </div>
+                  </td>
+                  <td
+                    class="px-6 py-4 text-right text-gray-900 dark:text-white"
+                  >
+                    {{ item.quantity }}
+                  </td>
+                  <td
+                    class="px-6 py-4 text-right text-gray-900 dark:text-white"
+                  >
+                    {{ invoiceService.formatCurrency(item.unitPrice) }}
+                  </td>
+                  <td
+                    class="px-6 py-4 text-right text-gray-700 dark:text-gray-300"
+                  >
+                    {{ item.taxRate }}%
+                  </td>
+                  <td
+                    class="px-6 py-4 text-right text-gray-700 dark:text-gray-300"
+                  >
+                    {{
+                      invoiceService.formatCurrency(item.discountAmount || 0)
+                    }}
+                  </td>
+                  <td
+                    class="px-6 py-4 text-right text-gray-900 dark:text-white font-semibold"
+                  >
+                    {{ invoiceService.formatCurrency(item.totalAmount) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Totals -->
+          <div class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+            <div class="max-w-sm ml-auto space-y-2">
+              <div
+                class="flex justify-between text-gray-700 dark:text-gray-300"
+              >
+                <span>Subtotal:</span>
+                <span>{{
+                  invoiceService.formatCurrency(invoice.subtotal)
+                }}</span>
+              </div>
+              <div
+                class="flex justify-between text-gray-700 dark:text-gray-300"
+                *ngIf="invoice.discountAmount > 0"
+              >
+                <span>Discount:</span>
+                <span class="text-red-600 dark:text-red-400"
+                  >-{{
+                    invoiceService.formatCurrency(invoice.discountAmount)
+                  }}</span
+                >
+              </div>
+              <div
+                class="flex justify-between text-gray-700 dark:text-gray-300"
+                *ngIf="invoice.taxAmount > 0"
+              >
+                <span>Tax (16%):</span>
+                <span>{{
+                  invoiceService.formatCurrency(invoice.taxAmount)
+                }}</span>
+              </div>
+              <div
+                class="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between text-xl font-bold"
+              >
+                <span class="text-gray-900 dark:text-white">Total:</span>
+                <span class="text-blue-600 dark:text-blue-400">{{
+                  invoiceService.formatCurrency(invoice.totalAmount)
+                }}</span>
+              </div>
+              <div
+                class="flex justify-between text-green-600 dark:text-green-400"
+                *ngIf="invoice.amountPaid > 0"
+              >
+                <span>Paid:</span>
+                <span>{{
+                  invoiceService.formatCurrency(invoice.amountPaid)
+                }}</span>
+              </div>
+              <div
+                class="flex justify-between text-xl font-bold"
+                *ngIf="invoice.balanceDue > 0"
+              >
+                <span class="text-red-600 dark:text-red-400">Balance Due:</span>
+                <span class="text-red-600 dark:text-red-400">{{
+                  invoiceService.formatCurrency(invoice.balanceDue)
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes & Terms -->
+        <div
+          *ngIf="invoice.notes || invoice.paymentTerms"
+          class="p-8 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900"
+        >
+          <div *ngIf="invoice.paymentTerms" class="mb-4">
+            <p
+              class="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2"
+            >
+              Payment Terms
+            </p>
+            <p class="text-gray-700 dark:text-gray-300">
+              {{ invoice.paymentTerms }}
+            </p>
+          </div>
+          <div *ngIf="invoice.notes">
+            <p
+              class="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2"
+            >
+              Notes
+            </p>
+            <p class="text-gray-700 dark:text-gray-300">{{ invoice.notes }}</p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div
+          class="p-6 text-center text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700"
+        >
+          <p>Thank you for your business!</p>
+          <p class="mt-1">
+            For any questions, please contact us at
+            support&#64;techlitsolutions.com
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

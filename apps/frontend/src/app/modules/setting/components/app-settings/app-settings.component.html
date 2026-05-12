@@ -1,0 +1,2376 @@
+<div class="min-h-screen bg-gray-50 dark:bg-slate-900 p-6">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow-sm p-6 mb-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+            Application Settings
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">
+            Configure your organization's preferences and defaults
+          </p>
+        </div>
+        <button
+          (click)="resetAllSettings()"
+          class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-900 dark:hover:bg-slate-900 text-gray-700 dark:text-gray-300 rounded-lg flex items-center gap-2 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Reset All
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-6">
+      <!-- Sidebar Navigation -->
+      <div class="col-span-12 lg:col-span-3">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-lg shadow-sm p-4 sticky top-6"
+        >
+          <nav class="space-y-1">
+            <button
+              (click)="setActiveTab('tax')"
+              [class]="
+                activeTab === 'tax'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="font-medium">Tax Settings</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('general')"
+              [class]="
+                activeTab === 'general'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="font-medium">General</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('prefixes')"
+              [class]="
+                activeTab === 'prefixes'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"
+                />
+              </svg>
+              <span class="font-medium">Document Prefixes</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('display')"
+              [class]="
+                activeTab === 'display'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z"
+                />
+                <path
+                  d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z"
+                />
+                <path
+                  d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z"
+                />
+              </svg>
+              <span class="font-medium">Display</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('reporting')"
+              [class]="
+                activeTab === 'reporting'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"
+                />
+              </svg>
+              <span class="font-medium">Reporting Period</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('recurring')"
+              [class]="
+                activeTab === 'recurring'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="font-medium">Recurring Invoices</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('inventory')"
+              [class]="
+                activeTab === 'inventory'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                />
+              </svg>
+              <span class="font-medium">Inventory</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('notifications')"
+              [class]="
+                activeTab === 'notifications'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"
+                />
+              </svg>
+              <span class="font-medium">Notifications</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('receipt')"
+              [class]="
+                activeTab === 'receipt'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414L13 9.586l-1.293-1.293zM7.5 12a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="font-medium">Receipt/Invoice</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('business')"
+              [class]="
+                activeTab === 'business'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z"
+                  clip-rule="evenodd"
+                />
+                <path
+                  d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"
+                />
+              </svg>
+              <span class="font-medium">Business Rules</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('paymentMethods')"
+              [class]="
+                activeTab === 'paymentMethods'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+                />
+                <path
+                  d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"
+                />
+              </svg>
+              <span class="font-medium">Payment Methods Config</span>
+            </button>
+
+            <button
+              (click)="setActiveTab('authentication')"
+              [class]="
+                activeTab === 'authentication'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900'
+              "
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="font-medium">Authentication</span>
+            </button>
+
+            <a
+              routerLink="/document-templates"
+              class="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-900"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="font-medium">Document Templates</span>
+            </a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="col-span-12 lg:col-span-9">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-sm p-6">
+          <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+            <div
+              class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"
+            ></div>
+          </div>
+
+          <div *ngIf="!isLoading">
+            <!-- Add / Edit Payment Method Modal -->
+            <div
+              *ngIf="showPaymentMethodModal"
+              class="fixed inset-0 z-50 flex items-center justify-center p-4"
+              (click)="
+                $event.target === $event.currentTarget &&
+                  closePaymentMethodModal()
+              "
+            >
+              <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+              <div
+                class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+              >
+                <!-- Modal Header -->
+                <div
+                  class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20"
+                >
+                  <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+                    {{
+                      editingPaymentMethod
+                        ? "Edit Payment Method"
+                        : "Add Payment Method"
+                    }}
+                  </h3>
+                  <button
+                    (click)="closePaymentMethodModal()"
+                    class="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5 text-gray-500 dark:text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Modal Body -->
+                <form
+                  [formGroup]="paymentMethodsForm"
+                  (ngSubmit)="savePaymentMethod()"
+                  class="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto"
+                >
+                  <div class="grid grid-cols-2 gap-4">
+                    <!-- Name -->
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >Name <span class="text-red-500">*</span></label
+                      >
+                      <input
+                        type="text"
+                        formControlName="name"
+                        placeholder="e.g. M-PESA"
+                        class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        [class.border-red-500]="
+                          paymentMethodsForm.get('name')?.invalid &&
+                          paymentMethodsForm.get('name')?.touched
+                        "
+                      />
+                      <p
+                        *ngIf="
+                          paymentMethodsForm.get('name')?.invalid &&
+                          paymentMethodsForm.get('name')?.touched
+                        "
+                        class="text-red-500 text-xs mt-1"
+                      >
+                        Name is required
+                      </p>
+                    </div>
+
+                    <!-- Code -->
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >Code <span class="text-red-500">*</span></label
+                      >
+                      <input
+                        type="text"
+                        formControlName="code"
+                        placeholder="e.g. MPESA"
+                        [attr.readonly]="editingPaymentMethod ? true : null"
+                        class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase"
+                        [class.border-red-500]="
+                          paymentMethodsForm.get('code')?.invalid &&
+                          paymentMethodsForm.get('code')?.touched
+                        "
+                        [class.opacity-60]="editingPaymentMethod"
+                        (input)="
+                          paymentMethodsForm
+                            .get('code')
+                            ?.setValue(
+                              $any($event.target).value.toUpperCase(),
+                              { emitEvent: false }
+                            )
+                        "
+                      />
+                      <p
+                        *ngIf="
+                          paymentMethodsForm.get('code')?.invalid &&
+                          paymentMethodsForm.get('code')?.touched
+                        "
+                        class="text-red-500 text-xs mt-1"
+                      >
+                        Code is required
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Display Name -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      >Display Name <span class="text-red-500">*</span></label
+                    >
+                    <input
+                      type="text"
+                      formControlName="displayName"
+                      placeholder="e.g. Mobile Money (M-PESA)"
+                      class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      [class.border-red-500]="
+                        paymentMethodsForm.get('displayName')?.invalid &&
+                        paymentMethodsForm.get('displayName')?.touched
+                      "
+                    />
+                    <p
+                      *ngIf="
+                        paymentMethodsForm.get('displayName')?.invalid &&
+                        paymentMethodsForm.get('displayName')?.touched
+                      "
+                      class="text-red-500 text-xs mt-1"
+                    >
+                      Display name is required
+                    </p>
+                  </div>
+
+                  <!-- Description -->
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      >Description</label
+                    >
+                    <input
+                      type="text"
+                      formControlName="description"
+                      placeholder="Short description (optional)"
+                      class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-4">
+                    <!-- Account Number -->
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >Account / Till No.</label
+                      >
+                      <input
+                        type="text"
+                        formControlName="accountNumber"
+                        placeholder="e.g. 247247"
+                        class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <!-- Provider Name -->
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >Provider</label
+                      >
+                      <input
+                        type="text"
+                        formControlName="providerName"
+                        placeholder="e.g. Safaricom"
+                        class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Toggle options -->
+                  <div class="space-y-3 pt-1">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        formControlName="enabled"
+                        class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                      <span
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >Active (enabled for use in sales)</span
+                      >
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        formControlName="requiresReference"
+                        class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                      <span
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >Requires reference / transaction code</span
+                      >
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        formControlName="autoReconcile"
+                        class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                      <span
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >Auto-reconcile payments</span
+                      >
+                    </label>
+                  </div>
+                </form>
+
+                <!-- Modal Footer -->
+                <div
+                  class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-800/80"
+                >
+                  <button
+                    type="button"
+                    (click)="closePaymentMethodModal()"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    (click)="savePaymentMethod()"
+                    [disabled]="paymentMethodsForm.invalid"
+                    class="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  >
+                    {{ editingPaymentMethod ? "Save Changes" : "Add Method" }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tax Settings Tab -->
+            <div *ngIf="activeTab === 'tax'" [formGroup]="taxForm">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Tax Settings
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Configure tax rates and tax compliance settings
+              </p>
+
+              <div class="space-y-6">
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="enableTax"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Enable Tax
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Apply tax to transactions
+                    </p>
+                  </div>
+                </label>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Default Tax Rate (%)</label
+                    >
+                    <input
+                      type="number"
+                      formControlName="defaultTaxRate"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Tax Name</label
+                    >
+                    <input
+                      type="text"
+                      formControlName="taxName"
+                      placeholder="VAT, GST, etc."
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Tax Number (TIN/VAT)</label
+                    >
+                    <input
+                      type="text"
+                      formControlName="taxNumber"
+                      placeholder="Organization tax number"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="includeTaxInPrice"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Include Tax in Price
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Show prices with tax included
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- General Settings Tab -->
+            <div *ngIf="activeTab === 'general'" [formGroup]="generalForm">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                General Settings
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Configure currency, date/time formats, and regional settings
+              </p>
+
+              <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Currency</label
+                    >
+                    <select
+                      formControlName="currency"
+                      (change)="onCurrencyChange($event)"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option
+                        *ngFor="let curr of currencyOptions"
+                        [value]="curr.value"
+                      >
+                        {{ curr.label }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Currency Symbol</label
+                    >
+                    <input
+                      type="text"
+                      formControlName="currencySymbol"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Time Zone</label
+                    >
+                    <select
+                      formControlName="timeZone"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option
+                        *ngFor="let tz of timeZoneOptions"
+                        [value]="tz.value"
+                      >
+                        {{ tz.label }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Date Format</label
+                    >
+                    <select
+                      formControlName="dateFormat"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option
+                        *ngFor="let format of dateFormatOptions"
+                        [value]="format.value"
+                      >
+                        {{ format.label }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Time Format</label
+                    >
+                    <select
+                      formControlName="timeFormat"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option
+                        *ngFor="let format of timeFormatOptions"
+                        [value]="format.value"
+                      >
+                        {{ format.label }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Decimal Places</label
+                    >
+                    <input
+                      type="number"
+                      formControlName="decimalPlaces"
+                      min="0"
+                      max="4"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Document Prefixes Tab -->
+            <div *ngIf="activeTab === 'prefixes'" [formGroup]="prefixesForm">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Document Prefixes
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Customize numbering prefixes for different document types
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Invoice Prefix</label
+                  >
+                  <input
+                    type="text"
+                    formControlName="invoicePrefix"
+                    placeholder="INV"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Example: INV-2026-00001
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Sale Prefix</label
+                  >
+                  <input
+                    type="text"
+                    formControlName="salePrefix"
+                    placeholder="SALE"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Example: SALE-2026-00001
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Quotation Prefix</label
+                  >
+                  <input
+                    type="text"
+                    formControlName="quotationPrefix"
+                    placeholder="QUO"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Example: QUO-2026-00001
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >LPO Prefix</label
+                  >
+                  <input
+                    type="text"
+                    formControlName="lpoPrefix"
+                    placeholder="LPO"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Example: LPO-2026-00001
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Payment Prefix</label
+                  >
+                  <input
+                    type="text"
+                    formControlName="paymentPrefix"
+                    placeholder="PAY"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Example: PAY-2026-00001
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Expense Prefix</label
+                  >
+                  <input
+                    type="text"
+                    formControlName="expensePrefix"
+                    placeholder="EXP"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Example: EXP-2026-00001
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Credit Sale Prefix</label
+                  >
+                  <input
+                    type="text"
+                    formControlName="creditSalePrefix"
+                    placeholder="CS"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Example: CS-2026-00001
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Display Settings Tab -->
+            <div *ngIf="activeTab === 'display'" [formGroup]="displayForm">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Display Settings
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Customize how data is displayed in the application
+              </p>
+
+              <div class="space-y-6">
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Default View Mode</label
+                  >
+                  <div class="grid grid-cols-3 gap-4">
+                    <label
+                      *ngFor="let mode of viewModeOptions"
+                      class="flex flex-col items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-900 transition-colors"
+                      [class.ring-2]="
+                        displayForm.get('defaultViewMode')?.value === mode.value
+                      "
+                      [class.ring-indigo-500]="
+                        displayForm.get('defaultViewMode')?.value === mode.value
+                      "
+                    >
+                      <input
+                        type="radio"
+                        formControlName="defaultViewMode"
+                        [value]="mode.value"
+                        class="sr-only"
+                      />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-8 w-8 mb-2 text-indigo-600"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          *ngIf="mode.icon === 'list'"
+                          fill-rule="evenodd"
+                          d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                          clip-rule="evenodd"
+                        />
+                        <path
+                          *ngIf="mode.icon === 'grid'"
+                          d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                        />
+                        <path
+                          *ngIf="mode.icon === 'cards'"
+                          d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"
+                        />
+                      </svg>
+                      <span
+                        class="text-sm font-medium text-gray-900 dark:text-white"
+                        >{{ mode.label }}</span
+                      >
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Items Per Page</label
+                  >
+                  <input
+                    type="number"
+                    formControlName="itemsPerPage"
+                    min="10"
+                    max="100"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Number of items to display per page (10-100)
+                  </p>
+                </div>
+
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="showProductImages"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Show Product Images
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Display product images in lists and cards
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="compactMode"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Compact Mode
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Reduce spacing for more content on screen
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Reporting Period Tab -->
+            <div *ngIf="activeTab === 'reporting'" [formGroup]="reportingForm">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Reporting Period Settings
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Configure fiscal year and reporting period defaults
+              </p>
+
+              <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Fiscal Year Start</label
+                    >
+                    <select
+                      formControlName="fiscalYearStart"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option
+                        *ngFor="let month of monthOptions"
+                        [value]="month.value"
+                      >
+                        {{ month.label }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Fiscal Year End</label
+                    >
+                    <select
+                      formControlName="fiscalYearEnd"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option
+                        *ngFor="let month of monthOptions"
+                        [value]="month.value"
+                      >
+                        {{ month.label }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Reporting Period Start (Day)</label
+                    >
+                    <input
+                      type="number"
+                      formControlName="reportingPeriodStart"
+                      min="1"
+                      max="31"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      Day of month when reporting period starts (1-31)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Reporting Period End (Day)</label
+                    >
+                    <input
+                      type="number"
+                      formControlName="reportingPeriodEnd"
+                      min="1"
+                      max="31"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      Day of month when reporting period ends (1-31)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recurring Invoices Tab -->
+            <div *ngIf="activeTab === 'recurring'" [formGroup]="recurringForm">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Recurring Invoice Settings
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Configure automatic recurring invoice generation
+              </p>
+
+              <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Generation Time</label
+                    >
+                    <input
+                      type="time"
+                      formControlName="recurringInvoiceTime"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      What time to automatically generate recurring invoices
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      >Days Before Due Date</label
+                    >
+                    <input
+                      type="number"
+                      formControlName="recurringInvoiceDaysBefore"
+                      min="0"
+                      max="30"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      Generate invoices this many days before due date
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Inventory Settings Tab -->
+            <div *ngIf="activeTab === 'inventory'" [formGroup]="inventoryForm">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Inventory Settings
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Configure how inventory is managed
+              </p>
+
+              <div class="space-y-4">
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="lowStockAlertEnabled"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Low Stock Alerts
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Alert when products reach reorder level
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="autoDeductInventory"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Auto Deduct Inventory
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Automatically reduce stock on sales
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="allowNegativeStock"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Allow Negative Stock
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Permit sales when stock is zero or negative
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Notifications Tab -->
+            <div
+              *ngIf="activeTab === 'notifications'"
+              [formGroup]="notificationsForm"
+            >
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Notification Settings
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Configure notification preferences
+              </p>
+
+              <div class="space-y-4">
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="emailNotifications"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Email Notifications
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Send notifications via email
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="smsNotifications"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      SMS Notifications
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Send notifications via SMS
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="lowStockNotifications"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Low Stock Notifications
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Alert when stock is low
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Receipt/Invoice Tab -->
+            <div *ngIf="activeTab === 'receipt'" [formGroup]="receiptForm">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Receipt & Invoice Settings
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Customize printed receipts and invoices
+              </p>
+
+              <div class="space-y-6">
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="showCompanyLogo"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Show Company Logo
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Display logo on receipts and invoices
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="showBankDetails"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Show Bank Details
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Include bank account info on invoices
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="showMpesaDetails"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Show M-PESA Details
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Include M-PESA payment info on invoices
+                    </p>
+                  </div>
+                </label>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Receipt Footer Text</label
+                  >
+                  <textarea
+                    formControlName="receiptFooterText"
+                    rows="3"
+                    placeholder="Thank you for your business!"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  ></textarea>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Default footer message for receipts
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Invoice Footer Text</label
+                  >
+                  <textarea
+                    formControlName="invoiceFooterText"
+                    rows="3"
+                    placeholder="Looking forward to doing business with you!"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  ></textarea>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Default footer message for invoices
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Quotation Footer Text</label
+                  >
+                  <textarea
+                    formControlName="quotationFooterText"
+                    rows="3"
+                    placeholder="Thank you for choosing our services!"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  ></textarea>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Default footer message for quotations
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Default Invoice Terms & Conditions</label
+                  >
+                  <textarea
+                    formControlName="invoiceTerms"
+                    rows="4"
+                    placeholder="Payment due within 30 days..."
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  ></textarea>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Default terms and conditions for invoices
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Default Invoice Notes</label
+                  >
+                  <textarea
+                    formControlName="invoiceNotes"
+                    rows="3"
+                    placeholder="Additional notes..."
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  ></textarea>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Default notes for invoices
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Default Quotation Terms & Conditions</label
+                  >
+                  <textarea
+                    formControlName="quotationTerms"
+                    rows="4"
+                    placeholder="This quotation is valid for 30 days..."
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  ></textarea>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Default terms and conditions for quotations
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Default Quotation Notes</label
+                  >
+                  <textarea
+                    formControlName="quotationNotes"
+                    rows="3"
+                    placeholder="Additional quotation notes..."
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  ></textarea>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Default notes for quotations
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Business Rules Tab -->
+            <div *ngIf="activeTab === 'business'" [formGroup]="businessForm">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Business Rules
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Configure business logic and validations
+              </p>
+
+              <div class="space-y-6">
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="requireCustomerForCredit"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Require Customer for Credit Sales
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Must select a customer for credit transactions
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  class="flex items-center p-4 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    formControlName="allowDiscounts"
+                    class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div class="ml-3">
+                    <p class="font-semibold text-gray-900 dark:text-white">
+                      Allow Discounts
+                    </p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      Enable discount functionality
+                    </p>
+                  </div>
+                </label>
+
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >Maximum Discount Percentage</label
+                  >
+                  <input
+                    type="number"
+                    formControlName="maxDiscountPercentage"
+                    min="0"
+                    max="100"
+                    class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">
+                    Maximum discount allowed per transaction (0-100%)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment Methods Configuration Tab -->
+            <div *ngIf="activeTab === 'paymentMethods'">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    Payment Methods Configuration
+                  </h2>
+                  <p class="text-gray-600 dark:text-gray-400 mt-1">
+                    Manage custom payment methods for your organization
+                  </p>
+                </div>
+                <button
+                  (click)="openAddPaymentMethodModal()"
+                  class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  Add Payment Method
+                </button>
+              </div>
+
+              <div
+                *ngIf="isLoadingPaymentMethods"
+                class="flex items-center justify-center py-12"
+              >
+                <div
+                  class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"
+                ></div>
+              </div>
+
+              <div
+                *ngIf="!isLoadingPaymentMethods && paymentMethods.length === 0"
+                class="text-center py-12"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-16 w-16 mx-auto text-gray-400 mb-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                  />
+                </svg>
+                <p class="text-gray-500 dark:text-gray-400">
+                  No payment methods configured
+                </p>
+                <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                  Click "Add Payment Method" to create one
+                </p>
+              </div>
+
+              <div
+                *ngIf="!isLoadingPaymentMethods && paymentMethods.length > 0"
+                class="space-y-4"
+              >
+                <div
+                  *ngFor="let method of paymentMethods"
+                  class="bg-gray-50 dark:bg-slate-900 rounded-lg p-4 flex items-center justify-between"
+                >
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="flex items-center justify-center w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-lg"
+                    >
+                      <span
+                        class="material-icons text-indigo-600 dark:text-indigo-400"
+                        >{{ method.icon || "payments" }}</span
+                      >
+                    </div>
+                    <div>
+                      <h3 class="font-semibold text-gray-900 dark:text-white">
+                        {{ method.displayName }}
+                      </h3>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                        {{ method.description }}
+                      </p>
+                      <div class="flex gap-4 mt-1">
+                        <span class="text-xs text-gray-500"
+                          >Code: {{ method.code }}</span
+                        >
+                        <span
+                          *ngIf="method.requiresReference"
+                          class="text-xs text-blue-600 dark:text-blue-400"
+                          >Requires Reference</span
+                        >
+                        <span
+                          *ngIf="method.autoReconcile"
+                          class="text-xs text-green-600 dark:text-green-400"
+                          >Auto-reconcile</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <label
+                      class="relative inline-flex items-center cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        [checked]="method.enabled"
+                        (change)="togglePaymentMethodEnabled(method)"
+                        class="sr-only peer"
+                      />
+                      <div
+                        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"
+                      ></div>
+                    </label>
+                    <button
+                      (click)="openEditPaymentMethodModal(method)"
+                      class="p-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                      title="Edit"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      (click)="deletePaymentMethod(method)"
+                      class="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                      title="Delete"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Authentication Settings Tab -->
+            <div
+              *ngIf="activeTab === 'authentication'"
+              [formGroup]="authenticationForm"
+            >
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Authentication & Security
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Configure token expiration and session management
+              </p>
+
+              <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      JWT Access Token Expiry
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      formControlName="jwtAccessTokenExpiry"
+                      placeholder="e.g., 1h, 30m, 2d"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      Format: 1h (hour), 30m (minutes), 2d (days)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      JWT Refresh Token Expiry
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      formControlName="jwtRefreshTokenExpiry"
+                      placeholder="e.g., 7d, 30d"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      Format: 7d (days), 24h (hours)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Session Timeout (seconds)
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      formControlName="sessionTimeout"
+                      min="300"
+                      placeholder="3600"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      Minimum: 300 seconds (5 minutes)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Max Login Attempts
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      formControlName="maxLoginAttempts"
+                      min="1"
+                      placeholder="5"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      Number of failed attempts before lockout
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Lockout Duration (seconds)
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      formControlName="lockoutDuration"
+                      min="60"
+                      placeholder="900"
+                      class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      Minimum: 60 seconds (1 minute)
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+                >
+                  <div class="flex gap-3">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-6 w-6 text-blue-600 dark:text-blue-400 flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <div>
+                      <h4 class="font-medium text-blue-900 dark:text-blue-200">
+                        Security Notice
+                      </h4>
+                      <p class="text-sm text-blue-800 dark:text-blue-300 mt-1">
+                        Changes to authentication settings will affect all
+                        users. Reducing token expiry times will require users to
+                        re-authenticate more frequently.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div
+              class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200 dark:border-gray-700"
+            >
+              <button
+                type="button"
+                (click)="resetSection()"
+                class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-900 hover:bg-gray-200 dark:hover:bg-slate-900 rounded-lg transition-colors"
+              >
+                Reset Section
+              </button>
+              <button
+                type="button"
+                (click)="saveSettings()"
+                [disabled]="isSaving"
+                class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg
+                  *ngIf="isSaving"
+                  class="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                {{ isSaving ? "Saving..." : "Save Changes" }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Method Modal -->
+  <div
+    *ngIf="showPaymentMethodModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    (click)="closePaymentMethodModal()"
+  >
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
+            {{
+              editingPaymentMethod
+                ? "Edit Payment Method"
+                : "Add Payment Method"
+            }}
+          </h3>
+          <button
+            (click)="closePaymentMethodModal()"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <form [formGroup]="paymentMethodsForm" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="name"
+                placeholder="Cash, M-PESA, etc."
+                [class.border-red-500]="
+                  paymentMethodsForm.get('name')?.invalid &&
+                  paymentMethodsForm.get('name')?.touched
+                "
+                class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+              <p
+                *ngIf="
+                  paymentMethodsForm.get('name')?.invalid &&
+                  paymentMethodsForm.get('name')?.touched
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Name is required
+              </p>
+            </div>
+
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Code <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="code"
+                placeholder="CASH, MPESA, etc."
+                [class.border-red-500]="
+                  paymentMethodsForm.get('code')?.invalid &&
+                  paymentMethodsForm.get('code')?.touched
+                "
+                class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+              <p
+                *ngIf="
+                  paymentMethodsForm.get('code')?.invalid &&
+                  paymentMethodsForm.get('code')?.touched
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Code is required
+              </p>
+            </div>
+
+            <div class="md:col-span-2">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Display Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="displayName"
+                placeholder="How it appears to users"
+                [class.border-red-500]="
+                  paymentMethodsForm.get('displayName')?.invalid &&
+                  paymentMethodsForm.get('displayName')?.touched
+                "
+                class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+              <p
+                *ngIf="
+                  paymentMethodsForm.get('displayName')?.invalid &&
+                  paymentMethodsForm.get('displayName')?.touched
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                Display Name is required
+              </p>
+            </div>
+
+            <div class="md:col-span-2">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >Description</label
+              >
+              <textarea
+                formControlName="description"
+                rows="2"
+                placeholder="Brief description of this payment method"
+                class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              ></textarea>
+            </div>
+
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >Icon</label
+              >
+              <input
+                type="text"
+                formControlName="icon"
+                placeholder="Material icon name (e.g., payments)"
+                class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >Account Number</label
+              >
+              <input
+                type="text"
+                formControlName="accountNumber"
+                placeholder="Optional account or till number"
+                class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >Provider Name</label
+              >
+              <input
+                type="text"
+                formControlName="providerName"
+                placeholder="e.g., Safaricom, Bank Name"
+                class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-3 mt-6">
+            <label
+              class="flex items-center p-3 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                formControlName="enabled"
+                class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+              />
+              <div class="ml-3">
+                <p class="font-medium text-gray-900 dark:text-white">Enabled</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Make this payment method available
+                </p>
+              </div>
+            </label>
+
+            <label
+              class="flex items-center p-3 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                formControlName="requiresReference"
+                class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+              />
+              <div class="ml-3">
+                <p class="font-medium text-gray-900 dark:text-white">
+                  Requires Reference
+                </p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Require transaction reference number
+                </p>
+              </div>
+            </label>
+
+            <label
+              class="flex items-center p-3 bg-gray-50 dark:bg-slate-900 rounded-lg cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                formControlName="autoReconcile"
+                class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+              />
+              <div class="ml-3">
+                <p class="font-medium text-gray-900 dark:text-white">
+                  Auto-reconcile
+                </p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Automatically reconcile payments
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <div
+            class="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700"
+          >
+            <button
+              type="button"
+              (click)="closePaymentMethodModal()"
+              class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-900 hover:bg-gray-200 dark:hover:bg-slate-900 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              (click)="savePaymentMethod()"
+              class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors"
+            >
+              {{ editingPaymentMethod ? "Update" : "Create" }}
+            </button>
+          </div>
+        </form>
+
+        <!-- ── DOCUMENT TEMPLATES TAB ── -->
+        <div *ngIf="activeTab === 'documents'">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Document Templates
+          </h2>
+          <p class="text-gray-600 dark:text-gray-400 mb-8">
+            Choose and customize the default template, colors, and fields for
+            each document type. Settings are saved permanently per document
+            type.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Invoice -->
+            <div
+              class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6 flex flex-col gap-4 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-5 h-5 text-blue-600 dark:text-blue-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-white">
+                    Invoice
+                  </h3>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Default: Modern Bold · Blue
+                  </p>
+                </div>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Customize template, accent color, logo, fields shown, footer
+                text and more for all invoices.
+              </p>
+              <button
+                (click)="docSettingsOpen = 'invoice'"
+                class="mt-auto w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  />
+                </svg>
+                Configure Invoice Template
+              </button>
+            </div>
+
+            <!-- Quotation -->
+            <div
+              class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6 flex flex-col gap-4 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-5 h-5 text-green-600 dark:text-green-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-white">
+                    Quotation
+                  </h3>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Default: Classic · Green
+                  </p>
+                </div>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Customize template, accent color, logo, fields shown, footer
+                text and more for all quotations.
+              </p>
+              <button
+                (click)="docSettingsOpen = 'quotation'"
+                class="mt-auto w-full px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  />
+                </svg>
+                Configure Quotation Template
+              </button>
+            </div>
+
+            <!-- Sale -->
+            <div
+              class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6 flex flex-col gap-4 shadow-sm"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-5 h-5 text-orange-600 dark:text-orange-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 11H4L5 9z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-white">
+                    Sale Receipt
+                  </h3>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Default: Classic · Orange
+                  </p>
+                </div>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Customize template, accent color, logo, fields shown, footer
+                text and more for all sale receipts.
+              </p>
+              <button
+                (click)="docSettingsOpen = 'sale'"
+                class="mt-auto w-full px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  />
+                </svg>
+                Configure Sale Template
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Document Print Settings Modals -->
+<app-document-print-settings
+  [docType]="'invoice'"
+  [data]="null"
+  [isOpen]="docSettingsOpen === 'invoice'"
+  (closed)="docSettingsOpen = null"
+>
+</app-document-print-settings>
+
+<app-document-print-settings
+  [docType]="'quotation'"
+  [data]="null"
+  [isOpen]="docSettingsOpen === 'quotation'"
+  (closed)="docSettingsOpen = null"
+>
+</app-document-print-settings>
+
+<app-document-print-settings
+  [docType]="'sale'"
+  [data]="null"
+  [isOpen]="docSettingsOpen === 'sale'"
+  (closed)="docSettingsOpen = null"
+>
+</app-document-print-settings>

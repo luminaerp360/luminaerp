@@ -1,0 +1,608 @@
+﻿<div class="min-h-[400px] bg-gray-50 dark:bg-slate-900 rounded-xl shadow-xl p-3 sm:p-6">
+  <!-- Header Section -->
+  <div
+    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6"
+  >
+    <div>
+      <h1 class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">Products</h1>
+      <p class="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mt-1">
+        {{ selectedProducts.length }} of {{ products.length }} products selected
+      </p>
+    </div>
+
+    <div class="flex gap-2 w-full sm:w-auto">
+      <button
+        (click)="openRestockModal()"
+        [disabled]="isLoading || selectedProducts.length === 0"
+        class="inline-flex items-center justify-center flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white font-medium rounded-lg text-xs sm:text-sm transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <svg
+          *ngIf="isLoading"
+          class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <svg
+          *ngIf="!isLoading"
+          class="w-4 h-4 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+        <span>{{ isLoading ? "Updating..." : "Restock" }}</span>
+      </button>
+
+      <button
+        (click)="openAdjustmentModal()"
+        [disabled]="isLoading || selectedProducts.length === 0"
+        class="inline-flex items-center justify-center flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white font-medium rounded-lg text-xs sm:text-sm transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <svg
+          *ngIf="!isLoading"
+          class="w-4 h-4 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
+        </svg>
+        <span>Adjust Stock</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Skeleton -->
+  <div *ngIf="isInitialLoading" class="space-y-4">
+    <div *ngFor="let i of [1, 2, 3, 4, 5]" class="animate-pulse">
+      <div class="h-16 bg-gray-100 dark:bg-slate-800 rounded-lg"></div>
+    </div>
+  </div>
+
+  <!-- Stock Table (Desktop) -->
+  <div *ngIf="!isInitialLoading" class="hidden sm:flex flex-col mt-4">
+    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+        <div
+          class="overflow-hidden border border-gray-200 dark:border-gray-800 md:rounded-2xl shadow-xl"
+        >
+          <table class="min-w-full border-separate border-spacing-0">
+            <thead
+              class="text-xs uppercase bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20 transition-all duration-300 text-white"
+            >
+              <tr>
+                <th scope="col" class="p-4">
+                  <div class="flex items-center">
+                    <input
+                      id="checkbox-all"
+                      type="checkbox"
+                      [checked]="isAllSelected"
+                      (change)="toggleAllSelection($event)"
+                      class="w-4 h-4 text-white border-white/30 rounded bg-white/10 focus:ring-purple-400"
+                    />
+                    <label for="checkbox-all" class="sr-only">Select all</label>
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Product name
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Buying Price
+                </th>
+                <!-- <th scope="col" class="px-6 py-3">Store Quantity</th> -->
+                <th
+                  scope="col"
+                  class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                >
+                  Current Quantity
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="bg-white dark:bg-gray-950 divide-y divide-gray-200 dark:divide-gray-800"
+            >
+              <tr
+                *ngFor="let product of products; let i = index"
+                class="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
+              >
+                <td class="w-4 p-4">
+                  <div class="flex items-center">
+                    <input
+                      [id]="'checkbox-table-' + i"
+                      type="checkbox"
+                      [checked]="isProductSelected(product)"
+                      (change)="toggleProductSelection(product)"
+                      class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-600 focus:ring-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-800"
+                    />
+                    <label [for]="'checkbox-table-' + i" class="sr-only"
+                      >Select product</label
+                    >
+                  </div>
+                </td>
+                <th
+                  scope="row"
+                  class="px-6 py-4 font-medium whitespace-nowrap text-left text-gray-900 dark:text-white"
+                >
+                  {{ product.name }}
+                </th>
+                <td class="px-6 py-4">
+                  <span class="text-gray-600 dark:text-gray-400">Ksh.</span>
+                  {{ product.buying_price || 100 | number: "1.2-2" }}
+                </td>
+                <!-- <td class="px-6 py-4">
+            <span
+              class="px-2.5 py-0.5 text-sm rounded-full"
+              [ngClass]="{
+                'bg-green-900/50 text-green-400': product.storeQuantity > 10,
+                'bg-yellow-900/50 text-yellow-400':
+                  product.storeQuantity <= 10 && product.storeQuantity > 0,
+                'bg-red-900/50 text-red-400': product.storeQuantity === 0
+              }"
+            >
+              {{ product.storeQuantity }}
+            </span>
+          </td> -->
+                <td class="px-6 py-4">
+                  <span
+                    class="px-2.5 py-0.5 text-sm rounded-full"
+                    [ngClass]="{
+                      'bg-green-900/50 text-green-400': product.quantity > 10,
+                      'bg-yellow-900/50 text-yellow-400':
+                        product.quantity <= 10 && product.quantity > 0,
+                      'bg-red-900/50 text-red-400': product.quantity === 0,
+                    }"
+                  >
+                    {{ product.quantity }}
+                  </span>
+                </td>
+              </tr>
+
+              <!-- Empty State -->
+              <tr
+                *ngIf="products.length === 0"
+                class="border-b bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-gray-700"
+              >
+                <td
+                  colspan="5"
+                  class="px-6 py-8 text-center text-gray-600 dark:text-gray-400"
+                >
+                  <div class="flex flex-col items-center justify-center">
+                    <svg
+                      class="w-12 h-12 mb-3 text-gray-400 dark:text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                      />
+                    </svg>
+                    <h3
+                      class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                      No products found
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-500">
+                      Try adding some products to your inventory.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Cards (Mobile) -->
+  <div *ngIf="!isInitialLoading" class="sm:hidden mt-3 space-y-2">
+    <!-- Select All -->
+    <div class="flex items-center gap-2 px-1 mb-2">
+      <input
+        id="checkbox-all-mobile"
+        type="checkbox"
+        [checked]="isAllSelected"
+        (change)="toggleAllSelection($event)"
+        class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-600"
+      />
+      <label for="checkbox-all-mobile" class="text-xs font-medium text-gray-600 dark:text-gray-400">Select all products</label>
+    </div>
+
+    <div *ngFor="let product of products; let i = index"
+      class="bg-white dark:bg-gray-950 rounded-lg p-3 border border-gray-200 dark:border-gray-800 shadow-sm"
+    >
+      <div class="flex items-start gap-3">
+        <input
+          [id]="'checkbox-mobile-' + i"
+          type="checkbox"
+          [checked]="isProductSelected(product)"
+          (change)="toggleProductSelection(product)"
+          class="w-4 h-4 mt-0.5 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-600"
+        />
+        <div class="flex-1 min-w-0">
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ product.name }}</h4>
+          <div class="flex items-center justify-between mt-2">
+            <div class="text-xs">
+              <span class="text-gray-500 dark:text-gray-400">Price: </span>
+              <span class="text-gray-700 dark:text-gray-300">Ksh. {{ product.buying_price || 100 | number: '1.2-2' }}</span>
+            </div>
+            <span
+              class="px-2 py-0.5 text-xs font-medium rounded-full"
+              [ngClass]="{
+                'bg-green-900/50 text-green-400': product.quantity > 10,
+                'bg-yellow-900/50 text-yellow-400': product.quantity <= 10 && product.quantity > 0,
+                'bg-red-900/50 text-red-400': product.quantity === 0
+              }"
+            >
+              {{ product.quantity }} units
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State (Mobile) -->
+    <div *ngIf="products.length === 0" class="py-8 text-center">
+      <svg class="w-10 h-10 mx-auto mb-2 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+      </svg>
+      <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">No products found</h3>
+      <p class="text-xs text-gray-600 dark:text-gray-500">Try adding some products to your inventory.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Restock Modal -->
+<div
+  *ngIf="showRestockModal"
+  class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+>
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+  >
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        Restock Products
+      </h2>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        Enter quantities to add to {{ selectedProducts.length }} selected
+        product(s)
+      </p>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <div
+        *ngFor="let product of selectedProducts"
+        class="bg-gray-50 dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+      >
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100">
+              {{ product.name }}
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Current: <span class="font-medium">{{ product.quantity }}</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-2">
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Add Quantity:
+            </label>
+            <input
+              type="number"
+              [(ngModel)]="restockQuantities[product.id]"
+              min="0"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200"
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Buying Price (Ksh):
+            </label>
+            <input
+              type="number"
+              [(ngModel)]="restockPrices[product.id]"
+              min="0"
+              step="0.01"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
+        <div
+          class="flex justify-between text-sm text-gray-600 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700"
+        >
+          <span
+            >New Quantity:
+            <span class="font-medium text-gray-900 dark:text-gray-100">{{
+              (product.quantity || 0) + (restockQuantities[product.id] || 0)
+            }}</span></span
+          >
+          <span
+            >Total Value:
+            <span class="font-medium text-blue-600 dark:text-blue-400"
+              >Ksh
+              {{
+                (
+                  (restockQuantities[product.id] || 0) *
+                  (restockPrices[product.id] || 0)
+                ).toFixed(2)
+              }}</span
+            ></span
+          >
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3"
+    >
+      <button
+        (click)="closeRestockModal()"
+        class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+      >
+        Cancel
+      </button>
+      <button
+        (click)="restockProducts()"
+        [disabled]="isLoading"
+        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center gap-2"
+      >
+        <span *ngIf="!isLoading">Confirm Restock</span>
+        <span *ngIf="isLoading" class="flex items-center gap-2">
+          <div
+            class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"
+          ></div>
+          Updating...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Adjustment Modal -->
+<div
+  *ngIf="showAdjustmentModal"
+  class="fixed inset-0 z-50 overflow-y-auto"
+  aria-labelledby="modal-title"
+  role="dialog"
+  aria-modal="true"
+>
+  <div
+    class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+  >
+    <div
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+      (click)="closeAdjustmentModal()"
+    ></div>
+
+    <div
+      class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full"
+    >
+      <div
+        class="px-6 py-4 bg-gradient-to-r from-orange-600 to-red-600 border-b border-gray-200 dark:border-gray-700"
+      >
+        <h3 class="text-lg font-medium text-white flex items-center gap-2">
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+            />
+          </svg>
+          Adjust Stock - {{ selectedProducts.length }} Product(s)
+        </h3>
+        <p class="mt-1 text-sm text-orange-100">
+          Remove expired, damaged, or lost stock and keep records
+        </p>
+      </div>
+
+      <div class="p-6 max-h-96 overflow-y-auto space-y-4">
+        <div
+          *ngFor="let product of selectedProducts"
+          class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="font-medium text-gray-900 dark:text-white">
+                {{ product.name }}
+              </h4>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Current Stock: {{ product.quantity }} units
+              </p>
+            </div>
+            <span
+              class="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium"
+            >
+              {{ product.productIdNumber }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Adjustment Type -->
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Adjustment Type *
+              </label>
+              <select
+                [(ngModel)]="adjustmentTypes[product.id]"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-600 dark:text-white text-sm"
+              >
+                <option
+                  *ngFor="let type of adjustmentTypeOptions"
+                  [value]="type.value"
+                >
+                  {{ type.icon }} {{ type.label }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Quantity -->
+            <div>
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Quantity *
+              </label>
+              <input
+                type="number"
+                [(ngModel)]="adjustmentQuantities[product.id]"
+                min="0"
+                [max]="
+                  isDecreaseAdjustment(product.id) ? product.quantity : 999999
+                "
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-600 dark:text-white text-sm"
+                placeholder="0"
+              />
+            </div>
+
+            <!-- Reason -->
+            <div class="col-span-2">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Reason *
+              </label>
+              <input
+                type="text"
+                [(ngModel)]="adjustmentReasons[product.id]"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-600 dark:text-white text-sm"
+                placeholder="e.g., Expired on 2026-01-10, Damaged during transport"
+              />
+            </div>
+
+            <!-- Notes (Optional) -->
+            <div class="col-span-2">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Additional Notes (Optional)
+              </label>
+              <textarea
+                [(ngModel)]="adjustmentNotes[product.id]"
+                rows="2"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-600 dark:text-white text-sm"
+                placeholder="Any additional details..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div
+            *ngIf="adjustmentQuantities[product.id] > 0"
+            class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600"
+          >
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-400">
+                New Stock:
+                <span
+                  class="font-medium"
+                  [class.text-red-600]="isDecreaseAdjustment(product.id)"
+                  [class.text-green-600]="!isDecreaseAdjustment(product.id)"
+                >
+                  {{
+                    isDecreaseAdjustment(product.id)
+                      ? product.quantity - adjustmentQuantities[product.id]
+                      : product.quantity + adjustmentQuantities[product.id]
+                  }}
+                  units
+                </span>
+              </span>
+              <span
+                class="px-2 py-1 rounded text-xs font-medium"
+                [class.bg-red-100]="isDecreaseAdjustment(product.id)"
+                [class.text-red-700]="isDecreaseAdjustment(product.id)"
+                [class.bg-green-100]="!isDecreaseAdjustment(product.id)"
+                [class.text-green-700]="!isDecreaseAdjustment(product.id)"
+              >
+                {{
+                  isDecreaseAdjustment(product.id)
+                    ? "-" + adjustmentQuantities[product.id]
+                    : "+" + adjustmentQuantities[product.id]
+                }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-slate-900"
+      >
+        <button
+          (click)="closeAdjustmentModal()"
+          [disabled]="isLoading"
+          class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="adjustStock()"
+          [disabled]="isLoading"
+          class="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all disabled:opacity-50 flex items-center gap-2"
+        >
+          <span *ngIf="!isLoading">Confirm Adjustment</span>
+          <span *ngIf="isLoading" class="flex items-center gap-2">
+            <div
+              class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"
+            ></div>
+            Processing...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

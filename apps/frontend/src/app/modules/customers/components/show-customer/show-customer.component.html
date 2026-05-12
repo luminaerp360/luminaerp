@@ -1,0 +1,534 @@
+<div
+  class="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 p-4 lg:p-6"
+>
+  <div class="max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div
+      class="bg-white dark:bg-slate-900/50 backdrop-blur-sm border border-gray-200 dark:border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden mb-6"
+    >
+      <div class="p-6 lg:p-8">
+        <div
+          class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6"
+        >
+          <!-- Title and Stats -->
+          <div class="flex flex-col lg:flex-row lg:items-center gap-4">
+            <div>
+              <h1
+                class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2"
+              >
+                Customer Management
+              </h1>
+              <p class="text-gray-600 dark:text-slate-400 text-sm">
+                Manage your customer database with ease
+              </p>
+            </div>
+            <div class="flex items-center gap-4">
+              <div
+                class="bg-blue-100 dark:bg-blue-500/20 border border-blue-200 dark:border-blue-400/30 rounded-lg px-3 py-2"
+              >
+                <span
+                  class="text-blue-800 dark:text-blue-300 text-sm font-medium"
+                >
+                  {{ customers.length }} Total
+                </span>
+              </div>
+              <div
+                class="bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-400/30 rounded-lg px-3 py-2"
+                *ngIf="hasSelectedCustomers"
+              >
+                <span
+                  class="text-emerald-800 dark:text-emerald-300 text-sm font-medium"
+                >
+                  {{ selectedCustomersCount }} Selected
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button
+              *ngIf="hasSelectedCustomers"
+              (click)="clearSelection()"
+              class="px-4 py-2.5 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium rounded-xl text-sm transition-all duration-200 border border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500"
+            >
+              Clear Selection
+            </button>
+            <button
+              *ngIf="hasSelectedCustomers"
+              (click)="confirmBulkDelete()"
+              class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl text-sm transition-all duration-200 shadow-lg hover:shadow-red-500/25 border border-red-500 hover:border-red-400"
+            >
+              <i class="fas fa-trash mr-2"></i>
+              Delete Selected ({{ selectedCustomersCount }})
+            </button>
+            <button
+              (click)="openDialog()"
+              class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-xl text-sm transition-all duration-200 shadow-lg hover:shadow-blue-500/25 border border-blue-500 hover:border-blue-400"
+            >
+              <i class="fas fa-plus mr-2"></i>
+              Add New Customer
+            </button>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="mt-6 relative">
+          <div class="relative">
+            <i
+              class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
+            ></i>
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              placeholder="Search customers by name or phone..."
+              class="w-full pl-12 pr-12 py-3 bg-gray-50 dark:bg-slate-700/50 border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            />
+            <button
+              *ngIf="searchTerm"
+              (click)="clearSearch()"
+              class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white transition-colors"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div
+      *ngIf="loading"
+      class="bg-white dark:bg-slate-900/50 backdrop-blur-sm border border-gray-200 dark:border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden"
+    >
+      <div class="flex flex-col justify-center items-center h-96">
+        <div class="relative">
+          <div
+            class="animate-spin rounded-full h-16 w-16 border-4 border-gray-300 dark:border-slate-600 border-t-blue-500"
+          ></div>
+          <div
+            class="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500/20 to-transparent"
+          ></div>
+        </div>
+        <p class="text-gray-600 dark:text-slate-400 mt-4 font-medium">
+          Loading customers...
+        </p>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div
+      *ngIf="!loading"
+      class="bg-white dark:bg-slate-900/50 backdrop-blur-sm border border-gray-200 dark:border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden"
+    >
+      <!-- Desktop Table View -->
+      <div class="hidden lg:block overflow-x-auto">
+        <table
+          class="w-full text-sm text-left text-gray-900 dark:text-slate-300"
+        >
+          <thead
+            class="bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20 transition-all duration-300"
+          >
+            <tr>
+              <th scope="col" class="p-6">
+                <div class="flex items-center">
+                  <input
+                    id="checkbox-all"
+                    type="checkbox"
+                    [checked]="allSelected"
+                    (change)="toggleAllCustomers()"
+                    class="w-4 h-4 text-white border-white/30 rounded bg-white/10 focus:ring-purple-400"
+                  />
+                  <label for="checkbox-all" class="sr-only">Select all</label>
+                </div>
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+              >
+                Customer Name
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+              >
+                Phone Number
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+              >
+                Type
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+              >
+                KRA PIN
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+              >
+                Status
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+              >
+                Due Credit
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-4 text-xs font-black text-center text-white uppercase tracking-[0.1em]"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let customer of filteredCustomers; let i = index"
+              class="border-b border-gray-200 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-all duration-200 group"
+            >
+              <td class="p-6">
+                <div class="flex items-center">
+                  <input
+                    [id]="'checkbox-table-' + i"
+                    type="checkbox"
+                    [checked]="selectedCustomers.has(i)"
+                    (change)="toggleCustomer(i)"
+                    class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500 focus:ring-2 focus:ring-offset-white dark:focus:ring-offset-slate-900"
+                  />
+                  <label [for]="'checkbox-table-' + i" class="sr-only"
+                    >Select customer</label
+                  >
+                </div>
+              </td>
+              <th
+                scope="row"
+                class="px-6 py-4 font-semibold text-gray-900 dark:text-white"
+              >
+                {{ customer.fullName }}
+              </th>
+              <td class="px-6 py-4 text-gray-700 dark:text-slate-300">
+                {{ customer.phoneNumber }}
+              </td>
+              <td class="px-6 py-4">
+                <span
+                  class="px-2.5 py-1 text-xs font-semibold rounded-lg"
+                  [ngClass]="
+                    customer.customerType === 'BUSINESS'
+                      ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                      : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                  "
+                >
+                  <i
+                    [class]="
+                      customer.customerType === 'BUSINESS'
+                        ? 'fas fa-building mr-1'
+                        : 'fas fa-user mr-1'
+                    "
+                  ></i>
+                  {{
+                    customer.customerType === "BUSINESS"
+                      ? "Business"
+                      : "Individual"
+                  }}
+                </span>
+              </td>
+              <td
+                class="px-6 py-4 text-gray-700 dark:text-slate-300 font-mono text-xs"
+              >
+                {{ customer.kraPin || "—" }}
+              </td>
+              <td class="px-6 py-4">
+                <span
+                  class="px-3 py-1.5 text-xs font-medium rounded-lg"
+                  [ngClass]="getStatusClass(customer.isActive!)"
+                >
+                  {{ customer.isActive ? "Active" : "Inactive" }}
+                </span>
+              </td>
+              <td
+                class="px-6 py-4 text-gray-700 dark:text-slate-300 font-medium"
+              >
+                Ksh {{ customer.dueCredit || 0 | number }}
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-center gap-2">
+                  <button
+                    (click)="openUpdateDialog(customer)"
+                    class="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200 dark:hover:border-blue-400/30"
+                    title="Edit Customer"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button
+                    (click)="confirmDelete(customer)"
+                    class="p-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-lg transition-all duration-200 border border-transparent hover:border-red-200 dark:hover:border-red-400/30"
+                    title="Delete Customer"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="lg:hidden">
+        <div
+          class="p-4 border-b border-gray-200 dark:border-slate-700/50 bg-gray-50 dark:bg-slate-700/50"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <input
+                id="checkbox-all-mobile"
+                type="checkbox"
+                [checked]="allSelected"
+                (change)="toggleAllCustomers()"
+                class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500"
+              />
+              <label
+                for="checkbox-all-mobile"
+                class="text-sm text-gray-700 dark:text-slate-300"
+                >Select All</label
+              >
+            </div>
+            <span class="text-sm text-gray-500 dark:text-slate-400"
+              >{{ filteredCustomers.length }} customers</span
+            >
+          </div>
+        </div>
+
+        <div class="divide-y divide-slate-700/50">
+          <div
+            *ngFor="let customer of filteredCustomers; let i = index"
+            class="p-4 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-all duration-200"
+          >
+            <div class="flex items-start gap-4">
+              <input
+                [id]="'checkbox-mobile-' + i"
+                type="checkbox"
+                [checked]="selectedCustomers.has(i)"
+                (change)="toggleCustomer(i)"
+                class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500 mt-1"
+              />
+
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between mb-2">
+                  <h3
+                    class="font-semibold text-gray-900 dark:text-white truncate pr-2"
+                  >
+                    {{ customer.fullName }}
+                  </h3>
+                  <span
+                    class="px-2 py-1 text-xs font-medium rounded-md flex-shrink-0"
+                    [ngClass]="getStatusClass(customer.isActive!)"
+                  >
+                    {{ customer.isActive ? "Active" : "Inactive" }}
+                  </span>
+                </div>
+
+                <div class="space-y-1 mb-3">
+                  <p class="text-sm text-gray-700 dark:text-slate-300">
+                    <i
+                      class="fas fa-phone w-4 text-gray-500 dark:text-slate-400 mr-2"
+                    ></i>
+                    {{ customer.phoneNumber }}
+                  </p>
+                  <p class="text-sm text-gray-700 dark:text-slate-300">
+                    <i
+                      [class]="
+                        customer.customerType === 'BUSINESS'
+                          ? 'fas fa-building w-4 text-purple-500 mr-2'
+                          : 'fas fa-user w-4 text-blue-500 mr-2'
+                      "
+                    ></i>
+                    {{
+                      customer.customerType === "BUSINESS"
+                        ? "Business"
+                        : "Individual"
+                    }}
+                  </p>
+                  <p
+                    *ngIf="customer.kraPin"
+                    class="text-sm text-gray-700 dark:text-slate-300 font-mono"
+                  >
+                    <i
+                      class="fas fa-id-card w-4 text-gray-500 dark:text-slate-400 mr-2"
+                    ></i>
+                    {{ customer.kraPin }}
+                  </p>
+                  <p class="text-sm text-gray-700 dark:text-slate-300">
+                    <i
+                      class="fas fa-money-bill w-4 text-gray-500 dark:text-slate-400 mr-2"
+                    ></i>
+                    Due: Ksh {{ customer.dueCredit || 0 | number }}
+                  </p>
+                </div>
+
+                <div class="flex gap-2">
+                  <button
+                    (click)="openUpdateDialog(customer)"
+                    class="flex-1 px-3 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded-lg transition-all duration-200 border border-blue-200 dark:border-blue-400/30 hover:border-blue-300 dark:hover:border-blue-400/50 text-sm font-medium"
+                  >
+                    <i class="fas fa-edit mr-2"></i>Edit
+                  </button>
+                  <button
+                    (click)="confirmDelete(customer)"
+                    class="flex-1 px-3 py-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-lg transition-all duration-200 border border-red-200 dark:border-red-400/30 hover:border-red-300 dark:hover:border-red-400/50 text-sm font-medium"
+                  >
+                    <i class="fas fa-trash mr-2"></i>Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredCustomers.length === 0" class="text-center py-16">
+        <div
+          class="mx-auto w-24 h-24 bg-gray-100 dark:bg-slate-700/50 rounded-full flex items-center justify-center mb-6"
+        >
+          <i
+            class="fas fa-users text-gray-400 dark:text-slate-400 text-3xl"
+          ></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          {{ searchTerm ? "No customers found" : "No customers yet" }}
+        </h3>
+        <p class="text-gray-600 dark:text-slate-400 mb-6 max-w-md mx-auto">
+          {{
+            searchTerm
+              ? "Try adjusting your search terms"
+              : "Get started by adding your first customer to the system"
+          }}
+        </p>
+        <button
+          *ngIf="!searchTerm"
+          (click)="openDialog()"
+          class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
+        >
+          <i class="fas fa-plus mr-2"></i>Add Your First Customer
+        </button>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div
+      *ngIf="showDeleteConfirm"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+    >
+      <div
+        class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden"
+      >
+        <div class="p-6">
+          <div class="flex items-center gap-4 mb-4">
+            <div
+              class="w-12 h-12 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center"
+            >
+              <i
+                class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"
+              ></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Confirm Delete
+              </h3>
+              <p class="text-gray-600 dark:text-slate-400 text-sm">
+                This action cannot be undone
+              </p>
+            </div>
+          </div>
+
+          <p class="text-gray-700 dark:text-slate-300 mb-6">
+            Are you sure you want to delete
+            <strong class="text-gray-900 dark:text-white">{{
+              customerToDelete?.fullName
+            }}</strong
+            >? All associated data will be permanently removed.
+          </p>
+
+          <div class="flex gap-3">
+            <button
+              (click)="cancelDelete()"
+              [disabled]="isDeleting"
+              class="flex-1 px-4 py-2.5 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium rounded-xl transition-all duration-200 border border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              (click)="deleteCustomer()"
+              [disabled]="isDeleting"
+              class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-all duration-200 border border-red-500 hover:border-red-400 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <i *ngIf="isDeleting" class="fas fa-spinner fa-spin"></i>
+              {{ isDeleting ? "Deleting..." : "Delete" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk Delete Confirmation Modal -->
+    <div
+      *ngIf="showBulkDeleteConfirm"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+    >
+      <div
+        class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden"
+      >
+        <div class="p-6">
+          <div class="flex items-center gap-4 mb-4">
+            <div
+              class="w-12 h-12 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center"
+            >
+              <i
+                class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"
+              ></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Confirm Bulk Delete
+              </h3>
+              <p class="text-gray-600 dark:text-slate-400 text-sm">
+                This action cannot be undone
+              </p>
+            </div>
+          </div>
+
+          <p class="text-gray-700 dark:text-slate-300 mb-6">
+            Are you sure you want to delete
+            <strong class="text-gray-900 dark:text-white"
+              >{{ selectedCustomersCount }} customers</strong
+            >? All associated data will be permanently removed.
+          </p>
+
+          <div class="flex gap-3">
+            <button
+              (click)="cancelDelete()"
+              [disabled]="isDeleting"
+              class="flex-1 px-4 py-2.5 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium rounded-xl transition-all duration-200 border border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              (click)="bulkDeleteCustomers()"
+              [disabled]="isDeleting"
+              class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-all duration-200 border border-red-500 hover:border-red-400 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <i *ngIf="isDeleting" class="fas fa-spinner fa-spin"></i>
+              {{ isDeleting ? "Deleting..." : "Delete All" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

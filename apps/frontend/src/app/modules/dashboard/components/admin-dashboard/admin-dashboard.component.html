@@ -1,0 +1,237 @@
+﻿<div class="min-h-screen bg-gray-50 dark:bg-slate-900 p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+        Admin Dashboard
+      </h1>
+      <p class="text-gray-600 dark:text-slate-400">
+        Welcome back! Here's your business overview for this month.
+      </p>
+    </div>
+    <button
+      (click)="loadDashboardData()"
+      class="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+      title="Refresh"
+    >
+      <svg
+        class="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex justify-center items-center h-64">
+    <app-loader></app-loader>
+  </div>
+
+  <div *ngIf="!loading">
+    <!-- Metrics Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div
+        *ngFor="let metric of metrics"
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700 hover:shadow-xl transition-shadow duration-300"
+      >
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <p
+              class="text-sm font-medium text-gray-600 dark:text-slate-400 mb-1"
+            >
+              {{ metric.label }}
+            </p>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              {{ metric.value }}
+            </h3>
+            <div *ngIf="metric.change" class="flex items-center">
+              <span
+                [class]="
+                  metric.changeType === 'increase'
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                "
+                class="text-sm font-semibold flex items-center"
+              >
+                <span *ngIf="metric.changeType === 'increase'">↑</span>
+                <span *ngIf="metric.changeType === 'decrease'">↓</span>
+                {{ metric.change }}%
+              </span>
+              <span class="text-gray-500 dark:text-slate-400 text-xs ml-2"
+                >vs last month</span
+              >
+            </div>
+          </div>
+          <div
+            [class]="getMetricColorClass(metric.color || 'blue')"
+            class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl"
+          >
+            {{ getMetricIcon(metric.icon || "") }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Sales Chart - Takes 2 columns -->
+      <div
+        class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <apx-chart
+          *ngIf="salesChartOptions.series"
+          [series]="salesChartOptions.series"
+          [chart]="salesChartOptions.chart!"
+          [xaxis]="salesChartOptions.xaxis!"
+          [yaxis]="salesChartOptions.yaxis!"
+          [dataLabels]="salesChartOptions.dataLabels!"
+          [grid]="salesChartOptions.grid!"
+          [stroke]="salesChartOptions.stroke!"
+          [title]="salesChartOptions.title!"
+          [legend]="salesChartOptions.legend!"
+          [colors]="salesChartOptions.colors!"
+        ></apx-chart>
+      </div>
+
+      <!-- Payment Method Distribution -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Payment Methods
+        </h3>
+        <div class="flex justify-center">
+          <app-pie-chart [data]="pieChartData"></app-pie-chart>
+        </div>
+        <div class="mt-4 space-y-2">
+          <div
+            *ngFor="let label of pieChartData.labels; let i = index"
+            class="flex justify-between items-center"
+          >
+            <span class="text-sm text-gray-600 dark:text-slate-400">{{
+              label
+            }}</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-white">
+              KSH {{ formatCompact(pieChartData.series[i]) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activities and Quick Actions -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Recent Activities - Takes 2 columns -->
+      <div
+        class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Recent Activities
+          </h3>
+          <a
+            routerLink="/reports"
+            class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >View All</a
+          >
+        </div>
+
+        <div
+          *ngIf="recentActivities.length === 0"
+          class="text-center py-8 text-gray-400 dark:text-slate-500"
+        >
+          <p>No recent activity found</p>
+        </div>
+
+        <div class="space-y-4">
+          <div
+            *ngFor="let activity of recentActivities"
+            class="flex items-start space-x-4 p-4 rounded-lg bg-gray-50 dark:bg-slate-900/50 hover:bg-gray-100 dark:hover:bg-slate-900 transition-colors duration-200"
+          >
+            <div
+              class="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-xl"
+            >
+              {{ getActivityIcon(activity.type) }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 dark:text-white">
+                {{ activity.description }}
+              </p>
+              <div class="flex items-center mt-1 space-x-2">
+                <p class="text-xs text-gray-500 dark:text-slate-400">
+                  {{ getTimeAgo(activity.timestamp) }}
+                </p>
+                <span
+                  *ngIf="activity.status"
+                  [class]="getActivityStatusClass(activity.status)"
+                  class="px-2 py-1 text-xs font-medium rounded-full"
+                >
+                  {{ activity.status }}
+                </span>
+              </div>
+            </div>
+            <div *ngIf="activity.amount" class="flex-shrink-0">
+              <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                KSH {{ activity.amount.toLocaleString() }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div
+        class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+          Quick Actions
+        </h3>
+        <div class="space-y-3">
+          <a
+            routerLink="/sales"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+          >
+            <span>➕</span>
+            <span>New Order</span>
+          </a>
+          <a
+            routerLink="/invoices"
+            class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+          >
+            <span>📄</span>
+            <span>Create Invoice</span>
+          </a>
+          <a
+            routerLink="/customers"
+            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+          >
+            <span>👤</span>
+            <span>Add Customer</span>
+          </a>
+          <a
+            routerLink="/inventory"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+          >
+            <span>📦</span>
+            <span>Inventory</span>
+          </a>
+          <a
+            routerLink="/reports"
+            class="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+          >
+            <span>📊</span>
+            <span>View Reports</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

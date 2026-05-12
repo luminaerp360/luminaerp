@@ -1,0 +1,26 @@
+/* back-button.component.css */
+.back-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 50%; /* Makes the button round */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 50px;  /* Set the width to make it a circle */
+    height: 50px; /* Set the height to make it a circle */
+    transition: background-color 0.3s ease;
+  }
+  
+  .back-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .icon {
+    width: 24px;
+    height: 24px;
+    stroke: white; /* SVG stroke color */
+  }
+  

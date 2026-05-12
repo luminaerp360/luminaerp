@@ -1,0 +1,294 @@
+﻿<div class="p-3 sm:p-6 bg-gray-50 dark:bg-slate-900 min-h-screen">
+  <!-- Header -->
+  <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+    <div>
+      <h1 class="text-xl sm:text-3xl font-bold text-gray-800 dark:text-white">
+        Stock Movement History
+      </h1>
+      <p class="text-xs sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+        Complete audit trail of all inventory changes
+      </p>
+    </div>
+    <button
+      (click)="refreshMovements()"
+      class="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+    >
+      <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+      </svg>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white dark:bg-slate-900 rounded-lg shadow-md p-3 sm:p-6 mb-4 sm:mb-6 border border-gray-200 dark:border-gray-700">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <!-- Product Filter -->
+      <div>
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >Product</label
+        >
+        <select
+          [(ngModel)]="selectedProductId"
+          (change)="onFilterChange()"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-900 dark:text-white"
+        >
+          <option [value]="null">All Products</option>
+          <option *ngFor="let product of products" [value]="product.id">
+            {{ product.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Movement Type Filter -->
+      <div>
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >Type</label
+        >
+        <select
+          [(ngModel)]="selectedMovementType"
+          (change)="onFilterChange()"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-900 dark:text-white"
+        >
+          <option *ngFor="let type of movementTypes" [value]="type.value">
+            {{ type.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Start Date -->
+      <div>
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >From</label
+        >
+        <input
+          type="date"
+          [(ngModel)]="startDate"
+          (change)="onFilterChange()"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-900 dark:text-white"
+        />
+      </div>
+
+      <!-- End Date -->
+      <div>
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >To</label
+        >
+        <input
+          type="date"
+          [(ngModel)]="endDate"
+          (change)="onFilterChange()"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-900 dark:text-white"
+        />
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-end gap-2">
+        <button
+          (click)="clearFilters()"
+          class="flex-1 px-4 py-2 bg-gray-200 dark:bg-slate-900 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-800 transition-colors"
+        >
+          Clear
+        </button>
+        <button
+          (click)="exportToCSV()"
+          [disabled]="filteredMovements.length === 0"
+          class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Export
+        </button>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="mt-4">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+        placeholder="Search by product name, reason, notes, or user..."
+        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-slate-900 dark:text-white"
+      />
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-12">
+    <div
+      class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"
+    ></div>
+    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading movements...</p>
+  </div>
+
+  <!-- Results Summary -->
+  <div *ngIf="!isLoading" class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+    Showing {{ paginatedMovements.length }} of
+    {{ filteredMovements.length }} movements
+  </div>
+
+  <!-- Movements Table (Desktop) -->
+  <div
+    *ngIf="!isLoading"
+    class="hidden sm:block bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700"
+  >
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-slate-800">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Change</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Before → After</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Value</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reason</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Performed By</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-gray-700">
+          <tr *ngFor="let movement of paginatedMovements" class="hover:bg-gray-50 dark:hover:bg-slate-800">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ formatDate(movement.timestamp) }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ movement.product?.name || "Unknown" }}</div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">{{ movement.product?.productIdNumber || "" }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                [ngClass]="{
+                  'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': getMovementTypeInfo(movement.movementType).color === 'green',
+                  'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': getMovementTypeInfo(movement.movementType).color === 'blue',
+                  'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': getMovementTypeInfo(movement.movementType).color === 'red',
+                  'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200': getMovementTypeInfo(movement.movementType).color === 'orange',
+                  'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': getMovementTypeInfo(movement.movementType).color === 'purple',
+                  'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-gray-200': getMovementTypeInfo(movement.movementType).color === 'gray'
+                }">
+                {{ getMovementTypeInfo(movement.movementType).label }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium" [ngClass]="getMovementClass(movement)">
+              {{ movement.quantityChange > 0 ? "+" : "" }}{{ movement.quantityChange }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-right">{{ movement.quantityBefore }} → {{ movement.quantityAfter }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-right">
+              <div *ngIf="movement.totalValue">Ksh {{ movement.totalValue.toFixed(2) }}</div>
+              <div *ngIf="!movement.totalValue" class="text-gray-400">-</div>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
+              <div class="max-w-xs truncate" [title]="movement.reason || ''">{{ movement.reason || "-" }}</div>
+              <div *ngIf="movement.notes" class="text-xs text-gray-500 dark:text-gray-400 truncate" [title]="movement.notes">{{ movement.notes }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ movement.performedByName || "System" }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredMovements.length === 0" class="text-center py-12">
+      <svg
+        class="mx-auto h-12 w-12 text-gray-400"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+        ></path>
+      </svg>
+      <p class="mt-4 text-gray-500 dark:text-gray-400">No movements found</p>
+      <p class="text-sm text-gray-400 dark:text-gray-500">
+        Try adjusting your filters
+      </p>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      *ngIf="filteredMovements.length > 0"
+      class="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between"
+    >
+      <div class="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+        Page {{ currentPage }} of {{ totalPages }}
+      </div>
+      <div class="flex gap-2">
+        <button
+          (click)="previousPage()"
+          [disabled]="currentPage === 1"
+          class="px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        <button
+          (click)="nextPage()"
+          [disabled]="currentPage === totalPages"
+          class="px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Movements Cards (Mobile) -->
+  <div *ngIf="!isLoading" class="sm:hidden space-y-3">
+    <div *ngFor="let movement of paginatedMovements" class="bg-white dark:bg-slate-900 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-3">
+      <div class="flex items-start justify-between mb-2">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ movement.product?.name || "Unknown" }}</p>
+          <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ formatDate(movement.timestamp) }}</p>
+        </div>
+        <span class="ml-2 px-2 py-0.5 text-[10px] leading-4 font-semibold rounded-full flex-shrink-0"
+          [ngClass]="{
+            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': getMovementTypeInfo(movement.movementType).color === 'green',
+            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': getMovementTypeInfo(movement.movementType).color === 'blue',
+            'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': getMovementTypeInfo(movement.movementType).color === 'red',
+            'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200': getMovementTypeInfo(movement.movementType).color === 'orange',
+            'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': getMovementTypeInfo(movement.movementType).color === 'purple',
+            'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-gray-200': getMovementTypeInfo(movement.movementType).color === 'gray'
+          }">
+          {{ getMovementTypeInfo(movement.movementType).label }}
+        </span>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center mb-2">
+        <div>
+          <p class="text-[10px] text-gray-500 dark:text-gray-400">Change</p>
+          <p class="text-xs font-bold" [ngClass]="getMovementClass(movement)">{{ movement.quantityChange > 0 ? "+" : "" }}{{ movement.quantityChange }}</p>
+        </div>
+        <div>
+          <p class="text-[10px] text-gray-500 dark:text-gray-400">Before → After</p>
+          <p class="text-xs font-medium text-gray-900 dark:text-white">{{ movement.quantityBefore }} → {{ movement.quantityAfter }}</p>
+        </div>
+        <div>
+          <p class="text-[10px] text-gray-500 dark:text-gray-400">Value</p>
+          <p class="text-xs font-medium text-gray-900 dark:text-white">{{ movement.totalValue ? 'Ksh ' + movement.totalValue.toFixed(2) : '-' }}</p>
+        </div>
+      </div>
+      <div *ngIf="movement.reason" class="pt-2 border-t border-gray-100 dark:border-gray-700">
+        <p class="text-[10px] text-gray-500 dark:text-gray-400">{{ movement.reason }}</p>
+      </div>
+      <div class="flex justify-between items-center mt-1">
+        <p class="text-[10px] text-gray-400 dark:text-gray-500">{{ movement.performedByName || "System" }}</p>
+      </div>
+    </div>
+
+    <!-- Mobile Empty State -->
+    <div *ngIf="filteredMovements.length === 0" class="text-center py-8">
+      <p class="text-sm text-gray-500 dark:text-gray-400">No movements found</p>
+    </div>
+
+    <!-- Mobile Pagination -->
+    <div *ngIf="filteredMovements.length > 0" class="flex items-center justify-between pt-2">
+      <span class="text-xs text-gray-700 dark:text-gray-300">Page {{ currentPage }} / {{ totalPages }}</span>
+      <div class="flex gap-2">
+        <button (click)="previousPage()" [disabled]="currentPage === 1" class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 disabled:opacity-50">Prev</button>
+        <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 disabled:opacity-50">Next</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,319 @@
+﻿<!-- View Recurring Invoice Template Component -->
+<section
+  class="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-200"
+>
+  <!-- Header (No Print) -->
+  <header
+    class="no-print bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700 p-4 mb-6"
+  >
+    <div class="mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <button
+          (click)="goBack()"
+          class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          title="Go back"
+        >
+          <i class="bi bi-arrow-left text-xl"></i>
+        </button>
+        <div class="bg-purple-600 p-2 rounded-lg">
+          <i class="bi bi-arrow-repeat text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+            Template Details
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">
+            View recurring invoice template
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button
+          (click)="printTemplate()"
+          class="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+        >
+          <i class="bi bi-printer"></i>
+          <span>Print</span>
+        </button>
+        <button
+          (click)="editTemplate()"
+          class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+        >
+          <i class="bi bi-pencil"></i>
+          <span>Edit</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"
+    ></div>
+  </div>
+
+  <!-- Template Details -->
+  <div
+    *ngIf="!isLoading && template"
+    class="container px-4 mx-auto max-w-5xl pb-12"
+  >
+    <!-- Status Badge (No Print) -->
+    <div class="no-print mb-6">
+      <span
+        [class]="
+          'inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ' +
+          recurringService.getStatusColor(template.status)
+        "
+      >
+        <i
+          [class]="recurringService.getStatusIcon(template.status) + ' mr-2'"
+        ></i>
+        {{ recurringService.getStatusLabel(template.status) }}
+      </span>
+    </div>
+
+    <!-- Template Card -->
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+    >
+      <!-- Template Header -->
+      <div
+        class="bg-gradient-to-r from-purple-600 to-purple-700 p-8 text-white"
+      >
+        <div class="flex justify-between items-start">
+          <div>
+            <h2 class="text-3xl font-bold mb-2">{{ template.templateName }}</h2>
+            <p class="text-purple-100">{{ template.templateCode }}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-purple-100">Next Invoice</p>
+            <p class="text-xl font-semibold">
+              {{ template.nextInvoiceDate | date: "MMM d, y" }}
+            </p>
+            <p class="text-sm text-purple-100 mt-1">
+              {{
+                recurringService.formatNextInvoiceDate(template.nextInvoiceDate)
+              }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Template Info -->
+      <div class="p-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <h3
+              class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-4"
+            >
+              Customer
+            </h3>
+            <p class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ template.customer?.fullName || "N/A" }}
+            </p>
+            <p
+              *ngIf="template.customer?.email"
+              class="text-sm text-gray-600 dark:text-gray-400"
+            >
+              {{ template.customer.email }}
+            </p>
+            <p
+              *ngIf="template.customer?.phoneNumber"
+              class="text-sm text-gray-600 dark:text-gray-400"
+            >
+              {{ template.customer.phoneNumber }}
+            </p>
+          </div>
+
+          <div>
+            <h3
+              class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-4"
+            >
+              Recurrence
+            </h3>
+            <p class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ recurringService.getFrequencyLabel(template.frequency) }}
+              <span
+                *ngIf="template.intervalCount && template.intervalCount > 1"
+                class="text-base font-normal"
+              >
+                (every {{ template.intervalCount }})
+              </span>
+            </p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Started: {{ template.startDate | date: "MMM d, y" }}
+            </p>
+            <p
+              *ngIf="template.endDate"
+              class="text-sm text-gray-600 dark:text-gray-400"
+            >
+              Ends: {{ template.endDate | date: "MMM d, y" }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div
+            class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/30 rounded-lg p-4"
+          >
+            <p class="text-sm text-blue-800 dark:text-blue-300 mb-1">
+              Invoices Generated
+            </p>
+            <p class="text-2xl font-bold text-blue-900 dark:text-blue-100">
+              {{ template.totalGenerated }}
+            </p>
+          </div>
+          <div
+            class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 rounded-lg p-4"
+          >
+            <p class="text-sm text-green-800 dark:text-green-300 mb-1">
+              Payment Terms
+            </p>
+            <p class="text-2xl font-bold text-green-900 dark:text-green-100">
+              {{ template.paymentTermsDays || 0 }} days
+            </p>
+          </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="mb-8">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Invoice Items
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead
+                class="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700"
+              >
+                <tr>
+                  <th
+                    class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Product
+                  </th>
+                  <th
+                    class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Quantity
+                  </th>
+                  <th
+                    class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Unit Price
+                  </th>
+                  <th
+                    class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Discount
+                  </th>
+                  <th
+                    class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Tax
+                  </th>
+                  <th
+                    class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tr
+                  *ngFor="let item of template.items"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                >
+                  <td class="px-4 py-3 text-sm">{{ item.productName }}</td>
+                  <td class="px-4 py-3 text-sm text-right">
+                    {{ item.quantity }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-right">
+                    {{ item.unitPrice | number: "1.2-2" }}
+                  </td>
+                  <td
+                    class="px-4 py-3 text-sm text-right text-red-600 dark:text-red-400"
+                  >
+                    {{ item.discountAmount || 0 | number: "1.2-2" }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-right">
+                    {{ item.taxRate || 0 }}%
+                  </td>
+                  <td class="px-4 py-3 text-sm text-right font-semibold">
+                    {{ calculateLineTotal(item) | number: "1.2-2" }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Template Settings -->
+        <div class="flex justify-end">
+          <div class="w-full md:w-1/2 lg:w-1/3 space-y-3">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Tax Rate:</span>
+              <span class="font-semibold">{{ template.taxRate || 0 }}%</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-400"
+                >Discount Amount:</span
+              >
+              <span class="font-semibold text-red-600 dark:text-red-400">
+                {{ template.discountAmount || 0 | number: "1.2-2" }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div
+          *ngIf="template.notes"
+          class="mt-8 p-4 bg-gray-50 dark:bg-slate-900 rounded-lg"
+        >
+          <h4
+            class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2"
+          >
+            Notes
+          </h4>
+          <p class="text-gray-900 dark:text-white whitespace-pre-wrap">
+            {{ template.notes }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Actions (No Print) -->
+      <div
+        class="no-print bg-gray-50 dark:bg-slate-900 px-8 py-6 border-t border-gray-200 dark:border-gray-700"
+      >
+        <div class="flex flex-wrap gap-3">
+          <button
+            *ngIf="template.status === RecurringStatus.ACTIVE"
+            (click)="pauseTemplate()"
+            class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2.5 rounded-lg transition-colors flex items-center space-x-2"
+          >
+            <i class="bi bi-pause-circle"></i>
+            <span>Pause Template</span>
+          </button>
+          <button
+            *ngIf="template.status === RecurringStatus.PAUSED"
+            (click)="resumeTemplate()"
+            class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg transition-colors flex items-center space-x-2"
+          >
+            <i class="bi bi-play-circle"></i>
+            <span>Resume Template</span>
+          </button>
+          <button
+            *ngIf="template.status !== RecurringStatus.CANCELLED"
+            (click)="cancelTemplate()"
+            class="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg transition-colors flex items-center space-x-2"
+          >
+            <i class="bi bi-x-circle"></i>
+            <span>Cancel Template</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

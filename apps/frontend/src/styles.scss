@@ -1,0 +1,35 @@
+/* You can add global styles to this file, and also import other style files */
+@use '@ngneat/hot-toast/src/styles/styles.scss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import '@ng-vibe/dialog/styles/styles';
+
+
+
+:root {
+    font-family: "Lexend", sans-serif;
+  }
+
+  body {
+    @apply bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white;
+  }
+
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 3px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: white;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: darkgray;
+    border-radius: 50px;
+  }

@@ -1,0 +1,296 @@
+<div
+  class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-200"
+>
+  <div
+    class="px-3 sm:px-4 py-4 sm:py-6 md:px-8 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div
+      class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <h1
+          class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 flex-shrink-0 text-amber-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            ></path>
+          </svg>
+          Invoice Report
+        </h1>
+        <p class="text-sm sm:text-base text-gray-600 dark:text-slate-400 mt-1">
+          Invoice analytics — status, aging, and top customers
+        </p>
+      </div>
+      <a
+        routerLink="/reports-hub"
+        class="text-purple-600 dark:text-purple-400 hover:underline text-sm flex items-center mt-2 md:mt-0"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 mr-1"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M15 19l-7-7 7-7"></path></svg
+        >Back to Reports Hub</a
+      >
+    </div>
+  </div>
+
+  <!-- Date Filters -->
+  <div
+    class="px-3 sm:px-4 py-3 sm:py-4 md:px-8 bg-gray-100 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row flex-wrap items-start sm:items-end gap-3 sm:gap-4">
+      <div class="flex flex-wrap gap-1.5 sm:gap-2">
+        <button
+          *ngFor="let r of ['today', 'week', 'month', 'quarter', 'year']"
+          (click)="setDateRange(r)"
+          type="button"
+          [ngClass]="{
+            'bg-purple-600 text-white': currentDateRange === r,
+            'bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300':
+              currentDateRange !== r,
+          }"
+          class="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 capitalize"
+        >
+          {{ r }}
+        </button>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <input
+          type="date"
+          [(ngModel)]="startDate"
+          class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+        />
+        <span class="text-gray-500">to</span>
+        <input
+          type="date"
+          [(ngModel)]="endDate"
+          class="px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+        />
+        <button
+          (click)="fetchReport()"
+          class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+        >
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="flex items-center justify-center py-20">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"
+    ></div>
+  </div>
+  <div
+    *ngIf="errorMessage && !loading"
+    class="max-w-7xl mx-auto px-4 md:px-8 mt-4"
+  >
+    <div
+      class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 p-4 rounded-lg flex justify-between items-center"
+    >
+      <span>{{ errorMessage }}</span
+      ><button
+        (click)="fetchReport()"
+        class="text-white bg-red-700 px-3 py-1 rounded text-sm"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <div
+    *ngIf="data && !loading"
+    class="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6"
+  >
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">Total Invoiced</p>
+        <p class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">
+          {{ formatCurrency(data.summary.totalInvoiced) }}
+        </p>
+        <p class="text-xs text-gray-400 mt-1">
+          {{ data.summary.totalInvoices }} invoices
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">Collected</p>
+        <p class="text-lg sm:text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+          {{ formatCurrency(data.summary.totalCollected) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">Outstanding</p>
+        <p class="text-lg sm:text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
+          {{ formatCurrency(data.summary.totalOutstanding) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">Collection Rate</p>
+        <p class="text-lg sm:text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+          {{ formatPercent(data.summary.collectionRate) }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          Status Breakdown
+        </h3>
+        <apx-chart
+          *ngIf="statusChartOptions.series"
+          [series]="statusChartOptions.series"
+          [chart]="statusChartOptions.chart"
+          [labels]="statusChartOptions.labels"
+          [colors]="statusChartOptions.colors"
+          [legend]="statusChartOptions.legend"
+          [dataLabels]="statusChartOptions.dataLabels"
+        ></apx-chart>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          Aging Analysis
+        </h3>
+        <apx-chart
+          *ngIf="agingChartOptions.series"
+          [series]="agingChartOptions.series"
+          [chart]="agingChartOptions.chart"
+          [xaxis]="agingChartOptions.xaxis"
+          [colors]="agingChartOptions.colors"
+          [plotOptions]="agingChartOptions.plotOptions"
+          [dataLabels]="agingChartOptions.dataLabels"
+          [tooltip]="agingChartOptions.tooltip"
+        ></apx-chart>
+      </div>
+    </div>
+
+    <!-- Status & Type Breakdown -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          By Status
+        </h3>
+        <div class="space-y-2 text-sm">
+          <div
+            *ngFor="let s of getStatusEntries()"
+            class="flex justify-between items-center"
+          >
+            <span [class]="getStatusColor(s.status) + ' font-medium'">{{
+              s.status.replace("_", " ")
+            }}</span>
+            <span>{{ s.count }} — {{ formatCurrency(s.totalAmount) }}</span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          By Type
+        </h3>
+        <div class="space-y-2 text-sm">
+          <div
+            *ngFor="let t of getTypeEntries()"
+            class="flex justify-between items-center"
+          >
+            <span class="text-gray-600 dark:text-slate-400">{{
+              formatLabel(t.type)
+            }}</span>
+            <span>{{ t.count }} — {{ formatCurrency(t.totalAmount) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Customers -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700"
+    >
+      <div class="p-4 sm:p-6">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+          Top Invoice Customers
+        </h3>
+      </div>
+      <div class="hidden md:block overflow-x-auto px-6 pb-6">
+        <table class="w-full text-sm text-left">
+          <thead
+            class="text-xs text-gray-500 uppercase border-b border-gray-200 dark:border-slate-600"
+          >
+            <tr>
+              <th class="py-3 px-2">Customer</th>
+              <th class="py-3 px-2 text-right">Invoices</th>
+              <th class="py-3 px-2 text-right">Invoiced</th>
+              <th class="py-3 px-2 text-right">Paid</th>
+              <th class="py-3 px-2 text-right">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let c of data.topCustomers"
+              class="border-b border-gray-100 dark:border-slate-700"
+            >
+              <td class="py-3 px-2 font-medium text-gray-900 dark:text-white">
+                {{ c.name }}
+              </td>
+              <td class="py-3 px-2 text-right">{{ c.invoiceCount }}</td>
+              <td class="py-3 px-2 text-right">
+                {{ formatCurrency(c.totalInvoiced) }}
+              </td>
+              <td class="py-3 px-2 text-right text-green-600">
+                {{ formatCurrency(c.totalPaid) }}
+              </td>
+              <td class="py-3 px-2 text-right text-red-600">
+                {{ formatCurrency(c.balance) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Mobile Cards -->
+      <div class="block md:hidden px-3 pb-3 space-y-2">
+        <div *ngFor="let c of data.topCustomers" class="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-slate-700">
+          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ c.name }}</p>
+          <div class="grid grid-cols-2 gap-1.5 mt-2 text-xs">
+            <div><span class="text-gray-500 dark:text-slate-400">Invoices:</span> <span class="font-medium">{{ c.invoiceCount }}</span></div>
+            <div><span class="text-gray-500 dark:text-slate-400">Invoiced:</span> <span class="font-medium">{{ formatCurrency(c.totalInvoiced) }}</span></div>
+            <div><span class="text-gray-500 dark:text-slate-400">Paid:</span> <span class="font-medium text-green-600">{{ formatCurrency(c.totalPaid) }}</span></div>
+            <div><span class="text-gray-500 dark:text-slate-400">Balance:</span> <span class="font-medium text-red-600">{{ formatCurrency(c.balance) }}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center text-xs text-gray-400 dark:text-slate-500 mt-4">
+      {{ data.metadata?.reportPeriod }}
+    </div>
+  </div>
+</div>

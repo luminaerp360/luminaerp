@@ -1,0 +1,114 @@
+/* Print styles */
+@media print {
+  .fixed {
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  .bg-gray-900,
+  .bg-gray-800,
+  .bg-gray-700,
+  .bg-gray-900\/75 {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  .text-white,
+  .text-gray-300,
+  .text-gray-400 {
+    color: black !important;
+  }
+
+  .border-gray-700 {
+    border-color: #e5e7eb !important;
+  }
+
+  button {
+    display: none !important;
+  }
+
+  .shadow-xl {
+    box-shadow: none !important;
+  }
+
+  .p-4 {
+    padding: 1rem !important;
+  }
+
+  /* Show more content */
+  .max-h-48 {
+    max-height: none !important;
+  }
+
+  /* Force background colors for paid/unpaid badges */
+  .bg-green-500\/20,
+  .bg-yellow-500\/20 {
+    background-color: white !important;
+    padding: 0.1rem 0.5rem !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  .text-green-500,
+  .text-yellow-500,
+  .text-blue-500 {
+    color: black !important;
+    font-weight: bold !important;
+  }
+
+  /* Print header */
+  .modal-print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Print footer */
+  .modal-print-footer {
+    display: block !important;
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.75rem;
+    color: #6b7280 !important;
+  }
+
+  /* Hide the tabs and show all content */
+  [class*="activeTab"] {
+    display: block !important;
+  }
+}
+
+/* Hidden elements only for printing */
+.modal-print-header,
+.modal-print-footer {
+  display: none;
+}
+
+/* Hover effects for interactive elements */
+.rounded-md {
+  transition: all 0.2s ease;
+}
+
+/* Animate rotations */
+svg.rotate-180 {
+  transition: transform 0.2s ease;
+}
+
+/* Scrollbar styling for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(107, 114, 128, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}

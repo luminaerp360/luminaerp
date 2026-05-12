@@ -1,0 +1,27 @@
+name: dasadove-pos
+services:
+  - name: web
+    source_dir: /
+    github:
+      repo: shaphankirui/DasaDove
+      branch: multibranch
+    build_command: npm install && npm run build
+    run_command: node server.js
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 8080
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20.11.0"
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+    routes:
+      - path: /

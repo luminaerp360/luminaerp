@@ -1,0 +1,119 @@
+﻿<div class="relative">
+  <!-- Bell Icon Button -->
+  <button
+    (click)="toggleDropdown()"
+    class="relative p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+    title="Notifications"
+  >
+    <i class="material-icons text-xl">notifications</i>
+
+    <!-- Unread Badge -->
+    <span
+      *ngIf="unreadCount > 0"
+      class="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-semibold text-white bg-red-500 rounded-full"
+    >
+      {{ unreadCount > 99 ? "99+" : unreadCount }}
+    </span>
+  </button>
+
+  <!-- Dropdown Menu -->
+  <div
+    *ngIf="isDropdownOpen"
+    class="absolute right-0 mt-2 w-96 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50"
+  >
+    <!-- Header -->
+    <div
+      class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700"
+    >
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        Notifications
+      </h3>
+      <button
+        *ngIf="unreadCount > 0"
+        (click)="markAllAsRead()"
+        class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+      >
+        Mark all read
+      </button>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="max-h-96 overflow-y-auto">
+      <div
+        *ngIf="recentNotifications.length === 0"
+        class="px-4 py-8 text-center"
+      >
+        <i
+          class="ri-notification-off-line text-4xl text-gray-400 dark:text-gray-600 mb-2"
+        ></i>
+        <p class="text-gray-500 dark:text-gray-400">No new notifications</p>
+      </div>
+
+      <div
+        *ngFor="let notification of recentNotifications"
+        (click)="markAsRead(notification, $event)"
+        class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer transition-colors duration-150"
+        [class.bg-blue-50]="!notification.isRead"
+        [class.dark:bg-blue-900]="!notification.isRead"
+      >
+        <div class="flex items-start gap-3">
+          <!-- Icon -->
+          <div class="flex-shrink-0 mt-1">
+            <i [class]="getIconClass(notification) + ' text-xl'"></i>
+          </div>
+
+          <!-- Content -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2 mb-1">
+              <h4
+                class="text-sm font-semibold text-gray-900 dark:text-white line-clamp-1"
+              >
+                {{ notification.title }}
+              </h4>
+              <span
+                class="flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded-full"
+                [ngClass]="getTypeColor(notification)"
+              >
+                {{ notification.type }}
+              </span>
+            </div>
+
+            <p
+              class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-1"
+            >
+              {{ notification.message }}
+            </p>
+
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-500 dark:text-gray-500">
+                {{ getTimeAgo(notification.createdAt) }}
+              </span>
+              <span
+                *ngIf="!notification.isRead"
+                class="w-2 h-2 bg-blue-600 rounded-full"
+                title="Unread"
+              ></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+      <button
+        (click)="viewAllNotifications()"
+        class="w-full px-4 py-2 text-sm font-medium text-center text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors duration-150"
+      >
+        View all notifications
+      </button>
+    </div>
+  </div>
+
+  <!-- Click outside to close -->
+  <div
+    *ngIf="isDropdownOpen"
+    (click)="closeDropdown()"
+    class="fixed inset-0 z-40"
+  ></div>
+</div>

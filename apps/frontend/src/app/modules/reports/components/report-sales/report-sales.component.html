@@ -1,0 +1,339 @@
+<div
+  class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-200"
+>
+  <!-- Header -->
+  <div
+    class="px-3 sm:px-4 py-4 sm:py-6 md:px-8 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div
+      class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2"
+    >
+      <div>
+        <h1
+          class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3 text-blue-500 flex-shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            ></path>
+          </svg>
+          Sales Report
+        </h1>
+        <p class="text-sm sm:text-base text-gray-600 dark:text-slate-400 mt-1">
+          Orders and credit sales — revenue, items, and trends
+        </p>
+      </div>
+      <a
+        routerLink="/reports-hub"
+        class="text-purple-600 dark:text-purple-400 hover:underline text-sm flex items-center"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 mr-1"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M15 19l-7-7 7-7"></path></svg
+        >Back to Reports Hub</a
+      >
+    </div>
+  </div>
+
+  <!-- Date Filters -->
+  <div
+    class="px-3 sm:px-4 py-3 sm:py-4 md:px-8 bg-gray-100 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-700"
+  >
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 sm:gap-4">
+        <div class="flex flex-wrap gap-1.5 sm:gap-2">
+          <button
+            *ngFor="let r of ['today', 'week', 'month', 'quarter', 'year']"
+            (click)="setDateRange(r)"
+            type="button"
+            [ngClass]="{
+              'bg-purple-600 text-white': currentDateRange === r,
+              'bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-300':
+                currentDateRange !== r,
+            }"
+            class="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 capitalize"
+          >
+            {{ r }}
+          </button>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <input
+            type="date"
+            [(ngModel)]="startDate"
+            class="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+          />
+          <span class="text-gray-500 text-sm">to</span>
+          <input
+            type="date"
+            [(ngModel)]="endDate"
+            class="px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+          />
+          <button
+            (click)="fetchReport()"
+            class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="flex items-center justify-center py-20">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"
+    ></div>
+  </div>
+  <div
+    *ngIf="errorMessage && !loading"
+    class="max-w-7xl mx-auto px-4 md:px-8 mt-4"
+  >
+    <div
+      class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 p-4 rounded-lg flex justify-between items-center"
+    >
+      <span>{{ errorMessage }}</span
+      ><button
+        (click)="fetchReport()"
+        class="text-white bg-red-700 px-3 py-1 rounded text-sm"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <div
+    *ngIf="data && !loading"
+    class="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6"
+  >
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">Total Revenue</p>
+        <p class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">
+          {{ formatCurrency(data.summary.totalRevenue) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+          Total Transactions
+        </p>
+        <p class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">
+          {{ data.summary.totalTransactions }}
+        </p>
+        <p class="text-xs text-gray-400 mt-1">
+          Orders: {{ data.summary.orderCount }} | Credit:
+          {{ data.summary.creditSaleCount }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">Avg Transaction</p>
+        <p class="text-lg sm:text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+          {{ formatCurrency(data.summary.averageTransactionValue) }}
+        </p>
+      </div>
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-3 sm:p-5 border border-gray-200 dark:border-slate-700"
+      >
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-slate-400">Credit Sale %</p>
+        <p class="text-lg sm:text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+          {{ formatPercent(data.summary.creditSalePercentage) }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          Payment Collection
+        </h3>
+        <apx-chart
+          *ngIf="paymentChartOptions.series"
+          [series]="paymentChartOptions.series"
+          [chart]="paymentChartOptions.chart"
+          [labels]="paymentChartOptions.labels"
+          [colors]="paymentChartOptions.colors"
+          [legend]="paymentChartOptions.legend"
+          [dataLabels]="paymentChartOptions.dataLabels"
+        ></apx-chart>
+        <div class="mt-4 space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-slate-400"
+              >Total Collected</span
+            ><span class="font-medium text-green-600">{{
+              formatCurrency(data.paymentCollection.totalCollected)
+            }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-slate-400">Outstanding</span
+            ><span class="font-medium text-red-600">{{
+              formatCurrency(data.paymentCollection.totalOutstanding)
+            }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          Hourly Distribution
+        </h3>
+        <apx-chart
+          *ngIf="hourlyChartOptions.series"
+          [series]="hourlyChartOptions.series"
+          [chart]="hourlyChartOptions.chart"
+          [xaxis]="hourlyChartOptions.xaxis"
+          [colors]="hourlyChartOptions.colors"
+          [stroke]="hourlyChartOptions.stroke"
+          [fill]="hourlyChartOptions.fill"
+          [dataLabels]="hourlyChartOptions.dataLabels"
+          [tooltip]="hourlyChartOptions.tooltip"
+        ></apx-chart>
+      </div>
+    </div>
+
+    <!-- Daily Trend -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      *ngIf="dailyChartOptions.series"
+    >
+      <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+        Daily Revenue Trend
+      </h3>
+      <apx-chart
+        [series]="dailyChartOptions.series"
+        [chart]="dailyChartOptions.chart"
+        [xaxis]="dailyChartOptions.xaxis"
+        [colors]="dailyChartOptions.colors"
+        [plotOptions]="dailyChartOptions.plotOptions"
+        [dataLabels]="dailyChartOptions.dataLabels"
+        [tooltip]="dailyChartOptions.tooltip"
+      ></apx-chart>
+    </div>
+
+    <!-- Tax & Discounts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          Tax & Discounts
+        </h3>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-500">Total Tax</span
+            ><span>{{ formatCurrency(data.taxAndDiscounts.totalTax) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Total Discounts</span
+            ><span>{{
+              formatCurrency(data.taxAndDiscounts.totalDiscount)
+            }}</span>
+          </div>
+        </div>
+      </div>
+      <!-- Sales By User -->
+      <div
+        class="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-slate-700"
+      >
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+          Top Salespeople
+        </h3>
+        <div class="space-y-2 text-sm">
+          <div
+            *ngFor="let u of data.salesByUser?.slice(0, 5)"
+            class="flex justify-between"
+          >
+            <span class="text-gray-500 dark:text-slate-400">{{
+              u.fullName
+            }}</span>
+            <span class="font-medium"
+              >{{ formatCurrency(u.totalRevenue) }} ({{
+                u.orderCount + u.creditSaleCount
+              }}
+              sales)</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Sold -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700"
+    >
+      <div class="p-4 sm:p-6">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+          Top Items Sold
+        </h3>
+      </div>
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-x-auto px-4 sm:px-6 pb-4 sm:pb-6">
+        <table class="w-full text-sm text-left">
+          <thead
+            class="text-xs text-gray-500 uppercase border-b border-gray-200 dark:border-slate-600"
+          >
+            <tr>
+              <th class="py-3 px-2">Product</th>
+              <th class="py-3 px-2 text-right">Qty Sold</th>
+              <th class="py-3 px-2 text-right">Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let item of data.itemsSold?.slice(0, 20)"
+              class="border-b border-gray-100 dark:border-slate-700"
+            >
+              <td class="py-3 px-2 font-medium text-gray-900 dark:text-white">
+                {{ item.name }}
+              </td>
+              <td class="py-3 px-2 text-right">{{ item.quantity }}</td>
+              <td class="py-3 px-2 text-right font-medium">
+                {{ formatCurrency(item.revenue) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Mobile Cards -->
+      <div class="block md:hidden px-3 pb-3 space-y-2">
+        <div
+          *ngFor="let item of data.itemsSold?.slice(0, 20)"
+          class="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-slate-700"
+        >
+          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ item.name }}</p>
+          <div class="flex justify-between mt-1.5 text-xs text-gray-500 dark:text-slate-400">
+            <span>Qty: <span class="font-medium text-gray-900 dark:text-white">{{ item.quantity }}</span></span>
+            <span class="font-medium text-gray-900 dark:text-white">{{ formatCurrency(item.revenue) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center text-xs text-gray-400 dark:text-slate-500 mt-4">
+      {{ data.metadata?.reportPeriod }}
+    </div>
+  </div>
+</div>

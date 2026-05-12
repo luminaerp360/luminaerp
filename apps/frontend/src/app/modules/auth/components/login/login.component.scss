@@ -1,0 +1,105 @@
+// login.component.scss
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+// Subscription status indicator animations
+.subscription-status-enter {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Warning overlay animations
+.warning-overlay-enter {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Status indicator glow effects
+.status-active {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}
+
+.status-trial {
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
+}
+
+.status-expired,
+.status-suspended {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+// Enhanced cyberpunk effects
+.cyber-border {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    background: linear-gradient(45deg, #00f2fe, #4facfe, #00f2fe);
+    border-radius: inherit;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: xor;
+    -webkit-mask-composite: xor;
+    animation: borderGlow 2s linear infinite;
+  }
+}
+
+@keyframes borderGlow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 1024px) {
+  .warning-overlay-content {
+    max-width: 90vw;
+    margin: 1rem;
+  }
+}
+
+// Accessibility improvements
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow,
+  .warning-overlay-enter,
+  .subscription-status-enter {
+    animation: none;
+  }
+}

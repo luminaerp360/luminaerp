@@ -1,0 +1,51 @@
+:host {
+  display: block;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+:host-context(.dark) ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+:host-context(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Form validation */
+.ng-invalid.ng-touched {
+  @apply border-red-400;
+}

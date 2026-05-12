@@ -1,0 +1,161 @@
+<div class="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-200 p-4 md:p-6">
+
+  <!-- Header -->
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Activity Statistics</h2>
+    <p class="text-gray-500 dark:text-gray-400 mt-1">Overview of system activities and trends</p>
+  </div>
+
+  <!-- Time Range Selector -->
+  <div class="mb-6 max-w-sm">
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Time Range</label>
+      <select class="w-full rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" [(ngModel)]="selectedDays" (change)="onDaysChange()">
+        <option [value]="1">Last 24 Hours</option>
+        <option [value]="7">Last 7 Days</option>
+        <option [value]="30">Last 30 Days</option>
+        <option [value]="90">Last 90 Days</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-16">
+    <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div *ngIf="!isLoading && stats" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <!-- Total Activities Card -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+      <h5 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Total Activities</h5>
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.totalActivities }}</h2>
+    </div>
+
+    <!-- Top Actions Card -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900">
+        <h5 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Top Actions</h5>
+      </div>
+      <div class="p-5">
+        <ul class="space-y-3">
+          <li *ngFor="let item of getTopActions()" class="flex items-center justify-between">
+            <span class="text-gray-700 dark:text-gray-300">{{ item.name }}</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300">{{ item.value }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Top Modules Card -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900">
+        <h5 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Most Active Modules</h5>
+      </div>
+      <div class="p-5">
+        <ul class="space-y-3">
+          <li *ngFor="let item of getTopModules()" class="flex items-center justify-between">
+            <span class="text-gray-700 dark:text-gray-300">{{ item.name }}</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">{{ item.value }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity by Action & Module -->
+  <div *ngIf="!isLoading && stats" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Activity by Action -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900">
+        <h5 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Activities by Action</h5>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Action</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Count</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Percentage</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <tr *ngFor="let item of byActionData" class="hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors">
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ item.name }}</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ item.value }}</td>
+              <td class="px-4 py-3">
+                <div class="w-full bg-gray-200 dark:bg-slate-900 rounded-full h-5 overflow-hidden">
+                  <div class="bg-blue-600 dark:bg-blue-500 h-5 rounded-full flex items-center justify-center text-xs text-white font-medium" [style.width.%]="(item.value / stats.totalActivities) * 100">
+                    {{ ((item.value / stats.totalActivities) * 100).toFixed(1) }}%
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Activity by Module -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900">
+        <h5 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Activities by Module</h5>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Module</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Count</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Percentage</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <tr *ngFor="let item of byModuleData" class="hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors">
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ item.name }}</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ item.value }}</td>
+              <td class="px-4 py-3">
+                <div class="w-full bg-gray-200 dark:bg-slate-900 rounded-full h-5 overflow-hidden">
+                  <div class="bg-green-600 dark:bg-green-500 h-5 rounded-full flex items-center justify-center text-xs text-white font-medium" [style.width.%]="(item.value / stats.totalActivities) * 100">
+                    {{ ((item.value / stats.totalActivities) * 100).toFixed(1) }}%
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Timeline -->
+  <div *ngIf="!isLoading && stats" class="mb-6">
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900">
+        <h5 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Activity Timeline</h5>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Date</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Activities</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Graph</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <tr *ngFor="let item of byDayData" class="hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors">
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ item.name }}</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ item.value }}</td>
+              <td class="px-4 py-3" style="min-width: 200px;">
+                <div class="w-full bg-gray-200 dark:bg-slate-900 rounded-full h-5 overflow-hidden">
+                  <div class="bg-cyan-600 dark:bg-cyan-500 h-5 rounded-full" [style.width.%]="(item.value / stats.totalActivities) * 100"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

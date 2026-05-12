@@ -1,0 +1,178 @@
+﻿<div
+  class="min-h-screen bg-gray-100 dark:bg-slate-900 p-6 transition-colors duration-200"
+>
+  <!-- Header Section -->
+  <div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Training Center
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          Learn how to use Lumina ERP effectively
+        </p>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span
+          class="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-medium"
+        >
+          <i class="material-icons text-sm align-middle mr-1">school</i>
+          {{ completedCount }} / {{ trainingModules.length }} Completed
+        </span>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div
+      class="bg-white dark:bg-slate-800 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-700 transition-colors duration-200 shadow-sm"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-2">
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Search Training</label
+          >
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchChange($event)"
+            placeholder="Search modules..."
+            class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 text-gray-900 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Category</label
+          >
+          <select
+            [(ngModel)]="selectedCategory"
+            (ngModelChange)="onCategoryChange($event)"
+            class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 text-gray-900 dark:text-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
+          >
+            <option
+              *ngFor="let category of categories"
+              [value]="category.value"
+            >
+              {{ category.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Training Modules Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      *ngFor="let module of filteredModules"
+      class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+    >
+      <!-- Module Header -->
+      <div
+        class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 relative overflow-hidden"
+      >
+        <div
+          class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"
+        ></div>
+        <div
+          class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"
+        ></div>
+        <div class="relative z-10">
+          <div class="flex justify-between items-start mb-4">
+            <i class="material-icons text-5xl text-white/90">{{
+              module.icon
+            }}</i>
+            <span
+              *ngIf="module.completed"
+              class="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full flex items-center space-x-1"
+            >
+              <i class="material-icons text-sm">check_circle</i>
+              <span>Completed</span>
+            </span>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">{{ module.title }}</h3>
+          <div class="flex items-center space-x-4 text-white/80 text-sm">
+            <span class="flex items-center space-x-1">
+              <i class="material-icons text-sm">schedule</i>
+              <span>{{ module.duration }}</span>
+            </span>
+            <span class="px-2 py-1 bg-white/20 rounded-full text-xs">{{
+              module.category
+            }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Module Content -->
+      <div class="p-6">
+        <p class="text-gray-600 dark:text-gray-400 mb-4">
+          {{ module.description }}
+        </p>
+
+        <!-- Topics -->
+        <div class="mb-4">
+          <h4
+            class="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center"
+          >
+            <i class="material-icons text-sm mr-1">list</i>
+            What You'll Learn
+          </h4>
+          <ul class="space-y-1">
+            <li
+              *ngFor="let topic of module.topics"
+              class="text-sm text-gray-600 dark:text-gray-400 flex items-start"
+            >
+              <i class="material-icons text-xs text-purple-500 mr-2 mt-0.5"
+                >chevron_right</i
+              >
+              {{ topic }}
+            </li>
+          </ul>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex space-x-2">
+          <button
+            (click)="startTraining(module.id)"
+            class="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg flex items-center justify-center space-x-2 transition-all duration-200 shadow-lg hover:shadow-purple-500/50 transform hover:scale-105"
+          >
+            <i class="material-icons text-sm">{{
+              module.completed ? "replay" : "play_arrow"
+            }}</i>
+            <span>{{ module.completed ? "Review" : "Start" }}</span>
+          </button>
+          <button
+            (click)="markAsCompleted(module.id)"
+            class="px-4 py-2 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 rounded-lg transition-colors duration-200"
+            [class.bg-green-50]="module.completed"
+            [class.dark:bg-green-900]="module.completed"
+            [class.border-green-500]="module.completed"
+            [class.text-green-600]="module.completed"
+            [title]="
+              module.completed ? 'Mark as incomplete' : 'Mark as completed'
+            "
+          >
+            <i class="material-icons text-sm">{{
+              module.completed ? "check_circle" : "check_circle_outline"
+            }}</i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Results -->
+  <div *ngIf="filteredModules.length === 0" class="text-center py-12">
+    <i class="material-icons text-6xl text-gray-400 dark:text-gray-600 mb-4"
+      >search_off</i
+    >
+    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+      No Training Modules Found
+    </h3>
+    <p class="text-gray-600 dark:text-gray-400">
+      Try adjusting your search or filter criteria
+    </p>
+  </div>
+</div>

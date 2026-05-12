@@ -1,0 +1,673 @@
+<div class="min-h-screen bg-gray-50 dark:bg-slate-950 p-3 sm:p-4 md:p-6">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-1">
+        <button
+          (click)="goBack()"
+          class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-800 transition-colors"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+        </button>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+            Create Purchase Order
+          </h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Fill in the details below to create a new purchase order
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <form [formGroup]="lpoForm" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Main Form -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Supplier & Order Details -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm"
+          >
+            <div
+              class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-slate-800"
+            >
+              <h2
+                class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <svg
+                  class="w-5 h-5 text-blue-600 dark:text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
+                </svg>
+                Supplier &amp; Order Details
+              </h2>
+            </div>
+            <div class="p-4 sm:p-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Supplier -->
+                <div class="md:col-span-2">
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Supplier <span class="text-red-500">*</span>
+                  </label>
+                  <select
+                    formControlName="supplierId"
+                    class="w-full rounded-lg bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 transition duration-200 py-2.5"
+                    [class.border-red-500]="
+                      lpoForm.get('supplierId')?.touched &&
+                      lpoForm.get('supplierId')?.invalid
+                    "
+                  >
+                    <option [ngValue]="null" disabled>Select a supplier</option>
+                    <option
+                      *ngFor="let supplier of suppliers"
+                      [ngValue]="supplier.id"
+                    >
+                      {{ supplier.name }}
+                    </option>
+                  </select>
+                  <p
+                    *ngIf="
+                      lpoForm.get('supplierId')?.touched &&
+                      lpoForm.get('supplierId')?.invalid
+                    "
+                    class="mt-1 text-sm text-red-500"
+                  >
+                    Supplier is required
+                  </p>
+                  <p
+                    *ngIf="loadingSuppliers"
+                    class="mt-1 text-sm text-blue-500 dark:text-blue-400"
+                  >
+                    Loading suppliers...
+                  </p>
+                </div>
+
+                <!-- Delivery Date -->
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Expected Delivery Date
+                  </label>
+                  <input
+                    type="date"
+                    formControlName="deliveryDate"
+                    class="w-full rounded-lg bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 transition duration-200 py-2.5"
+                  />
+                </div>
+
+                <!-- Payment Terms -->
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Payment Terms
+                  </label>
+                  <select
+                    formControlName="paymentTerms"
+                    class="w-full rounded-lg bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 transition duration-200 py-2.5"
+                  >
+                    <option
+                      *ngFor="let term of paymentTermsOptions"
+                      [value]="term.value"
+                    >
+                      {{ term.label }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Priority -->
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Priority
+                  </label>
+                  <select
+                    formControlName="priority"
+                    class="w-full rounded-lg bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 transition duration-200 py-2.5"
+                  >
+                    <option *ngFor="let p of priorityOptions" [value]="p.value">
+                      {{ p.label }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Shipping Address -->
+                <div>
+                  <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Delivery Address
+                  </label>
+                  <input
+                    type="text"
+                    formControlName="shippingAddress"
+                    placeholder="Enter delivery address"
+                    class="w-full rounded-lg bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 transition duration-200 py-2.5"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Line Items -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm"
+          >
+            <div
+              class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between"
+            >
+              <h2
+                class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <svg
+                  class="w-5 h-5 text-purple-600 dark:text-purple-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
+                </svg>
+                Order Items
+                <span
+                  class="ml-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold px-2 py-0.5 rounded-full"
+                >
+                  {{ itemsFormArray.length }}
+                </span>
+              </h2>
+              <button
+                type="button"
+                (click)="addItem()"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/50 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Add Item
+              </button>
+            </div>
+
+            <div class="hidden sm:block overflow-x-auto">
+              <table class="w-full text-sm" formArrayName="items">
+                <thead>
+                  <tr
+                    class="bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-slate-700"
+                  >
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-8"
+                    >
+                      #
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+                    >
+                      Product
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-20"
+                    >
+                      Qty
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-20"
+                    >
+                      Unit
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-28"
+                    >
+                      Unit Price
+                    </th>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-24"
+                    >
+                      Discount
+                    </th>
+                    <th
+                      class="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider w-28"
+                    >
+                      Total
+                    </th>
+                    <th class="px-4 py-3 w-10"></th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-slate-800">
+                  <tr
+                    *ngFor="let item of itemsFormArray.controls; let i = index"
+                    [formGroupName]="i"
+                    class="hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                  >
+                    <td
+                      class="px-4 py-3 text-gray-400 dark:text-gray-500 text-sm font-medium"
+                    >
+                      {{ i + 1 }}
+                    </td>
+                    <td class="px-4 py-3">
+                      <select
+                        formControlName="productId"
+                        class="w-full rounded-md bg-transparent border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5"
+                        [class.border-red-500]="
+                          item.get('productId')?.touched &&
+                          item.get('productId')?.invalid
+                        "
+                      >
+                        <option [ngValue]="null" disabled>
+                          Select product
+                        </option>
+                        <option
+                          *ngFor="let product of products"
+                          [ngValue]="product.id"
+                        >
+                          {{ product.name }}
+                        </option>
+                      </select>
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        type="number"
+                        formControlName="quantity"
+                        min="1"
+                        class="w-full rounded-md bg-transparent border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5 text-center"
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <select
+                        formControlName="unit"
+                        class="w-full rounded-md bg-transparent border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5"
+                      >
+                        <option value="pcs">Pcs</option>
+                        <option value="kg">Kg</option>
+                        <option value="ltrs">Ltrs</option>
+                        <option value="box">Box</option>
+                        <option value="pack">Pack</option>
+                        <option value="dozen">Dozen</option>
+                        <option value="carton">Carton</option>
+                      </select>
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        type="number"
+                        formControlName="unitPrice"
+                        min="0"
+                        step="0.01"
+                        class="w-full rounded-md bg-transparent border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5 text-right"
+                      />
+                    </td>
+                    <td class="px-4 py-3">
+                      <input
+                        type="number"
+                        formControlName="discount"
+                        min="0"
+                        step="0.01"
+                        class="w-full rounded-md bg-transparent border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5 text-right"
+                      />
+                    </td>
+                    <td
+                      class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white"
+                    >
+                      {{ item.get("total")?.value | number: "1.2-2" }}
+                    </td>
+                    <td class="px-4 py-3">
+                      <button
+                        type="button"
+                        (click)="removeItem(i)"
+                        [disabled]="itemsFormArray.length <= 1"
+                        class="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Empty state -->
+              <div *ngIf="itemsFormArray.length === 0" class="p-8 text-center">
+                <svg
+                  class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
+                </svg>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">
+                  No items added yet
+                </p>
+                <button
+                  type="button"
+                  (click)="addItem()"
+                  class="mt-2 text-sm text-purple-600 dark:text-purple-400 hover:underline"
+                >
+                  Add your first item
+                </button>
+              </div>
+            </div>
+
+            <!-- Mobile card view for line items -->
+            <div class="sm:hidden space-y-3 p-4" formArrayName="items">
+              <div *ngFor="let item of itemsFormArray.controls; let i = index" [formGroupName]="i" class="bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 p-3 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Item {{ i + 1 }}</span>
+                  <button type="button" (click)="removeItem(i)" [disabled]="itemsFormArray.length <= 1" class="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </div>
+                <select formControlName="productId" class="w-full rounded-lg bg-transparent border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-2" [class.border-red-500]="item.get('productId')?.touched && item.get('productId')?.invalid">
+                  <option [ngValue]="null" disabled>Select product</option>
+                  <option *ngFor="let product of products" [ngValue]="product.id">{{ product.name }}</option>
+                </select>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="text-[10px] text-gray-400 uppercase">Qty</label>
+                    <input type="number" formControlName="quantity" min="1" class="w-full rounded-lg bg-transparent border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5 text-center" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-gray-400 uppercase">Unit</label>
+                    <select formControlName="unit" class="w-full rounded-lg bg-transparent border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5">
+                      <option value="pcs">Pcs</option><option value="kg">Kg</option><option value="ltrs">Ltrs</option><option value="box">Box</option><option value="pack">Pack</option><option value="dozen">Dozen</option><option value="carton">Carton</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-gray-400 uppercase">Unit Price</label>
+                    <input type="number" formControlName="unitPrice" min="0" step="0.01" class="w-full rounded-lg bg-transparent border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5 text-right" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-gray-400 uppercase">Discount</label>
+                    <input type="number" formControlName="discount" min="0" step="0.01" class="w-full rounded-lg bg-transparent border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5 text-right" />
+                  </div>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-slate-700">
+                  <span class="text-xs text-gray-500">Total</span>
+                  <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ item.get('total')?.value | number: '1.2-2' }}</span>
+                </div>
+              </div>
+              <div *ngIf="itemsFormArray.length === 0" class="p-8 text-center">
+                <p class="text-gray-500 dark:text-gray-400 text-sm">No items added yet</p>
+                <button type="button" (click)="addItem()" class="mt-2 text-sm text-purple-600 dark:text-purple-400 hover:underline">Add your first item</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div
+            class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm"
+          >
+            <div
+              class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-slate-800"
+            >
+              <h2
+                class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <svg
+                  class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+                Notes &amp; Instructions
+              </h2>
+            </div>
+            <div class="p-4 sm:p-6">
+              <textarea
+                formControlName="notes"
+                rows="3"
+                placeholder="Add any special instructions, delivery notes, or terms for this purchase order..."
+                class="w-full rounded-lg bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring focus:ring-blue-500/20 transition duration-200 text-sm"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Summary Sidebar -->
+        <div class="lg:col-span-1">
+          <div class="sticky top-4 space-y-6">
+            <!-- Order Summary -->
+            <div
+              class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm"
+            >
+              <div
+                class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-slate-800"
+              >
+                <h2
+                  class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"
+                >
+                  <svg
+                    class="w-5 h-5 text-green-600 dark:text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Order Summary
+                </h2>
+              </div>
+              <div class="p-4 sm:p-6 space-y-4">
+                <!-- Subtotal -->
+                <div class="flex justify-between items-center text-sm">
+                  <span class="text-gray-600 dark:text-gray-400">Subtotal</span>
+                  <span class="font-medium text-gray-900 dark:text-white">
+                    {{ lpoForm.get("subtotal")?.value | number: "1.2-2" }}
+                  </span>
+                </div>
+
+                <!-- Tax -->
+                <div class="flex justify-between items-center gap-3">
+                  <label
+                    class="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap"
+                    >Tax (+)</label
+                  >
+                  <input
+                    type="number"
+                    formControlName="taxAmount"
+                    min="0"
+                    step="0.01"
+                    class="w-28 rounded-md bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5 text-right"
+                  />
+                </div>
+
+                <!-- Discount -->
+                <div class="flex justify-between items-center gap-3">
+                  <label
+                    class="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap"
+                    >Discount (-)</label
+                  >
+                  <input
+                    type="number"
+                    formControlName="discountAmount"
+                    min="0"
+                    step="0.01"
+                    class="w-28 rounded-md bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5 text-right"
+                  />
+                </div>
+
+                <!-- Shipping -->
+                <div class="flex justify-between items-center gap-3">
+                  <label
+                    class="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap"
+                    >Shipping (+)</label
+                  >
+                  <input
+                    type="number"
+                    formControlName="shippingCost"
+                    min="0"
+                    step="0.01"
+                    class="w-28 rounded-md bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-gray-100 text-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 py-1.5 text-right"
+                  />
+                </div>
+
+                <!-- Divider -->
+                <div
+                  class="border-t border-gray-200 dark:border-slate-700 pt-4"
+                >
+                  <div class="flex justify-between items-center">
+                    <span
+                      class="text-base font-semibold text-gray-900 dark:text-white"
+                      >Total</span
+                    >
+                    <span
+                      class="text-xl font-bold text-gray-900 dark:text-white"
+                    >
+                      KSH
+                      {{ lpoForm.get("totalAmount")?.value | number: "1.2-2" }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Info -->
+            <div
+              class="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800/50 p-4"
+            >
+              <div class="flex gap-3">
+                <svg
+                  class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div class="text-sm text-blue-700 dark:text-blue-300">
+                  <p class="font-medium mb-1">Purchase Order Info</p>
+                  <p class="text-blue-600 dark:text-blue-400">
+                    This PO will be created with <strong>Pending</strong> status
+                    and will require approval before it can be converted to a
+                    purchase.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-3">
+              <button
+                type="submit"
+                [disabled]="isSubmitting"
+                class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+              >
+                <svg
+                  *ngIf="!isSubmitting"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <svg
+                  *ngIf="isSubmitting"
+                  class="w-5 h-5 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                {{ isSubmitting ? "Creating..." : "Create Purchase Order" }}
+              </button>
+
+              <button
+                type="button"
+                (click)="goBack()"
+                class="w-full px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+<div class="print-test-container">
+  <h2>DasaDove Print Test</h2>
+
+  <div class="test-content" id="test-content">
+    <h3>Sample Content to Print</h3>
+    <p>This content will be printed when you click the button below.</p>
+    <ul>
+      <li>Item 1: Sample data</li>
+      <li>Item 2: More sample data</li>
+      <li>Item 3: Additional information</li>
+    </ul>
+  </div>
+
+  <div class="print-controls">
+    <button (click)="testPrint()" [disabled]="isPrinting" class="print-button">
+      {{ isPrinting ? "Printing..." : "Test Print" }}
+    </button>
+
+    <div class="status" *ngIf="printStatus">
+      {{ printStatus }}
+    </div>
+  </div>
+</div>

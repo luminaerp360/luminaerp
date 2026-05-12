@@ -1,0 +1,184 @@
+<div class="min-h-screen bg-gray-900">
+  <div class="flex min-h-screen items-center justify-center px-6">
+    <div class="w-full max-w-md">
+      <!-- Animated Cyberpunk Logo -->
+      <div class="flex justify-center mb-8">
+        <div class="relative w-24 h-24">
+          <!-- Outer rotating ring -->
+          <svg class="animate-spin-slow absolute inset-0" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              stroke="#00f2fe"
+              stroke-width="1"
+              fill="none"
+              stroke-dasharray="1 8"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              stroke="#00f2fe"
+              stroke-width="2"
+              fill="none"
+              stroke-dasharray="60 30"
+            />
+          </svg>
+          <!-- Inner glowing circle -->
+          <div
+            class="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 blur-sm"
+          ></div>
+          <!-- Lock Icon -->
+          <div class="absolute inset-0 flex items-center justify-center">
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="text-center mb-8">
+        <h1
+          class="text-3xl font-bold text-cyan-400 mb-2"
+          style="text-shadow: 0 0 10px rgba(0, 242, 254, 0.5)"
+        >
+          License Activation
+        </h1>
+        <p class="text-gray-400">
+          Enter your license key to activate DasaDove POS
+        </p>
+      </div>
+
+      <!-- License Key Input -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-cyan-400 mb-2">
+          License Key
+        </label>
+        <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+          >
+            <svg
+              class="h-5 w-5 text-cyan-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+              />
+            </svg>
+          </div>
+          <input
+            type="text"
+            id="licenseKey"
+            [(ngModel)]="licenseKey"
+            (input)="formatLicenseKey()"
+            placeholder="OFFLINE-XXXXXXXXXXXXXXXXXX"
+            [disabled]="isValidating"
+            autocomplete="off"
+            spellcheck="false"
+            class="pl-10 w-full rounded-lg py-3 px-4 bg-gray-800/50 border border-cyan-800/50 text-black font-mono text-base focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:ring-opacity-50 transition-colors duration-200 placeholder:text-gray-500"
+          />
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        *ngIf="errorMessage"
+        class="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/50 flex items-start space-x-2"
+      >
+        <svg
+          class="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+        <div class="flex-1">
+          <span class="text-red-400 text-sm">{{ errorMessage }}</span>
+          <span *ngIf="errorCode" class="text-red-300 text-xs ml-1"
+            >({{ errorCode }})</span
+          >
+        </div>
+      </div>
+
+      <!-- Activate Button -->
+      <button
+        (click)="validateLicense()"
+        [disabled]="isValidating || !licenseKey.trim()"
+        class="relative w-full py-3 px-4 text-white font-semibold bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg hover:from-cyan-500 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <span [class.opacity-0]="isValidating">Activate License</span>
+        <!-- Loading Spinner -->
+        <div
+          *ngIf="isValidating"
+          class="absolute inset-0 flex items-center justify-center"
+        >
+          <svg
+            class="animate-spin h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </div>
+      </button>
+
+      <!-- Help Text -->
+      <div class="mt-8 text-center border-t border-gray-800 pt-6">
+        <p class="text-sm text-gray-400 mb-2">Don't have a license key?</p>
+        <p class="text-sm text-cyan-400">
+          Contact support at
+          <a
+            href="mailto:support@dasadove.com"
+            class="underline hover:text-cyan-300"
+          >
+            support&#64;dasadovesystems.co.ke</a
+          >
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="mt-6 text-center">
+        <p class="text-sm text-cyan-400/80">
+          DasaDove System v2.0 // License Activation Portal
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

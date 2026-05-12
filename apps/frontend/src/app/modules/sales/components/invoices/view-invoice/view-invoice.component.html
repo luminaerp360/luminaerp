@@ -1,0 +1,1021 @@
+﻿<!-- Modern Invoice View -->
+<section
+  class="min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-gray-200"
+>
+  <!-- Header -->
+  <header
+    class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 p-3 sm:p-4 mb-4 sm:mb-6"
+  >
+    <div class="container mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <button
+          (click)="goBack()"
+          class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+        >
+          <i class="bi bi-arrow-left text-lg sm:text-xl"></i>
+        </button>
+        <div class="bg-blue-600 p-1.5 sm:p-2 rounded-lg">
+          <i class="bi bi-receipt text-white text-lg sm:text-xl"></i>
+        </div>
+        <div>
+          <h1
+            class="text-lg sm:text-2xl font-bold text-blue-600 dark:text-blue-400"
+          >
+            Invoice Details
+          </h1>
+          <p
+            class="text-gray-600 dark:text-gray-400 text-xs sm:text-sm"
+            *ngIf="invoice"
+          >
+            {{ invoice.invoiceNumber }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons (Desktop) -->
+      <div
+        class="hidden sm:flex items-center space-x-2"
+        *ngIf="invoice && !isLoading"
+      >
+        <button
+          *ngIf="!invoice.fullyPaid"
+          (click)="openPaymentModal()"
+          class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-2 rounded-lg transition-all duration-200 font-medium shadow-lg flex items-center space-x-2"
+        >
+          <i class="bi bi-cash-coin"></i>
+          <span>Record Payment</span>
+        </button>
+        <button
+          (click)="downloadPDF()"
+          [disabled]="downloadingPDF"
+          class="bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg transition-colors font-medium flex items-center space-x-2"
+        >
+          <i
+            [class]="
+              downloadingPDF
+                ? 'bi bi-arrow-repeat animate-spin'
+                : 'bi bi-file-pdf'
+            "
+          ></i>
+          <span>{{ downloadingPDF ? "Downloading..." : "Download PDF" }}</span>
+        </button>
+        <button
+          (click)="sendInvoice()"
+          [disabled]="sendingInvoice"
+          class="bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg transition-colors font-medium flex items-center space-x-2"
+        >
+          <i
+            [class]="
+              sendingInvoice ? 'bi bi-arrow-repeat animate-spin' : 'bi bi-send'
+            "
+          ></i>
+          <span>{{ sendingInvoice ? "Sending..." : "Send" }}</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Action Bar (Fixed Bottom) -->
+  <div
+    *ngIf="invoice && !isLoading"
+    class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 p-3 flex items-center gap-2 shadow-lg"
+  >
+    <button
+      *ngIf="!invoice.fullyPaid"
+      (click)="openPaymentModal()"
+      class="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5"
+    >
+      <i class="bi bi-cash-coin"></i>
+      <span>Pay</span>
+    </button>
+    <button
+      (click)="downloadPDF()"
+      [disabled]="downloadingPDF"
+      class="bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white p-2.5 rounded-lg"
+    >
+      <i class="bi bi-file-pdf text-lg"></i>
+    </button>
+    <button
+      (click)="sendInvoice()"
+      [disabled]="sendingInvoice"
+      class="bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white p-2.5 rounded-lg"
+    >
+      <i class="bi bi-send text-lg"></i>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"
+    ></div>
+  </div>
+
+  <!-- Invoice Content -->
+  <div
+    *ngIf="!isLoading && invoice"
+    class="container mx-auto px-3 sm:px-4 pb-20 sm:pb-8"
+  >
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <!-- Main Invoice Card -->
+      <div class="lg:col-span-2 space-y-4 sm:space-y-6">
+        <!-- Invoice Header -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 p-4 sm:p-6 shadow-sm"
+        >
+          <div
+            class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4 sm:mb-6"
+          >
+            <div>
+              <h2
+                class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2"
+              >
+                {{ invoice.invoiceNumber }}
+              </h2>
+              <span
+                [class]="
+                  'px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ' +
+                  invoiceService.getStatusColor(invoice.status)
+                "
+              >
+                <i
+                  [class]="
+                    invoiceService.getStatusIcon(invoice.status) + ' mr-1'
+                  "
+                ></i>
+                {{ invoice.status }}
+              </span>
+            </div>
+            <div class="sm:text-right">
+              <p class="text-gray-600 dark:text-gray-400 text-sm">Issue Date</p>
+              <p class="text-gray-900 dark:text-white font-semibold">
+                {{ invoice.issueDate | date: "mediumDate" }}
+              </p>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-2">
+                Due Date
+              </p>
+              <p
+                [class]="
+                  invoiceService.isOverdue(invoice)
+                    ? 'text-red-600 dark:text-red-400 font-semibold'
+                    : 'text-gray-900 dark:text-white font-semibold'
+                "
+              >
+                {{ invoice.dueDate | date: "mediumDate" }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Customer & Organization Info -->
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 border-t border-gray-200 dark:border-slate-700 pt-4 sm:pt-6"
+          >
+            <div>
+              <p
+                class="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2"
+              >
+                Bill To
+              </p>
+              <p class="text-gray-900 dark:text-white font-semibold text-lg">
+                {{ invoice.customerName }}
+              </p>
+              <p
+                class="text-gray-700 dark:text-gray-300 text-sm"
+                *ngIf="invoice.customerEmail"
+              >
+                <i class="bi bi-envelope mr-1"></i>{{ invoice.customerEmail }}
+              </p>
+              <p
+                class="text-gray-700 dark:text-gray-300 text-sm"
+                *ngIf="invoice.customerPhone"
+              >
+                <i class="bi bi-telephone mr-1"></i>{{ invoice.customerPhone }}
+              </p>
+              <p
+                class="text-gray-700 dark:text-gray-300 text-sm"
+                *ngIf="invoice.customerAddress"
+              >
+                <i class="bi bi-geo-alt mr-1"></i>{{ invoice.customerAddress }}
+              </p>
+            </div>
+            <div class="text-right">
+              <p
+                class="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2"
+              >
+                From
+              </p>
+              <p class="text-gray-900 dark:text-white font-semibold text-lg">
+                TechLit Solutions
+              </p>
+              <p class="text-gray-700 dark:text-gray-300 text-sm">
+                Nairobi, Kenya
+              </p>
+              <p class="text-gray-700 dark:text-gray-300 text-sm">
+                +254712345678
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice Items -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm"
+        >
+          <div
+            class="p-4 sm:p-6 border-b border-gray-200 dark:border-slate-700"
+          >
+            <h3
+              class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center"
+            >
+              <i
+                class="bi bi-list-ul mr-2 text-blue-600 dark:text-blue-400"
+              ></i>
+              Invoice Items
+            </h3>
+          </div>
+
+          <!-- Mobile Card View for Items -->
+          <div class="sm:hidden divide-y divide-gray-200 dark:divide-slate-700">
+            <div *ngFor="let item of invoice.items" class="p-4 space-y-2">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <p
+                    class="text-sm font-semibold text-gray-900 dark:text-white"
+                  >
+                    {{ item.productName }}
+                  </p>
+                  <p
+                    class="text-xs text-gray-500 dark:text-gray-400"
+                    *ngIf="item.description"
+                  >
+                    {{ item.description }}
+                  </p>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <p
+                    class="text-gray-500 dark:text-gray-400 uppercase font-semibold"
+                  >
+                    Qty
+                  </p>
+                  <p class="text-gray-900 dark:text-white font-medium">
+                    {{ item.quantity }}
+                  </p>
+                </div>
+                <div>
+                  <p
+                    class="text-gray-500 dark:text-gray-400 uppercase font-semibold"
+                  >
+                    Price
+                  </p>
+                  <p class="text-gray-900 dark:text-white font-medium">
+                    {{ invoiceService.formatCurrency(item.unitPrice) }}
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p
+                    class="text-gray-500 dark:text-gray-400 uppercase font-semibold"
+                  >
+                    Total
+                  </p>
+                  <p class="text-gray-900 dark:text-white font-bold">
+                    {{ invoiceService.formatCurrency(item.totalAmount) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Table View for Items -->
+          <div class="hidden sm:block overflow-x-auto">
+            <table class="w-full">
+              <thead
+                class="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700"
+              >
+                <tr>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Item
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Qty
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Price
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Tax
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Discount
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase"
+                  >
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-slate-700">
+                <tr
+                  *ngFor="let item of invoice.items"
+                  class="hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                >
+                  <td class="px-6 py-4">
+                    <div class="text-gray-900 dark:text-white font-medium">
+                      {{ item.productName }}
+                    </div>
+                    <div
+                      class="text-gray-600 dark:text-gray-400 text-sm"
+                      *ngIf="item.description"
+                    >
+                      {{ item.description }}
+                    </div>
+                  </td>
+                  <td
+                    class="px-6 py-4 text-right text-gray-900 dark:text-white"
+                  >
+                    {{ item.quantity }}
+                  </td>
+                  <td
+                    class="px-6 py-4 text-right text-gray-900 dark:text-white"
+                  >
+                    {{ invoiceService.formatCurrency(item.unitPrice) }}
+                  </td>
+                  <td
+                    class="px-6 py-4 text-right text-gray-700 dark:text-gray-300"
+                  >
+                    {{ item.taxRate }}%
+                  </td>
+                  <td
+                    class="px-6 py-4 text-right text-gray-700 dark:text-gray-300"
+                  >
+                    {{
+                      invoiceService.formatCurrency(item.discountAmount || 0)
+                    }}
+                  </td>
+                  <td
+                    class="px-6 py-4 text-right text-gray-900 dark:text-white font-semibold"
+                  >
+                    {{ invoiceService.formatCurrency(item.totalAmount) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Totals -->
+          <div
+            class="bg-gray-50 dark:bg-slate-900 p-4 sm:p-6 border-t border-gray-200 dark:border-slate-700"
+          >
+            <div class="max-w-sm sm:ml-auto space-y-2">
+              <div
+                class="flex justify-between text-gray-700 dark:text-gray-300"
+              >
+                <span>Subtotal:</span>
+                <span>{{
+                  invoiceService.formatCurrency(invoice.subtotal)
+                }}</span>
+              </div>
+              <div
+                class="flex justify-between text-gray-700 dark:text-gray-300"
+                *ngIf="invoice.discountAmount > 0"
+              >
+                <span>Discount:</span>
+                <span class="text-red-600 dark:text-red-400"
+                  >-{{
+                    invoiceService.formatCurrency(invoice.discountAmount)
+                  }}</span
+                >
+              </div>
+              <div
+                class="flex justify-between text-gray-700 dark:text-gray-300"
+                *ngIf="invoice.taxAmount > 0"
+              >
+                <span>Tax (16%):</span>
+                <span>{{
+                  invoiceService.formatCurrency(invoice.taxAmount)
+                }}</span>
+              </div>
+              <div
+                class="border-t border-gray-200 dark:border-slate-700 pt-2 flex justify-between text-lg sm:text-xl font-bold"
+              >
+                <span class="text-gray-900 dark:text-white">Total:</span>
+                <span class="text-blue-600 dark:text-blue-400">{{
+                  invoiceService.formatCurrency(invoice.totalAmount)
+                }}</span>
+              </div>
+              <div
+                class="flex justify-between text-green-600 dark:text-green-400"
+                *ngIf="invoice.amountPaid > 0"
+              >
+                <span>Paid:</span>
+                <span>{{
+                  invoiceService.formatCurrency(invoice.amountPaid)
+                }}</span>
+              </div>
+              <div
+                class="flex justify-between text-xl font-bold"
+                *ngIf="invoice.balanceDue > 0"
+              >
+                <span class="text-red-600 dark:text-red-400">Balance Due:</span>
+                <span class="text-red-600 dark:text-red-400">{{
+                  invoiceService.formatCurrency(invoice.balanceDue)
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment History -->
+        <div
+          *ngIf="invoice.payments && invoice.payments.length > 0"
+          class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden shadow-sm"
+        >
+          <div
+            class="p-4 sm:p-6 border-b border-gray-200 dark:border-slate-700"
+          >
+            <h3
+              class="text-xl font-bold text-gray-900 dark:text-white flex items-center"
+            >
+              <i
+                class="bi bi-clock-history mr-2 text-green-600 dark:text-green-400"
+              ></i>
+              Payment History
+            </h3>
+          </div>
+          <div class="divide-y divide-gray-200 dark:divide-slate-700">
+            <div
+              *ngFor="let payment of invoice.payments"
+              class="p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-slate-800/50"
+            >
+              <div
+                class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2"
+              >
+                <div>
+                  <p class="text-gray-900 dark:text-white font-semibold">
+                    {{ invoiceService.formatCurrency(payment.amount) }}
+                  </p>
+                  <p class="text-gray-600 dark:text-gray-400 text-sm">
+                    {{ payment.paymentMethod }}
+                  </p>
+                  <p
+                    class="text-gray-600 dark:text-gray-400 text-xs"
+                    *ngIf="payment.transactionCode"
+                  >
+                    Ref: {{ payment.transactionCode }}
+                  </p>
+                  <p
+                    class="text-gray-500 dark:text-gray-500 text-xs"
+                    *ngIf="payment.notes"
+                  >
+                    {{ payment.notes }}
+                  </p>
+                </div>
+                <div class="sm:text-right">
+                  <p class="text-gray-700 dark:text-gray-300 text-sm">
+                    {{ payment.paymentDate | date: "medium" }}
+                  </p>
+                  <p class="text-gray-500 dark:text-gray-500 text-xs">
+                    By: {{ payment.recordedBy }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes & Terms -->
+        <div
+          *ngIf="invoice.notes || invoice.paymentTerms"
+          class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 p-4 sm:p-6 shadow-sm"
+        >
+          <div *ngIf="invoice.paymentTerms" class="mb-4">
+            <p
+              class="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2"
+            >
+              Payment Terms
+            </p>
+            <p class="text-gray-700 dark:text-gray-300">
+              {{ invoice.paymentTerms }}
+            </p>
+          </div>
+          <div *ngIf="invoice.notes">
+            <p
+              class="text-gray-600 dark:text-gray-400 text-xs uppercase tracking-wider mb-2"
+            >
+              Notes
+            </p>
+            <p class="text-gray-700 dark:text-gray-300">{{ invoice.notes }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="lg:col-span-1 space-y-4 sm:space-y-6">
+        <!-- Payment Progress -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 p-4 sm:p-6 shadow-sm"
+        >
+          <h3
+            class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center"
+          >
+            <i class="bi bi-graph-up mr-2 text-blue-600 dark:text-blue-400"></i>
+            Payment Progress
+          </h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-sm mb-2">
+                <span class="text-gray-600 dark:text-gray-400">Progress</span>
+                <span class="text-gray-900 dark:text-white font-medium"
+                  >{{ invoiceService.getPaymentProgress(invoice) }}%</span
+                >
+              </div>
+              <div class="bg-gray-200 dark:bg-slate-700 rounded-full h-3">
+                <div
+                  class="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300"
+                  [style.width.%]="invoiceService.getPaymentProgress(invoice)"
+                ></div>
+              </div>
+            </div>
+            <div class="pt-4 border-t border-gray-200 dark:border-slate-700">
+              <div class="flex justify-between mb-2">
+                <span class="text-gray-600 dark:text-gray-400 text-sm"
+                  >Total Amount</span
+                >
+                <span class="text-gray-900 dark:text-white font-semibold">{{
+                  invoiceService.formatCurrency(invoice.totalAmount)
+                }}</span>
+              </div>
+              <div class="flex justify-between mb-2">
+                <span class="text-gray-600 dark:text-gray-400 text-sm"
+                  >Amount Paid</span
+                >
+                <span
+                  class="text-green-600 dark:text-green-400 font-semibold"
+                  >{{ invoiceService.formatCurrency(invoice.amountPaid) }}</span
+                >
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600 dark:text-gray-400 text-sm"
+                  >Balance Due</span
+                >
+                <span
+                  [class]="
+                    invoice.balanceDue > 0
+                      ? 'text-red-600 dark:text-red-400 font-semibold'
+                      : 'text-green-600 dark:text-green-400 font-semibold'
+                  "
+                >
+                  {{ invoiceService.formatCurrency(invoice.balanceDue) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 p-4 sm:p-6 shadow-sm"
+        >
+          <h3
+            class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center"
+          >
+            <i
+              class="bi bi-lightning-charge mr-2 text-yellow-500 dark:text-yellow-400"
+            ></i>
+            Quick Actions
+          </h3>
+          <div class="space-y-2">
+            <button
+              *ngIf="!invoice.fullyPaid"
+              (click)="openPaymentModal()"
+              class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              <i class="bi bi-cash-coin"></i>
+              <span>Record Payment</span>
+            </button>
+            <button
+              (click)="downloadPDF()"
+              class="w-full bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              <i class="bi bi-download"></i>
+              <span>Download PDF</span>
+            </button>
+            <button
+              (click)="sendInvoice()"
+              class="w-full bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              <i class="bi bi-send"></i>
+              <span>Send Invoice</span>
+            </button>
+            <button
+              *ngIf="invoice.publicToken"
+              (click)="copyPublicLink()"
+              class="w-full bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              <i class="bi bi-link-45deg"></i>
+              <span>Copy Public Link</span>
+            </button>
+            <div
+              class="border-t border-gray-200 dark:border-slate-700 my-2"
+            ></div>
+            <button
+              (click)="editInvoice()"
+              class="w-full bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              <i class="bi bi-pencil"></i>
+              <span>Edit Invoice</span>
+            </button>
+            <button
+              *ngIf="
+                invoice.status !== InvoiceStatus.CANCELLED &&
+                invoice.status !== InvoiceStatus.PAID
+              "
+              (click)="cancelInvoice()"
+              class="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              <i class="bi bi-x-circle"></i>
+              <span>Cancel Invoice</span>
+            </button>
+            <button
+              *ngIf="invoice.amountPaid === 0"
+              (click)="deleteInvoice()"
+              class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              <i class="bi bi-trash"></i>
+              <span>Delete Invoice</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Invoice Info -->
+        <div
+          class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 p-4 sm:p-6 shadow-sm"
+        >
+          <h3
+            class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center"
+          >
+            <i
+              class="bi bi-info-circle mr-2 text-blue-600 dark:text-blue-400"
+            ></i>
+            Invoice Information
+          </h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Created By:</span>
+              <span class="text-gray-900 dark:text-white">{{
+                invoice.createdBy
+              }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Created:</span>
+              <span class="text-gray-900 dark:text-white">{{
+                invoice.createdAt | date: "short"
+              }}</span>
+            </div>
+            <div class="flex justify-between" *ngIf="invoice.updatedAt">
+              <span class="text-gray-600 dark:text-gray-400"
+                >Last Updated:</span
+              >
+              <span class="text-gray-900 dark:text-white">{{
+                invoice.updatedAt | date: "short"
+              }}</span>
+            </div>
+            <div class="flex justify-between" *ngIf="!invoice.fullyPaid">
+              <span class="text-gray-600 dark:text-gray-400"
+                >Days Until Due:</span
+              >
+              <span
+                [class]="
+                  invoiceService.getDaysUntilDue(invoice.dueDate) < 0
+                    ? 'text-red-600 dark:text-red-400 font-semibold'
+                    : invoiceService.getDaysUntilDue(invoice.dueDate) < 7
+                      ? 'text-yellow-600 dark:text-yellow-400'
+                      : 'text-green-600 dark:text-green-400'
+                "
+              >
+                {{ Math.abs(invoiceService.getDaysUntilDue(invoice.dueDate)) }}
+                {{
+                  invoiceService.getDaysUntilDue(invoice.dueDate) < 0
+                    ? "days overdue"
+                    : "days"
+                }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Payment Modal -->
+<div
+  *ngIf="showPaymentModal"
+  class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50 p-4"
+  (click)="closePaymentModal()"
+>
+  <div
+    class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 w-full max-w-2xl max-h-[90vh] flex flex-col shadow-xl"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Modal Header - Fixed -->
+    <div
+      class="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 dark:border-slate-700 flex-shrink-0"
+    >
+      <h3
+        class="text-2xl font-bold text-gray-900 dark:text-white flex items-center"
+      >
+        <i class="bi bi-cash-coin mr-2 text-green-600 dark:text-green-400"></i>
+        Record Payment
+      </h3>
+      <button
+        (click)="closePaymentModal()"
+        class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Modal Content - Scrollable -->
+    <div class="overflow-y-auto flex-1 p-4 sm:p-6">
+      <!-- Balance Information -->
+      <div
+        class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
+      >
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Balance Due:</span
+          >
+          <span class="text-lg font-bold text-blue-600 dark:text-blue-400">
+            {{ invoiceService.formatCurrency(invoice?.balanceDue || 0) }}
+          </span>
+        </div>
+        <div
+          class="flex justify-between items-center"
+          *ngIf="selectedPayments.length > 0"
+        >
+          <span class="text-sm text-gray-600 dark:text-gray-400"
+            >Remaining:</span
+          >
+          <span
+            class="text-md font-semibold"
+            [class]="
+              getRemainingBalance() === 0
+                ? 'text-green-600 dark:text-green-400'
+                : getRemainingBalance() < 0
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-orange-600 dark:text-orange-400'
+            "
+          >
+            {{ invoiceService.formatCurrency(getRemainingBalance()) }}
+          </span>
+        </div>
+        <!-- Excess to wallet notice -->
+        <div
+          *ngIf="getExcessAmount() > 0"
+          class="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg"
+        >
+          <div
+            class="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300"
+          >
+            <i class="bi bi-wallet2"></i>
+            <span>
+              <strong>{{
+                invoiceService.formatCurrency(getExcessAmount())
+              }}</strong>
+              excess will be saved to customer wallet
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Method Selector -->
+      <div>
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
+          Select Payment Method(s) *
+        </label>
+        <div
+          *ngIf="loadingPaymentMethods"
+          class="flex items-center justify-center p-3"
+        >
+          <i class="bi bi-arrow-repeat animate-spin text-blue-500"></i>
+          <span class="ml-2 text-gray-600 dark:text-gray-400"
+            >Loading payment methods...</span
+          >
+        </div>
+        <div
+          *ngIf="!loadingPaymentMethods && availablePaymentMethods.length > 0"
+          class="grid grid-cols-2 gap-2"
+        >
+          <button
+            *ngFor="let method of availablePaymentMethods"
+            (click)="selectPaymentMethodForAdd(method.id)"
+            class="p-3 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 text-gray-900 dark:text-white rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2"
+          >
+            <i class="bi bi-plus-circle"></i>
+            <span>{{ method.displayName }}</span>
+          </button>
+        </div>
+
+        <!-- Wallet Payment Button -->
+        <div class="mt-3" *ngIf="walletLoaded && customerWalletBalance > 0">
+          <button
+            (click)="addWalletPayment()"
+            class="w-full p-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 border-2 border-emerald-400 dark:border-emerald-600 hover:border-emerald-500 dark:hover:border-emerald-400 text-emerald-800 dark:text-emerald-300 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2"
+          >
+            <i class="bi bi-wallet2"></i>
+            <span
+              >Use Wallet Balance ({{
+                invoiceService.formatCurrency(customerWalletBalance)
+              }})</span
+            >
+          </button>
+        </div>
+        <div
+          *ngIf="loadingWallet"
+          class="mt-3 flex items-center justify-center p-2"
+        >
+          <i class="bi bi-arrow-repeat animate-spin text-emerald-500 mr-2"></i>
+          <span class="text-sm text-gray-500">Loading wallet balance...</span>
+        </div>
+        <div *ngIf="walletLoaded && customerWalletBalance === 0" class="mt-2">
+          <p
+            class="text-xs text-gray-400 dark:text-slate-500 flex items-center gap-1"
+          >
+            <i class="bi bi-wallet2"></i>
+            No wallet balance available
+          </p>
+        </div>
+        <div
+          *ngIf="!loadingPaymentMethods && availablePaymentMethods.length === 0"
+          class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-yellow-800 dark:text-yellow-200 text-sm"
+        >
+          <i class="bi bi-exclamation-triangle mr-2"></i>
+          No payment methods configured. Please configure payment methods in
+          settings.
+        </div>
+      </div>
+
+      <!-- Selected Payments List -->
+      <div *ngIf="selectedPayments.length > 0" class="space-y-3">
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Payment Breakdown
+        </label>
+        <div
+          *ngFor="let payment of selectedPayments; let i = index"
+          class="p-4 border rounded-lg"
+          [ngClass]="
+            isWalletPayment(payment)
+              ? 'bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-300 dark:border-emerald-700'
+              : 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800'
+          "
+        >
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex items-center gap-2">
+              <i
+                [class]="
+                  isWalletPayment(payment)
+                    ? 'bi bi-wallet2 text-emerald-600 dark:text-emerald-400'
+                    : 'bi bi-credit-card text-green-600 dark:text-green-400'
+                "
+              ></i>
+              <span class="font-semibold text-gray-900 dark:text-white">{{
+                payment.name
+              }}</span>
+            </div>
+            <button
+              (click)="removePaymentMethodByIndex(i)"
+              class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"
+            >
+              <i class="bi bi-x-circle-fill"></i>
+            </button>
+          </div>
+          <div class="space-y-2">
+            <div>
+              <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
+                >Amount *</label
+              >
+              <input
+                type="number"
+                [value]="payment.amount"
+                (input)="updatePaymentAmount(i, +$any($event.target).value)"
+                min="0"
+                [max]="
+                  isWalletPayment(payment) ? customerWalletBalance : undefined
+                "
+                step="0.01"
+                class="w-full p-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                placeholder="Enter amount"
+              />
+              <p
+                *ngIf="isWalletPayment(payment)"
+                class="text-xs text-emerald-600 dark:text-emerald-400 mt-1"
+              >
+                Available:
+                {{ invoiceService.formatCurrency(customerWalletBalance) }}
+              </p>
+            </div>
+            <div *ngIf="!isWalletPayment(payment)">
+              <label
+                class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
+              >
+                Transaction Code
+                <span
+                  *ngIf="requiresTransactionCode(payment.methodId)"
+                  class="text-red-500"
+                  >*</span
+                >
+              </label>
+              <input
+                type="text"
+                [value]="payment.transactionCode"
+                (input)="updateTransactionCode(i, $any($event.target).value)"
+                class="w-full p-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                placeholder="Enter transaction code"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Payment Display -->
+        <div
+          class="p-3 bg-gray-100 dark:bg-slate-800 rounded-lg border-2 border-green-500 dark:border-green-400"
+        >
+          <div class="flex justify-between items-center">
+            <span class="font-semibold text-gray-900 dark:text-white"
+              >Total Payment:</span
+            >
+            <span class="text-xl font-bold text-green-600 dark:text-green-400">
+              {{ invoiceService.formatCurrency(getTotalFromPayments()) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- General Notes -->
+      <div>
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
+          Notes (Optional)
+        </label>
+        <textarea
+          [(ngModel)]="paymentNotes"
+          rows="2"
+          class="w-full p-3 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Add payment notes (optional)"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Modal Footer - Fixed -->
+    <div
+      class="p-4 sm:p-6 border-t border-gray-200 dark:border-slate-700 flex-shrink-0"
+    >
+      <div class="flex space-x-3">
+        <button
+          (click)="recordPayment()"
+          [disabled]="
+            recordingPayment ||
+            selectedPayments.length === 0 ||
+            getTotalFromPayments() === 0
+          "
+          class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-lg transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <i
+            [class]="
+              recordingPayment
+                ? 'bi bi-arrow-repeat animate-spin'
+                : 'bi bi-check-circle'
+            "
+          ></i>
+          <span>{{
+            recordingPayment ? "Recording..." : "Record Payment"
+          }}</span>
+        </button>
+        <button
+          (click)="closePaymentModal()"
+          class="px-6 py-3 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

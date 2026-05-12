@@ -1,0 +1,102 @@
+﻿<div
+  id="{{ modalId }}"
+  tabindex="-1"
+  aria-hidden="true"
+  class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-gray-900/75 dark:bg-slate-900/75"
+  [ngClass]="{ hidden: !isModalVisible }"
+>
+  <!-- Centered content -->
+  <div class="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+    <!-- Modal header -->
+    <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Update Category</h3>
+      <button
+        (click)="closeModal()"
+        type="button"
+        class="text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-gray-100 rounded-full p-2 focus:outline-none"
+      >
+        <svg
+          class="w-4 h-4"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 14 14"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+          />
+        </svg>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+    <form
+      [formGroup]="categoryForm"
+      (ngSubmit)="onSubmit()"
+      class="max-w-md mx-auto bg-blue-50 dark:bg-slate-900/50 rounded-lg shadow-lg p-6"
+    >
+      <!-- <h2 class="text-2xl font-bold mb-4">Add New Category</h2> -->
+
+      <div class="mb-4">
+        <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2" for="name">
+          Name
+        </label>
+        <input
+          class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-white dark:bg-slate-900"
+          id="name"
+          type="text"
+          placeholder="Enter category name"
+          formControlName="name"
+        />
+        <div
+          *ngIf="
+            categoryForm.get('name')?.invalid &&
+            (categoryForm.get('name')?.dirty ||
+              categoryForm.get('name')?.touched)
+          "
+          class="text-red text-sm mt-1"
+        >
+          Category name is required
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2" for="description">
+          Description
+        </label>
+        <textarea
+          class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-white dark:bg-slate-900"
+          id="description"
+          placeholder="Enter category description"
+          formControlName="description"
+        ></textarea>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2" for="picture">
+          Picture URL
+        </label>
+        <input
+          class="shadow appearance-none border border-gray-300 dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-100 leading-tight focus:outline-none focus:shadow-outline bg-white dark:bg-slate-900"
+          id="picture"
+          type="text"
+          placeholder="Enter picture URL"
+          formControlName="picture"
+        />
+      </div>
+
+      <div class="flex items-center justify-between">
+        <button
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          type="submit"
+          [disabled]="categoryForm.invalid"
+        >
+          Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

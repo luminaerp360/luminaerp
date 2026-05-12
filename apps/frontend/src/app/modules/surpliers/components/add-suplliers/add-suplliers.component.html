@@ -1,0 +1,121 @@
+﻿<div
+  id="{{ modalId }}"
+  tabindex="-1"
+  aria-hidden="true"
+  class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-gray-900/75"
+  [ngClass]="{ hidden: !isModalVisible }"
+>
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-white dark:bg-slate-800 rounded-lg shadow">
+      <!-- Modal header -->
+      <div class="bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20 transition-all duration-300 rounded-t-lg">
+        <div class="flex items-center justify-between p-4 md:p-5">
+          <h3 class="text-lg font-black text-white uppercase tracking-[0.1em]">Add New Supplier</h3>
+          <button
+            (click)="closeModal()"
+            type="button"
+            class="text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
+            data-modal-toggle="crud-modal"
+          >
+            <svg
+              class="w-3 h-3"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 14 14"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+              />
+            </svg>
+            <span class="sr-only">Close modal</span>
+          </button>
+        </div>
+      </div>
+      <!-- Modal body -->
+      <form
+        [formGroup]="supplierForm"
+        (ngSubmit)="onSubmit()"
+        class="p-4 md:p-5"
+      >
+        <div class="grid gap-4 mb-4 grid-cols-2">
+          <div class="col-span-2">
+            <label for="name" class="block mb-2 text-sm font-medium text-gray-700 dark:text-white"
+              >Supplier Name</label
+            >
+            <input
+              formControlName="name"
+              type="text"
+              id="name"
+              class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-500 dark:placeholder-gray-400"
+              placeholder="Enter supplier name"
+              required
+            />
+          </div>
+          <div class="col-span-2 sm:col-span-1">
+            <label for="phone" class="block mb-2 text-sm font-medium text-gray-700 dark:text-white"
+              >Supplier Phone</label
+            >
+            <input
+              formControlName="phone"
+              type="text"
+              id="phone"
+              class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-500 dark:placeholder-gray-400"
+              placeholder="Enter supplier phone"
+              required
+            />
+          </div>
+        </div>
+        <button
+          type="submit"
+          [disabled]="!supplierForm.valid || isLoading"
+          class="text-white inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ng-container *ngIf="!isLoading; else loadingTemplate">
+            <svg
+              class="me-1 -ms-1 w-5 h-5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+            Add Supplier
+          </ng-container>
+          <ng-template #loadingTemplate>
+            <svg
+              class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            Processing...
+          </ng-template>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

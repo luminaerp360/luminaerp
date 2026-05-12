@@ -1,0 +1,1573 @@
+<div
+  class="min-h-screen bg-gray-50 dark:bg-slate-950 p-3 sm:p-4 md:p-6"
+  (click)="closeDropdown()"
+>
+  <div class="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+    <!-- Header -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
+    >
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+          Purchases
+        </h1>
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Manage purchase orders: approve, receive, and track inventory
+        </p>
+      </div>
+      <button
+        (click)="makePurchase()"
+        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-sm font-semibold rounded-xl shadow-lg shadow-green-500/25 transition-all duration-200 active:scale-[0.98]"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+        Make Purchase
+      </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <!-- Total -->
+      <div
+        (click)="switchTab('all')"
+        class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-4 cursor-pointer hover:shadow-md transition-all duration-200"
+        [class.ring-2]="activeTab === 'all'"
+        [class.ring-blue-500]="activeTab === 'all'"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-blue-600 dark:text-blue-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+              />
+            </svg>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">
+              {{ stats.total }}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Total</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending -->
+      <div
+        (click)="switchTab('pending')"
+        class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-4 cursor-pointer hover:shadow-md transition-all duration-200"
+        [class.ring-2]="activeTab === 'pending'"
+        [class.ring-yellow-500]="activeTab === 'pending'"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-yellow-600 dark:text-yellow-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">
+              {{ stats.pending }}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Pending</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approved -->
+      <div
+        (click)="switchTab('approved')"
+        class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-4 cursor-pointer hover:shadow-md transition-all duration-200"
+        [class.ring-2]="activeTab === 'approved'"
+        [class.ring-blue-500]="activeTab === 'approved'"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-blue-600 dark:text-blue-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">
+              {{ stats.approved }}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Approved</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Received -->
+      <div
+        (click)="switchTab('received')"
+        class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-4 cursor-pointer hover:shadow-md transition-all duration-200"
+        [class.ring-2]="activeTab === 'received'"
+        [class.ring-green-500]="activeTab === 'received'"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-green-600 dark:text-green-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">
+              {{ stats.received }}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Received</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-4"
+    >
+      <div class="flex flex-col md:flex-row gap-4 items-start md:items-center">
+        <!-- Search -->
+        <div class="relative flex-1 w-full">
+          <svg
+            class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            placeholder="Search by supplier, added by, or purchase ID..."
+            class="w-full pl-10 pr-10 py-2.5 text-sm bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+          />
+          <button
+            *ngIf="searchTerm"
+            (click)="clearSearch()"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        <!-- Date Range -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <input
+            type="date"
+            [(ngModel)]="startDate"
+            class="px-3 py-2.5 text-sm bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <span class="text-gray-400 text-sm">to</span>
+          <input
+            type="date"
+            [(ngModel)]="endDate"
+            class="px-3 py-2.5 text-sm bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <button
+            (click)="loadPurchasesForRange()"
+            class="px-4 py-2.5 text-sm font-medium bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+          >
+            Filter
+          </button>
+          <button
+            *ngIf="startDate || endDate"
+            (click)="clearDateFilter()"
+            class="px-3 py-2.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div
+      class="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden"
+    >
+      <!-- Loading -->
+      <div *ngIf="loading" class="flex items-center justify-center py-20">
+        <div class="flex flex-col items-center gap-3">
+          <div
+            class="animate-spin rounded-full h-10 w-10 border-b-2 border-green-500"
+          ></div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Loading purchases...
+          </p>
+        </div>
+      </div>
+
+      <div *ngIf="!loading" class="hidden sm:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr
+              class="bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-slate-700"
+            >
+              <th
+                class="px-5 py-3.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+              >
+                Purchase #
+              </th>
+              <th
+                class="px-5 py-3.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+              >
+                Supplier
+              </th>
+              <th
+                class="px-5 py-3.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+              >
+                Items
+              </th>
+              <th
+                class="px-5 py-3.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+              >
+                Date
+              </th>
+              <th
+                class="px-5 py-3.5 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+              >
+                Total
+              </th>
+              <th
+                class="px-5 py-3.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                class="px-5 py-3.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+              >
+                Payment
+              </th>
+              <th
+                class="px-5 py-3.5 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-slate-800">
+            <tr
+              *ngFor="let purchase of filteredPurchases"
+              class="hover:bg-gray-50/80 dark:hover:bg-slate-800/30 transition-colors"
+            >
+              <td class="px-5 py-4">
+                <span
+                  class="font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
+                  (click)="viewPurchaseDetail(purchase)"
+                >
+                  #{{ purchase.id }}
+                </span>
+              </td>
+              <td class="px-5 py-4">
+                <div class="font-medium text-gray-900 dark:text-white">
+                  {{ getSupplierName(purchase) }}
+                </div>
+              </td>
+              <td class="px-5 py-4">
+                <span
+                  class="inline-flex items-center gap-1 text-gray-600 dark:text-gray-400"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                  {{ getItemCount(purchase.items) }} item{{
+                    getItemCount(purchase.items) !== 1 ? "s" : ""
+                  }}
+                </span>
+              </td>
+              <td class="px-5 py-4 text-gray-600 dark:text-gray-400">
+                {{ purchase.createdAt | date: "mediumDate" }}
+              </td>
+              <td
+                class="px-5 py-4 text-right font-semibold text-gray-900 dark:text-white"
+              >
+                {{ purchase.totalAmount | number: "1.2-2" }}
+              </td>
+              <td class="px-5 py-4">
+                <span
+                  [class]="
+                    'px-2.5 py-1 text-xs font-semibold rounded-full ' +
+                    getStatusClass(purchase.status)
+                  "
+                >
+                  {{ getStatusLabel(purchase.status) }}
+                </span>
+              </td>
+              <td class="px-5 py-4">
+                <span
+                  [class]="
+                    'px-2.5 py-1 text-xs font-semibold rounded-full ' +
+                    getPaymentStatusClass(purchase.paymentStatus)
+                  "
+                >
+                  {{ getPaymentStatusLabel(purchase.paymentStatus) }}
+                </span>
+              </td>
+              <td class="px-5 py-4 text-right">
+                <div class="relative inline-block">
+                  <button
+                    (click)="toggleDropdown(purchase.id, $event)"
+                    class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 5v.01M12 12v.01M12 19v.01"
+                      />
+                    </svg>
+                  </button>
+
+                  <!-- Dropdown Menu -->
+                  <div
+                    *ngIf="openDropdownId === purchase.id"
+                    class="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-200 dark:border-slate-700 py-1 z-30"
+                  >
+                    <!-- View Details - Always -->
+                    <button
+                      (click)="viewPurchaseDetail(purchase)"
+                      class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4 text-blue-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                      View Details
+                    </button>
+
+                    <!-- Edit - Only if PENDING or APPROVED -->
+                    <button
+                      *ngIf="
+                        purchase.status === 'PENDING' ||
+                        purchase.status === 'APPROVED'
+                      "
+                      (click)="editPurchase(purchase)"
+                      class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4 text-indigo-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                      Edit
+                    </button>
+
+                    <!-- Approve - Only if PENDING -->
+                    <button
+                      *ngIf="purchase.status === 'PENDING'"
+                      (click)="approvePurchase(purchase)"
+                      class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      Approve
+                    </button>
+
+                    <!-- Receive - Only if APPROVED -->
+                    <button
+                      *ngIf="purchase.status === 'APPROVED'"
+                      (click)="openReceiveModal(purchase)"
+                      class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                        />
+                      </svg>
+                      Mark as Received
+                    </button>
+
+                    <!-- Cancel - Only if PENDING -->
+                    <div
+                      *ngIf="purchase.status === 'PENDING'"
+                      class="border-t border-gray-100 dark:border-slate-700 my-1"
+                    ></div>
+                    <button
+                      *ngIf="purchase.status === 'PENDING'"
+                      (click)="cancelPurchase(purchase)"
+                      class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                        />
+                      </svg>
+                      Cancel
+                    </button>
+
+                    <!-- Delete - Only if PENDING or CANCELLED -->
+                    <div
+                      *ngIf="
+                        purchase.status === 'PENDING' ||
+                        purchase.status === 'CANCELLED'
+                      "
+                      class="border-t border-gray-100 dark:border-slate-700 my-1"
+                    ></div>
+                    <button
+                      *ngIf="
+                        purchase.status === 'PENDING' ||
+                        purchase.status === 'CANCELLED'
+                      "
+                      (click)="deletePurchase(purchase)"
+                      class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div
+        *ngIf="!loading"
+        class="sm:hidden divide-y divide-gray-100 dark:divide-slate-800"
+      >
+        <div *ngFor="let purchase of filteredPurchases" class="p-4">
+          <div class="flex items-start justify-between mb-2">
+            <div class="min-w-0 flex-1">
+              <span
+                class="text-sm font-semibold text-blue-600 dark:text-blue-400 cursor-pointer"
+                (click)="viewPurchaseDetail(purchase)"
+                >#{{ purchase.id }}</span
+              >
+              <p
+                class="text-sm font-medium text-gray-900 dark:text-white truncate mt-0.5"
+              >
+                {{ getSupplierName(purchase) }}
+              </p>
+            </div>
+            <div class="flex items-center gap-2 ml-2 flex-shrink-0">
+              <span
+                [class]="
+                  'px-2 py-0.5 text-[10px] font-semibold rounded-full ' +
+                  getStatusClass(purchase.status)
+                "
+              >
+                {{ getStatusLabel(purchase.status) }}
+              </span>
+              <div class="relative">
+                <button
+                  (click)="toggleDropdown(purchase.id, $event)"
+                  class="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 5v.01M12 12v.01M12 19v.01"
+                    />
+                  </svg>
+                </button>
+                <div
+                  *ngIf="openDropdownId === purchase.id"
+                  class="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-200 dark:border-slate-700 py-1 z-30"
+                >
+                  <button
+                    (click)="viewPurchaseDetail(purchase)"
+                    class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
+                  >
+                    <svg
+                      class="w-4 h-4 text-blue-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                    View Details
+                  </button>
+                  <button
+                    *ngIf="
+                      purchase.status === 'PENDING' ||
+                      purchase.status === 'APPROVED'
+                    "
+                    (click)="editPurchase(purchase)"
+                    class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
+                  >
+                    <svg
+                      class="w-4 h-4 text-indigo-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                    Edit
+                  </button>
+                  <button
+                    *ngIf="purchase.status === 'PENDING'"
+                    (click)="approvePurchase(purchase)"
+                    class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Approve
+                  </button>
+                  <button
+                    *ngIf="purchase.status === 'APPROVED'"
+                    (click)="openReceiveModal(purchase)"
+                    class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                      />
+                    </svg>
+                    Receive
+                  </button>
+                  <button
+                    *ngIf="purchase.status === 'PENDING'"
+                    (click)="cancelPurchase(purchase)"
+                    class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                      />
+                    </svg>
+                    Cancel
+                  </button>
+                  <button
+                    *ngIf="
+                      purchase.status === 'PENDING' ||
+                      purchase.status === 'CANCELLED'
+                    "
+                    (click)="deletePurchase(purchase)"
+                    class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p class="text-[10px] text-gray-500 dark:text-gray-400">Items</p>
+              <p class="text-xs font-medium text-gray-900 dark:text-white">
+                {{ getItemCount(purchase.items) }}
+              </p>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-500 dark:text-gray-400">Total</p>
+              <p class="text-xs font-bold text-gray-900 dark:text-white">
+                {{ purchase.totalAmount | number: "1.2-2" }}
+              </p>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-500 dark:text-gray-400">
+                Payment
+              </p>
+              <span
+                [class]="
+                  'px-1.5 py-0.5 text-[10px] font-semibold rounded-full ' +
+                  getPaymentStatusClass(purchase.paymentStatus)
+                "
+                >{{ getPaymentStatusLabel(purchase.paymentStatus) }}</span
+              >
+            </div>
+          </div>
+          <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-2">
+            {{ purchase.createdAt | date: "mediumDate" }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        *ngIf="filteredPurchases.length === 0 && !loading"
+        class="py-12 sm:py-16 text-center"
+      >
+        <div
+          class="w-16 h-16 sm:w-20 sm:h-20 mx-auto bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4"
+        >
+          <svg
+            class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+            />
+          </svg>
+        </div>
+        <h3
+          class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-1"
+        >
+          No Purchases Found
+        </h3>
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-6">
+          {{
+            searchTerm || startDate
+              ? "Try adjusting your filters"
+              : "Get started by making your first purchase"
+          }}
+        </p>
+        <button
+          *ngIf="!searchTerm && !startDate"
+          (click)="makePurchase()"
+          class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          Make Purchase
+        </button>
+      </div>
+
+      <!-- Result Count -->
+      <div
+        *ngIf="filteredPurchases.length > 0 && !loading"
+        class="px-4 sm:px-5 py-2.5 sm:py-3 border-t border-gray-100 dark:border-slate-800 text-xs sm:text-sm text-gray-500 dark:text-gray-400"
+      >
+        Showing {{ filteredPurchases.length }} of
+        {{ allPurchases.length }} purchases
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div
+    *ngIf="showDetailModal && selectedPurchase"
+    class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-gray-900/50 backdrop-blur-sm"
+    (click)="closeDetailModal()"
+  >
+    <div
+      class="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-3xl max-h-[85vh] sm:max-h-[90vh] flex flex-col"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div
+        class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-slate-700"
+      >
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Purchase #{{ selectedPurchase.id }}
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Purchase Details
+          </p>
+        </div>
+        <button
+          (click)="closeDetailModal()"
+          class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6">
+        <!-- Status & Info Row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Status</p>
+            <span
+              [class]="
+                'px-2.5 py-1 text-xs font-semibold rounded-full ' +
+                getStatusClass(selectedPurchase.status)
+              "
+            >
+              {{ getStatusLabel(selectedPurchase.status) }}
+            </span>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              Supplier
+            </p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ getSupplierName(selectedPurchase) }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Date</p>
+            <p class="text-sm text-gray-900 dark:text-white">
+              {{ selectedPurchase.createdAt | date: "mediumDate" }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              Added By
+            </p>
+            <p class="text-sm text-gray-900 dark:text-white">
+              {{ selectedPurchase.added_by }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Approval/Receive Info -->
+        <div
+          *ngIf="selectedPurchase.approvedBy || selectedPurchase.receivedBy"
+          class="grid grid-cols-2 gap-4"
+        >
+          <div *ngIf="selectedPurchase.approvedBy">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              Approved By
+            </p>
+            <p class="text-sm text-gray-900 dark:text-white">
+              {{ selectedPurchase.approvedBy }}
+            </p>
+            <p
+              *ngIf="selectedPurchase.approvedAt"
+              class="text-xs text-gray-400"
+            >
+              {{ selectedPurchase.approvedAt | date: "medium" }}
+            </p>
+          </div>
+          <div *ngIf="selectedPurchase.receivedBy">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              Received By
+            </p>
+            <p class="text-sm text-gray-900 dark:text-white">
+              {{ selectedPurchase.receivedBy }}
+            </p>
+            <p
+              *ngIf="selectedPurchase.receivedAt"
+              class="text-xs text-gray-400"
+            >
+              {{ selectedPurchase.receivedAt | date: "medium" }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Items Table (Desktop) -->
+        <div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            Purchased Items
+          </p>
+          <div
+            class="hidden sm:block border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden"
+          >
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-gray-50 dark:bg-slate-800/50">
+                  <th
+                    class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"
+                  >
+                    Product
+                  </th>
+                  <th
+                    class="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"
+                  >
+                    Qty
+                  </th>
+                  <th
+                    class="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"
+                  >
+                    Buying Price
+                  </th>
+                  <th
+                    class="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"
+                  >
+                    Selling Price
+                  </th>
+                  <th
+                    class="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"
+                  >
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-slate-800">
+                <tr *ngFor="let item of parseItems(selectedPurchase.items)">
+                  <td class="px-4 py-2.5 text-gray-900 dark:text-white">
+                    {{ getProductNameById(item.product_id) }}
+                    <span *ngIf="item.unit" class="text-xs text-gray-400 ml-1"
+                      >({{ item.unit }})</span
+                    >
+                  </td>
+                  <td
+                    class="px-4 py-2.5 text-center text-gray-600 dark:text-gray-400"
+                  >
+                    {{ item.quantity }}
+                  </td>
+                  <td
+                    class="px-4 py-2.5 text-right text-gray-600 dark:text-gray-400"
+                  >
+                    {{ item.buying_price | number: "1.2-2" }}
+                  </td>
+                  <td
+                    class="px-4 py-2.5 text-right text-gray-600 dark:text-gray-400"
+                  >
+                    {{
+                      item.selling_price
+                        ? (item.selling_price | number: "1.2-2")
+                        : "-"
+                    }}
+                  </td>
+                  <td
+                    class="px-4 py-2.5 text-right font-medium text-gray-900 dark:text-white"
+                  >
+                    {{ item.quantity * item.buying_price | number: "1.2-2" }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Items Cards (Mobile) -->
+          <div class="sm:hidden space-y-2">
+            <div
+              *ngFor="let item of parseItems(selectedPurchase.items)"
+              class="bg-gray-50 dark:bg-slate-800/50 rounded-lg p-3 border border-gray-200 dark:border-slate-700"
+            >
+              <div class="flex items-start justify-between mb-1.5">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ getProductNameById(item.product_id) }}
+                  <span *ngIf="item.unit" class="text-xs text-gray-400 ml-1"
+                    >({{ item.unit }})</span
+                  >
+                </p>
+                <span
+                  class="text-sm font-semibold text-gray-900 dark:text-white ml-2"
+                  >{{
+                    item.quantity * item.buying_price | number: "1.2-2"
+                  }}</span
+                >
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <p class="text-[10px] text-gray-500 dark:text-gray-400">
+                    Qty
+                  </p>
+                  <p
+                    class="text-xs font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    {{ item.quantity }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-gray-500 dark:text-gray-400">
+                    Buying
+                  </p>
+                  <p
+                    class="text-xs font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    {{ item.buying_price | number: "1.2-2" }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-gray-500 dark:text-gray-400">
+                    Selling
+                  </p>
+                  <p
+                    class="text-xs font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    {{
+                      item.selling_price
+                        ? (item.selling_price | number: "1.2-2")
+                        : "-"
+                    }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Batch Details -->
+        <div *ngIf="hasAnyBatchDetails()">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            Batch Details
+          </p>
+          <div class="space-y-2">
+            <div
+              *ngFor="let item of parseItems(selectedPurchase.items)"
+              class="bg-gray-50 dark:bg-slate-800/50 rounded-lg p-3"
+            >
+              <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                {{ getProductNameById(item.product_id) }}
+              </p>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                <div *ngIf="item.expiry_date">
+                  <span class="text-gray-500 dark:text-gray-400">Expiry:</span>
+                  <span class="ml-1 text-gray-700 dark:text-gray-300">{{
+                    item.expiry_date | date: "mediumDate"
+                  }}</span>
+                </div>
+                <div *ngIf="item.manufacture_date">
+                  <span class="text-gray-500 dark:text-gray-400">Mfg:</span>
+                  <span class="ml-1 text-gray-700 dark:text-gray-300">{{
+                    item.manufacture_date | date: "mediumDate"
+                  }}</span>
+                </div>
+                <div *ngIf="item.warehouse_location">
+                  <span class="text-gray-500 dark:text-gray-400"
+                    >Location:</span
+                  >
+                  <span class="ml-1 text-gray-700 dark:text-gray-300">{{
+                    item.warehouse_location
+                  }}</span>
+                </div>
+                <div *ngIf="item.markup_percentage">
+                  <span class="text-gray-500 dark:text-gray-400">Markup:</span>
+                  <span class="ml-1 text-gray-700 dark:text-gray-300"
+                    >{{ item.markup_percentage }}%</span
+                  >
+                </div>
+              </div>
+              <p
+                *ngIf="item.notes"
+                class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+              >
+                {{ item.notes }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="bg-gray-50 dark:bg-slate-800/50 rounded-lg p-4 space-y-2">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Total Amount</span>
+            <span class="font-semibold text-gray-900 dark:text-white"
+              >KSH {{ selectedPurchase.totalAmount | number: "1.2-2" }}</span
+            >
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Total Paid</span>
+            <span class="font-medium text-green-600 dark:text-green-400"
+              >KSH {{ getTotalPaid(selectedPurchase) | number: "1.2-2" }}</span
+            >
+          </div>
+          <div
+            class="flex justify-between text-sm pt-2 border-t border-gray-200 dark:border-slate-700"
+          >
+            <span class="font-semibold text-gray-900 dark:text-white"
+              >Balance</span
+            >
+            <span
+              class="font-bold"
+              [ngClass]="
+                getBalance(selectedPurchase) > 0
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-green-600 dark:text-green-400'
+              "
+            >
+              KSH {{ getBalance(selectedPurchase) | number: "1.2-2" }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Payments List -->
+        <div
+          *ngIf="
+            selectedPurchase.payments && selectedPurchase.payments.length > 0
+          "
+        >
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Payments</p>
+          <div class="space-y-2">
+            <div
+              *ngFor="let payment of selectedPurchase.payments"
+              class="flex items-center justify-between bg-gray-50 dark:bg-slate-800/50 rounded-lg px-4 py-2.5"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
+                >
+                  <svg
+                    class="w-4 h-4 text-green-600 dark:text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ getPaymentMethodLabel(payment.method) }}
+                  </p>
+                  <p
+                    *ngIf="payment.createdAt"
+                    class="text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    {{ payment.createdAt | date: "medium" }}
+                  </p>
+                </div>
+              </div>
+              <span class="font-semibold text-gray-900 dark:text-white"
+                >KSH {{ payment.amount | number: "1.2-2" }}</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div
+        class="flex justify-end gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-slate-700"
+      >
+        <button
+          (click)="closeDetailModal()"
+          class="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receive Confirmation Modal -->
+  <div
+    *ngIf="showReceiveModal && selectedPurchaseForReceive"
+    class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-gray-900/50 backdrop-blur-sm"
+    (click)="closeReceiveModal()"
+  >
+    <div
+      class="bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-3xl max-h-[85vh] sm:max-h-[90vh] flex flex-col"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div
+        class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-slate-700"
+      >
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Confirm Receipt
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Review items for Purchase #{{
+              selectedPurchaseForReceive.id
+            }}
+            before marking as received
+          </p>
+        </div>
+        <button
+          (click)="closeReceiveModal()"
+          class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6">
+        <!-- Info Banner -->
+        <div
+          class="bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800/50 p-4"
+        >
+          <div class="flex gap-3">
+            <svg
+              class="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div class="text-sm text-purple-700 dark:text-purple-300">
+              <p class="font-medium mb-1">What happens when you confirm</p>
+              <p class="text-purple-600 dark:text-purple-400">
+                Product quantities will be updated, inventory batches will be
+                created, and buying/selling prices will be adjusted. This action
+                cannot be undone.
+              </p>
+              <p
+                *ngIf="hasTrackedItems()"
+                class="text-indigo-600 dark:text-indigo-400 mt-1 font-medium"
+              >
+                Some items have unique identifier tracking — enter the exact
+                IMEI / serial / reg numbers below before confirming.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supplier Info -->
+        <div class="flex items-center gap-3 text-sm">
+          <span class="text-gray-500 dark:text-gray-400">Supplier:</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{
+            getSupplierName(selectedPurchaseForReceive)
+          }}</span>
+        </div>
+
+        <!-- Items to Receive -->
+        <div>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            Items to Receive
+          </p>
+          <div class="space-y-3">
+            <div
+              *ngFor="let item of receiveItems; let i = index"
+              class="bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-200 dark:border-slate-700 p-4"
+            >
+              <div class="flex items-start justify-between mb-2">
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">
+                    {{ item.productName }}
+                  </p>
+                  <div class="flex items-center gap-2">
+                    <p
+                      *ngIf="item.unit"
+                      class="text-xs text-gray-500 dark:text-gray-400"
+                    >
+                      Unit: {{ item.unit }}
+                    </p>
+                    <span
+                      *ngIf="item.isTracked"
+                      class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium"
+                    >
+                      {{ getTrackingLabelForMode(item.trackingMode) }} Tracked
+                    </span>
+                  </div>
+                </div>
+                <span
+                  class="text-sm font-semibold text-gray-900 dark:text-white"
+                >
+                  {{ item.quantity * item.buying_price | number: "1.2-2" }}
+                </span>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <span class="text-gray-500 dark:text-gray-400">Quantity</span>
+                  <p class="font-medium text-gray-800 dark:text-gray-200">
+                    {{ item.quantity }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-gray-500 dark:text-gray-400"
+                    >Buying Price</span
+                  >
+                  <p class="font-medium text-gray-800 dark:text-gray-200">
+                    {{ item.buying_price | number: "1.2-2" }}
+                  </p>
+                </div>
+                <div *ngIf="item.markup_percentage">
+                  <span class="text-gray-500 dark:text-gray-400">Markup</span>
+                  <p class="font-medium text-orange-600 dark:text-orange-400">
+                    {{ item.markup_percentage }}%
+                  </p>
+                </div>
+                <div *ngIf="item.selling_price">
+                  <span class="text-gray-500 dark:text-gray-400"
+                    >Selling Price</span
+                  >
+                  <p class="font-medium text-green-600 dark:text-green-400">
+                    {{ item.selling_price | number: "1.2-2" }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Tracked product identifier input -->
+              <div
+                *ngIf="item.isTracked"
+                class="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <label
+                    class="text-xs font-medium text-indigo-700 dark:text-indigo-300"
+                  >
+                    Enter {{ getTrackingLabelForMode(item.trackingMode) }}s ({{
+                      item.quantity
+                    }}
+                    required)
+                  </label>
+                  <span
+                    class="text-xs font-semibold"
+                    [ngClass]="{
+                      'text-green-600':
+                        getIdentifierCount(item) === item.quantity,
+                      'text-red-600':
+                        getIdentifierCount(item) !== item.quantity,
+                    }"
+                  >
+                    {{ getIdentifierCount(item) }} / {{ item.quantity }}
+                  </span>
+                </div>
+                <textarea
+                  [(ngModel)]="item.identifiersRaw"
+                  [placeholder]="
+                    'Enter one ' +
+                    getTrackingLabelForMode(item.trackingMode).toLowerCase() +
+                    ' per line'
+                  "
+                  rows="3"
+                  class="w-full px-3 py-2 text-sm border-2 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  [ngClass]="{
+                    'border-green-300 dark:border-green-700':
+                      getIdentifierCount(item) === item.quantity &&
+                      getIdentifierCount(item) > 0,
+                    'border-gray-300 dark:border-slate-700':
+                      getIdentifierCount(item) === 0,
+                    'border-red-300 dark:border-red-700':
+                      getIdentifierCount(item) > 0 &&
+                      getIdentifierCount(item) !== item.quantity,
+                  }"
+                ></textarea>
+              </div>
+
+              <!-- Batch details -->
+              <div
+                *ngIf="
+                  item.expiry_date ||
+                  item.manufacture_date ||
+                  item.warehouse_location
+                "
+                class="mt-2 pt-2 border-t border-gray-200 dark:border-slate-700 grid grid-cols-3 gap-2 text-xs"
+              >
+                <div *ngIf="item.expiry_date">
+                  <span class="text-gray-500 dark:text-gray-400">Expiry:</span>
+                  <span class="ml-1 text-gray-700 dark:text-gray-300">{{
+                    item.expiry_date | date: "mediumDate"
+                  }}</span>
+                </div>
+                <div *ngIf="item.manufacture_date">
+                  <span class="text-gray-500 dark:text-gray-400">Mfg:</span>
+                  <span class="ml-1 text-gray-700 dark:text-gray-300">{{
+                    item.manufacture_date | date: "mediumDate"
+                  }}</span>
+                </div>
+                <div *ngIf="item.warehouse_location">
+                  <span class="text-gray-500 dark:text-gray-400"
+                    >Location:</span
+                  >
+                  <span class="ml-1 text-gray-700 dark:text-gray-300">{{
+                    item.warehouse_location
+                  }}</span>
+                </div>
+              </div>
+              <p
+                *ngIf="item.notes"
+                class="text-xs text-gray-500 dark:text-gray-400 mt-2"
+              >
+                {{ item.notes }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Summary -->
+        <div class="bg-gray-50 dark:bg-slate-800/50 rounded-lg p-4">
+          <div class="flex justify-between text-sm">
+            <span class="font-semibold text-gray-900 dark:text-white"
+              >Total Amount</span
+            >
+            <span class="font-bold text-gray-900 dark:text-white"
+              >KSH
+              {{
+                selectedPurchaseForReceive.totalAmount | number: "1.2-2"
+              }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div
+        class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-slate-700"
+      >
+        <button
+          (click)="closeReceiveModal()"
+          class="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="confirmReceive()"
+          [disabled]="loading"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 rounded-lg shadow-lg shadow-purple-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg
+            *ngIf="!loading"
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          <svg
+            *ngIf="loading"
+            class="w-4 h-4 animate-spin"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            />
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          {{ loading ? "Processing..." : "Confirm Receipt & Update Inventory" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

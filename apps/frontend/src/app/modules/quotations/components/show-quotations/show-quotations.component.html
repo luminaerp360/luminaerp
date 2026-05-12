@@ -1,0 +1,1263 @@
+﻿<div
+  class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-900 py-6 sm:py-12 px-3 sm:px-6 lg:px-8"
+>
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8"
+    >
+      <div class="flex items-center mb-3 sm:mb-0">
+        <div class="bg-indigo-600 p-2 sm:p-3 rounded-xl mr-3 sm:mr-4">
+          <svg
+            class="w-6 h-6 sm:w-8 sm:h-8 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+            ></path>
+          </svg>
+        </div>
+        <div>
+          <h2
+            class="text-xl sm:text-3xl font-extrabold text-gray-900 dark:text-white"
+          >
+            Quotations
+          </h2>
+          <p
+            class="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mt-0.5 sm:mt-1"
+          >
+            {{ getActiveFilterDisplayName() }} •
+            {{ getQuotationsSummary().total }} quotations
+          </p>
+        </div>
+      </div>
+
+      <button
+        routerLink="/add-quotation"
+        class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 text-sm sm:text-base"
+      >
+        <svg
+          class="w-5 h-5 mr-1.5 sm:mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+          ></path>
+        </svg>
+        <span class="hidden sm:inline">Add Quotation</span>
+        <span class="sm:hidden">New</span>
+      </button>
+    </div>
+
+    <!-- Search Bar -->
+    <div
+      class="bg-white dark:bg-slate-900/90 rounded-xl border-2 border-gray-200 dark:border-slate-700 p-3 sm:p-4 mb-4 sm:mb-6 shadow-sm"
+    >
+      <div class="flex items-center space-x-2">
+        <div class="relative flex-1">
+          <div
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+          >
+            <i class="bi bi-search text-gray-400 dark:text-slate-500"></i>
+          </div>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearch()"
+            placeholder="Search quotations..."
+            class="w-full pl-10 pr-10 py-2.5 sm:py-3 bg-gray-50 dark:bg-slate-900/80 border-2 border-gray-300 dark:border-slate-700 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 dark:placeholder-slate-500"
+          />
+          <button
+            *ngIf="searchQuery"
+            (click)="clearSearch()"
+            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <i class="bi bi-x-circle"></i>
+          </button>
+        </div>
+        <button
+          (click)="onSearch()"
+          class="px-4 sm:px-6 py-2.5 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1 sm:space-x-2 shadow-sm hover:shadow-md"
+        >
+          <i class="bi bi-search"></i>
+          <span class="hidden sm:inline">Search</span>
+        </button>
+      </div>
+      <p class="text-xs mt-2 ml-1 hidden sm:block">
+        <span *ngIf="!searchQuery" class="text-gray-500 dark:text-slate-400">
+          <i class="bi bi-info-circle mr-1"></i>
+          Press Enter or click Search to find quotations by reference number,
+          customer name, or ID
+        </span>
+        <span
+          *ngIf="searchQuery"
+          class="text-indigo-600 dark:text-indigo-400 font-medium"
+        >
+          <i class="bi bi-lightning-charge mr-1"></i>
+          Searching all quotations (date filters ignored when searching)
+        </span>
+      </p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-4 sm:mb-8">
+      <div
+        class="bg-white dark:bg-slate-900/90 rounded-xl p-3 sm:p-6 border-2 border-gray-200 dark:border-slate-700"
+      >
+        <div class="flex items-center">
+          <div class="p-2 sm:p-3 bg-blue-600 rounded-lg">
+            <svg
+              class="w-4 h-4 sm:w-6 sm:h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-2 sm:ml-4 min-w-0">
+            <p
+              class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-sm truncate"
+            >
+              Total
+            </p>
+            <p
+              class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white"
+            >
+              {{ getQuotationsSummary().total }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-slate-900/90 rounded-xl p-3 sm:p-6 border-2 border-gray-200 dark:border-slate-700"
+      >
+        <div class="flex items-center">
+          <div class="p-2 sm:p-3 bg-amber-600 rounded-lg">
+            <svg
+              class="w-4 h-4 sm:w-6 sm:h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-2 sm:ml-4 min-w-0">
+            <p
+              class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-sm truncate"
+            >
+              Pending
+            </p>
+            <p
+              class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white"
+            >
+              {{ getQuotationsSummary().pending }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-slate-900/90 rounded-xl p-3 sm:p-6 border-2 border-gray-200 dark:border-slate-700"
+      >
+        <div class="flex items-center">
+          <div class="p-2 sm:p-3 bg-green-600 rounded-lg">
+            <svg
+              class="w-4 h-4 sm:w-6 sm:h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-2 sm:ml-4 min-w-0">
+            <p
+              class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-sm truncate"
+            >
+              Approved
+            </p>
+            <p
+              class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white"
+            >
+              {{ getQuotationsSummary().approved }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-slate-900/90 rounded-xl p-3 sm:p-6 border-2 border-gray-200 dark:border-slate-700"
+      >
+        <div class="flex items-center">
+          <div class="p-2 sm:p-3 bg-purple-600 rounded-lg">
+            <svg
+              class="w-4 h-4 sm:w-6 sm:h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-2 sm:ml-4 min-w-0">
+            <p
+              class="text-gray-500 dark:text-slate-400 text-[10px] sm:text-sm truncate"
+            >
+              Value
+            </p>
+            <p
+              class="text-sm sm:text-2xl font-bold text-gray-900 dark:text-white truncate"
+            >
+              KSH {{ getQuotationsSummary().totalAmount | number: "1.0-0" }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Filters -->
+    <div
+      class="bg-white dark:bg-slate-900/90 rounded-xl p-3 sm:p-6 mb-4 sm:mb-8 border-2 border-gray-200 dark:border-slate-700"
+    >
+      <h3
+        class="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4"
+      >
+        Quick Filters
+      </h3>
+      <div class="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <button
+          (click)="filterToday()"
+          [ngClass]="
+            activeFilter === 'today'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-slate-900/80 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-900/60'
+          "
+          class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-2 hidden sm:block"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            ></path>
+          </svg>
+          Today
+        </button>
+
+        <button
+          (click)="filterYesterday()"
+          [ngClass]="
+            activeFilter === 'yesterday'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-slate-900/80 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-900/60'
+          "
+          class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-2 hidden sm:block"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          Yesterday
+        </button>
+
+        <button
+          (click)="filterThisMonth()"
+          [ngClass]="
+            activeFilter === 'thisMonth'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-slate-900/80 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-900/60'
+          "
+          class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-2 hidden sm:block"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            ></path>
+          </svg>
+          This Month
+        </button>
+
+        <button
+          (click)="filterLastMonth()"
+          [ngClass]="
+            activeFilter === 'lastMonth'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-slate-900/80 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-900/60'
+          "
+          class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-2 hidden sm:block"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
+          Last Month
+        </button>
+
+        <button
+          (click)="loadPendingQuotations()"
+          [ngClass]="
+            activeFilter === 'pending'
+              ? 'bg-amber-600 text-white'
+              : 'bg-gray-100 dark:bg-slate-900/80 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-900/60'
+          "
+          class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-2 hidden sm:block"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          Pending
+        </button>
+
+        <button
+          (click)="filterAll()"
+          [ngClass]="
+            activeFilter === 'all'
+              ? 'bg-green-600 text-white'
+              : 'bg-gray-100 dark:bg-slate-900/80 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-900/60'
+          "
+          class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-2 hidden sm:block"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            ></path>
+          </svg>
+          All
+        </button>
+      </div>
+
+      <!-- Custom Date Range Filter -->
+      <form
+        [formGroup]="filterForm"
+        (ngSubmit)="filterQuotations()"
+        class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+      >
+        <div>
+          <label
+            for="startDate"
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >Start Date</label
+          >
+          <input
+            type="date"
+            id="startDate"
+            formControlName="startDate"
+            class="w-full bg-gray-100 dark:bg-slate-900/80 border-2 border-gray-300 dark:border-slate-700 rounded-lg shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label
+            for="endDate"
+            class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2"
+            >End Date</label
+          >
+          <input
+            type="date"
+            id="endDate"
+            formControlName="endDate"
+            class="w-full bg-gray-100 dark:bg-slate-900/80 border-2 border-gray-300 dark:border-slate-700 rounded-lg shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div class="flex gap-3">
+          <button
+            type="submit"
+            class="flex-1 inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <svg
+              class="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              ></path>
+            </svg>
+            Filter
+          </button>
+          <button
+            type="button"
+            (click)="resetFilter()"
+            class="inline-flex items-center px-4 py-3 border-2 border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-900/80 hover:bg-gray-200 dark:hover:bg-slate-900/60 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          >
+            <svg
+              class="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              ></path>
+            </svg>
+            Reset
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div
+      *ngIf="isLoading"
+      class="bg-white dark:bg-slate-900/90 rounded-xl p-12 border-2 border-gray-200 dark:border-slate-700 text-center"
+    >
+      <div class="flex items-center justify-center">
+        <svg
+          class="animate-spin h-8 w-8 text-blue-500 mr-3"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <span class="text-gray-700 dark:text-slate-300 text-lg"
+          >Loading quotations...</span
+        >
+      </div>
+    </div>
+
+    <div
+      *ngIf="!isLoading"
+      class="bg-white dark:bg-slate-900/90 shadow-xl rounded-xl overflow-hidden border-2 border-gray-200 dark:border-slate-700"
+    >
+      <!-- Empty State -->
+      <div *ngIf="filteredQuotations.length === 0" class="p-12 text-center">
+        <div class="flex flex-col items-center">
+          <svg
+            class="w-16 h-16 text-gray-500 mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+            ></path>
+          </svg>
+          <h3 class="text-xl font-medium text-gray-900 dark:text-white mb-2">
+            No quotations found
+          </h3>
+          <p class="text-gray-600 dark:text-slate-400 mb-6">
+            No quotations match your current filter criteria.
+          </p>
+          <button
+            routerLink="/add-quotation"
+            class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              ></path>
+            </svg>
+            Create First Quotation
+          </button>
+        </div>
+      </div>
+
+      <!-- Quotations Table/Card Content -->
+      <div *ngIf="filteredQuotations.length > 0" class="flex flex-col">
+        <!-- View Toggle Header -->
+        <div
+          class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700"
+        >
+          <p class="text-sm font-medium text-gray-600 dark:text-slate-400">
+            {{ filteredQuotations.length }} quotation{{
+              filteredQuotations.length !== 1 ? "s" : ""
+            }}
+          </p>
+          <div
+            class="flex items-center bg-gray-100 dark:bg-slate-800 rounded-lg p-1"
+          >
+            <button
+              (click)="toggleViewMode('table')"
+              [ngClass]="
+                viewMode === 'table'
+                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-gray-500 dark:text-slate-400 hover:text-gray-700'
+              "
+              class="p-1.5 rounded-md transition-all duration-200"
+              title="Table view"
+            >
+              <i class="bi bi-table text-sm"></i>
+            </button>
+            <button
+              (click)="toggleViewMode('card')"
+              [ngClass]="
+                viewMode === 'card'
+                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-gray-500 dark:text-slate-400 hover:text-gray-700'
+              "
+              class="p-1.5 rounded-md transition-all duration-200"
+              title="Card view"
+            >
+              <i class="bi bi-grid-3x2-gap text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table View -->
+        <div *ngIf="viewMode === 'table'">
+          <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div
+              class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8"
+            >
+              <div
+                class="overflow-hidden border-t-0 border-2 border-gray-200 dark:border-slate-700 md:rounded-b-2xl shadow-xl"
+              >
+                <table class="min-w-full border-separate border-spacing-0">
+                  <thead class="sticky top-0 z-20">
+                    <tr
+                      class="bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20 transition-all duration-300"
+                    >
+                      <th
+                        scope="col"
+                        class="py-4 px-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                      >
+                        <div class="flex items-center gap-x-3">
+                          <input
+                            type="checkbox"
+                            class="text-white border-white/30 rounded bg-white/10 focus:ring-purple-400"
+                          />
+                          <span>Reference</span>
+                        </div>
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-4 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                      >
+                        Date
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-4 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                      >
+                        Customer
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-4 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em] hidden md:table-cell"
+                      >
+                        Type / KRA PIN
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-4 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                      >
+                        Status
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-4 py-4 text-xs font-black text-left text-white uppercase tracking-[0.1em]"
+                      >
+                        Total Amount
+                      </th>
+                      <th scope="col" class="relative py-4 px-4">
+                        <span class="sr-only">Actions</span>
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody
+                    class="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700"
+                  >
+                    <tr
+                      *ngFor="let quotation of filteredQuotations"
+                      class="hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors"
+                    >
+                      <td
+                        class="px-4 py-4 text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap"
+                      >
+                        <div class="inline-flex items-center gap-x-3">
+                          <input
+                            type="checkbox"
+                            class="text-indigo-600 border-gray-300 dark:border-slate-700 rounded bg-white dark:bg-slate-900 focus:ring-indigo-500"
+                          />
+                          <div class="bg-indigo-600 p-2 rounded-lg">
+                            <svg
+                              class="w-4 h-4 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              ></path>
+                            </svg>
+                          </div>
+                          <span
+                            class="px-2 py-1 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-mono"
+                            >#{{ quotation.referenceNumber }}</span
+                          >
+                        </div>
+                      </td>
+                      <td
+                        class="px-4 py-4 text-sm text-gray-600 dark:text-slate-300 font-medium whitespace-nowrap"
+                      >
+                        {{ quotation.createdAt | date: "mediumDate" }}
+                        <span class="text-[10px] text-gray-400 block">{{
+                          quotation.createdAt | date: "shortTime"
+                        }}</span>
+                      </td>
+                      <td
+                        class="px-4 py-4 text-sm text-gray-600 dark:text-slate-300 font-medium whitespace-nowrap"
+                      >
+                        {{ getCustomerNameById(quotation.customerId) }}
+                      </td>
+                      <!-- Type / KRA PIN column -->
+                      <td
+                        class="px-4 py-4 text-sm whitespace-nowrap hidden md:table-cell"
+                      >
+                        <ng-container
+                          *ngIf="getCustomerById(quotation.customerId) as cust"
+                        >
+                          <span
+                            *ngIf="
+                              cust.customerType === 'BUSINESS';
+                              else indivBadge
+                            "
+                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-200 dark:border-purple-700 mb-1"
+                            ><i class="bi bi-building"></i>Business</span
+                          >
+                          <ng-template #indivBadge>
+                            <span
+                              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[10px] font-bold border border-blue-200 dark:border-blue-700 mb-1"
+                            >
+                              <i class="bi bi-person"></i>Individual
+                            </span>
+                          </ng-template>
+                          <p
+                            *ngIf="cust.kraPin"
+                            class="font-mono text-xs text-gray-500 dark:text-slate-400 mt-0.5"
+                          >
+                            {{ cust.kraPin }}
+                          </p>
+                          <p
+                            *ngIf="!cust.kraPin"
+                            class="text-xs text-gray-400 dark:text-slate-600 italic mt-0.5"
+                          >
+                            No KRA PIN
+                          </p>
+                        </ng-container>
+                      </td>
+                      <td
+                        class="px-4 py-4 text-sm font-medium whitespace-nowrap"
+                      >
+                        <div
+                          [ngClass]="{
+                            'bg-amber-100 text-amber-800 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800':
+                              quotation.status === 'pending',
+                            'bg-green-100 text-green-800 dark:bg-green-900/30 border-green-200 dark:border-green-800':
+                              quotation.status === 'approved',
+                            'bg-red-100 text-red-800 dark:bg-red-900/30 border-red-200 dark:border-red-800':
+                              quotation.status === 'rejected',
+                            'bg-blue-100 text-blue-800 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800':
+                              quotation.status === 'converted',
+                          }"
+                          class="inline-flex items-center px-2.5 py-1 rounded-full gap-x-1.5 border"
+                        >
+                          <span class="relative flex h-2 w-2">
+                            <span
+                              [ngClass]="{
+                                'bg-amber-400': quotation.status === 'pending',
+                                'bg-green-400': quotation.status === 'approved',
+                                'bg-red-400': quotation.status === 'rejected',
+                                'bg-blue-400': quotation.status === 'converted',
+                              }"
+                              class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                            ></span>
+                            <span
+                              [ngClass]="{
+                                'bg-amber-500': quotation.status === 'pending',
+                                'bg-green-500': quotation.status === 'approved',
+                                'bg-red-500': quotation.status === 'rejected',
+                                'bg-blue-500': quotation.status === 'converted',
+                              }"
+                              class="relative inline-flex rounded-full h-2 w-2"
+                            ></span>
+                          </span>
+                          <span
+                            class="text-xs font-bold uppercase letter-spacing-widest"
+                            >{{ quotation.status | titlecase }}</span
+                          >
+                        </div>
+                      </td>
+                      <td class="px-4 py-4 text-sm whitespace-nowrap">
+                        <span
+                          class="text-indigo-600 dark:text-indigo-400 font-black"
+                        >
+                          KSH {{ quotation.totalAmount | number: "1.0-0" }}
+                        </span>
+                      </td>
+                      <!-- Actions column -->
+                      <td
+                        class="px-4 py-4 text-sm whitespace-nowrap text-right"
+                      >
+                        <div class="flex items-center justify-end gap-x-2">
+                          <!-- Approve Status Button -->
+                          <button
+                            *ngIf="quotation.status === 'pending'"
+                            (click)="approveQuotationStatus(quotation)"
+                            class="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                            title="Approve Status"
+                          >
+                            <svg
+                              class="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              ></path>
+                            </svg>
+                          </button>
+
+                          <!-- Edit Button -->
+                          <button
+                            *ngIf="quotation.status !== 'converted'"
+                            (click)="updateQuotation(quotation.id)"
+                            class="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                            title="Edit quotation"
+                          >
+                            <svg
+                              class="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              ></path>
+                            </svg>
+                          </button>
+
+                          <!-- Download PDF Button -->
+                          <button
+                            (click)="downloadQuotationPDF(quotation)"
+                            [disabled]="quotation.downloadingPDF"
+                            class="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 disabled:text-slate-400 dark:disabled:text-slate-500 rounded-lg transition-colors"
+                            title="Download PDF"
+                          >
+                            <svg
+                              *ngIf="!quotation.downloadingPDF"
+                              class="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              ></path>
+                            </svg>
+                            <svg
+                              *ngIf="quotation.downloadingPDF"
+                              class="animate-spin w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                              ></circle>
+                              <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                          </button>
+
+                          <!-- Custom Print / PDF Settings Button -->
+                          <button
+                            (click)="openDocPrintModal(quotation)"
+                            class="p-2 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                            title="Custom Print / PDF"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                              />
+                            </svg>
+                          </button>
+
+                          <!-- Email PDF Button -->
+                          <button
+                            (click)="emailQuotation(quotation)"
+                            [disabled]="quotation.sendingEmail"
+                            class="p-2 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 disabled:text-slate-400 dark:disabled:text-slate-500 rounded-lg transition-colors"
+                            title="Email PDF"
+                          >
+                            <svg
+                              *ngIf="!quotation.sendingEmail"
+                              class="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                              ></path>
+                            </svg>
+                            <svg
+                              *ngIf="quotation.sendingEmail"
+                              class="animate-spin w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                              ></circle>
+                              <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                          </button>
+
+                          <!-- Convert to Cash Sale Button -->
+                          <button
+                            *ngIf="quotation.status !== 'converted'"
+                            (click)="approveQuotation(quotation.id)"
+                            class="p-2 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 rounded-lg transition-colors"
+                            title="Convert to Cash Sale"
+                          >
+                            <svg
+                              class="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                              ></path>
+                            </svg>
+                          </button>
+
+                          <!-- Convert to Invoice Button -->
+                          <button
+                            *ngIf="quotation.status === 'approved'"
+                            (click)="convertToInvoice(quotation)"
+                            [disabled]="quotation.converting"
+                            class="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 disabled:text-slate-400 dark:disabled:text-slate-500 rounded-lg transition-colors"
+                            title="Convert to Invoice"
+                          >
+                            <svg
+                              *ngIf="!quotation.converting"
+                              class="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              ></path>
+                            </svg>
+                            <svg
+                              *ngIf="quotation.converting"
+                              class="animate-spin w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                              ></circle>
+                              <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card View -->
+        <div *ngIf="viewMode === 'card'" class="p-3 sm:p-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div
+              *ngFor="let quotation of filteredQuotations"
+              class="bg-white dark:bg-slate-800/60 rounded-xl border border-gray-200 dark:border-slate-700 p-3 sm:p-4 hover:shadow-md transition-shadow"
+            >
+              <!-- Card Header -->
+              <div class="flex items-center justify-between mb-2.5">
+                <div class="flex items-center gap-2">
+                  <div class="bg-indigo-600 p-1.5 rounded-lg">
+                    <svg
+                      class="w-3.5 h-3.5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      ></path>
+                    </svg>
+                  </div>
+                  <span
+                    class="text-xs font-mono font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-slate-700 px-2 py-0.5 rounded"
+                  >
+                    #{{ quotation.referenceNumber }}
+                  </span>
+                </div>
+                <div
+                  [ngClass]="{
+                    'bg-amber-100 text-amber-800 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800':
+                      quotation.status === 'pending',
+                    'bg-green-100 text-green-800 dark:bg-green-900/30 border-green-200 dark:border-green-800':
+                      quotation.status === 'approved',
+                    'bg-red-100 text-red-800 dark:bg-red-900/30 border-red-200 dark:border-red-800':
+                      quotation.status === 'rejected',
+                    'bg-blue-100 text-blue-800 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800':
+                      quotation.status === 'converted',
+                  }"
+                  class="inline-flex items-center px-2 py-0.5 rounded-full gap-x-1 border text-[10px] font-bold uppercase"
+                >
+                  <span class="relative flex h-1.5 w-1.5">
+                    <span
+                      [ngClass]="{
+                        'bg-amber-400': quotation.status === 'pending',
+                        'bg-green-400': quotation.status === 'approved',
+                        'bg-red-400': quotation.status === 'rejected',
+                        'bg-blue-400': quotation.status === 'converted',
+                      }"
+                      class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                    ></span>
+                    <span
+                      [ngClass]="{
+                        'bg-amber-500': quotation.status === 'pending',
+                        'bg-green-500': quotation.status === 'approved',
+                        'bg-red-500': quotation.status === 'rejected',
+                        'bg-blue-500': quotation.status === 'converted',
+                      }"
+                      class="relative inline-flex rounded-full h-1.5 w-1.5"
+                    ></span>
+                  </span>
+                  {{ quotation.status | titlecase }}
+                </div>
+              </div>
+
+              <!-- Card Info -->
+              <div class="grid grid-cols-2 gap-2 mb-3 text-xs">
+                <div>
+                  <p class="text-gray-500 dark:text-slate-400">Customer</p>
+                  <p class="font-medium text-gray-900 dark:text-white truncate">
+                    {{ getCustomerNameById(quotation.customerId) }}
+                  </p>
+                  <ng-container
+                    *ngIf="getCustomerById(quotation.customerId) as cust"
+                  >
+                    <span
+                      *ngIf="
+                        cust.customerType === 'BUSINESS';
+                        else cardIndivBadge
+                      "
+                      class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-[9px] font-bold border border-purple-200 dark:border-purple-700 mt-0.5"
+                      ><i class="bi bi-building"></i>Business</span
+                    >
+                    <ng-template #cardIndivBadge>
+                      <span
+                        class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[9px] font-bold border border-blue-200 dark:border-blue-700 mt-0.5"
+                      >
+                        <i class="bi bi-person"></i>Individual
+                      </span>
+                    </ng-template>
+                    <p
+                      *ngIf="cust.kraPin"
+                      class="font-mono text-[9px] text-gray-400 dark:text-slate-500 mt-0.5"
+                    >
+                      {{ cust.kraPin }}
+                    </p>
+                  </ng-container>
+                </div>
+                <div>
+                  <p class="text-gray-500 dark:text-slate-400">Date</p>
+                  <p class="font-medium text-gray-900 dark:text-white">
+                    {{ quotation.createdAt | date: "mediumDate" }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Card Amount -->
+              <div
+                class="bg-gray-50 dark:bg-slate-900/50 rounded-lg px-3 py-2 mb-3"
+              >
+                <p
+                  class="text-[10px] text-gray-500 dark:text-slate-400 uppercase"
+                >
+                  Total Amount
+                </p>
+                <p
+                  class="text-base font-black text-indigo-600 dark:text-indigo-400"
+                >
+                  KSH {{ quotation.totalAmount | number: "1.0-0" }}
+                </p>
+              </div>
+
+              <!-- Card Actions -->
+              <div
+                class="flex items-center justify-between border-t border-gray-100 dark:border-slate-700 pt-2.5"
+              >
+                <div class="flex items-center gap-1">
+                  <!-- Approve Status -->
+                  <button
+                    *ngIf="quotation.status === 'pending'"
+                    (click)="approveQuotationStatus(quotation)"
+                    class="p-1.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                    title="Approve"
+                  >
+                    <i class="bi bi-check-circle text-sm"></i>
+                  </button>
+                  <!-- Edit -->
+                  <button
+                    *ngIf="quotation.status !== 'converted'"
+                    (click)="updateQuotation(quotation.id)"
+                    class="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                    title="Edit"
+                  >
+                    <i class="bi bi-pencil-square text-sm"></i>
+                  </button>
+                  <!-- Download PDF -->
+                  <button
+                    (click)="downloadQuotationPDF(quotation)"
+                    [disabled]="quotation.downloadingPDF"
+                    class="p-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 disabled:text-slate-400 rounded-lg transition-colors"
+                    title="Download PDF"
+                  >
+                    <i
+                      class="bi bi-file-earmark-pdf text-sm"
+                      *ngIf="!quotation.downloadingPDF"
+                    ></i>
+                    <i
+                      class="bi bi-arrow-repeat animate-spin text-sm"
+                      *ngIf="quotation.downloadingPDF"
+                    ></i>
+                  </button>
+                  <!-- Custom Print / PDF -->
+                  <button
+                    (click)="openDocPrintModal(quotation)"
+                    class="p-1.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                    title="Custom Print / PDF"
+                  >
+                    <i class="bi bi-sliders text-sm"></i>
+                  </button>
+                  <!-- Email -->
+                  <button
+                    (click)="emailQuotation(quotation)"
+                    [disabled]="quotation.sendingEmail"
+                    class="p-1.5 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 disabled:text-slate-400 rounded-lg transition-colors"
+                    title="Email"
+                  >
+                    <i
+                      class="bi bi-envelope text-sm"
+                      *ngIf="!quotation.sendingEmail"
+                    ></i>
+                    <i
+                      class="bi bi-arrow-repeat animate-spin text-sm"
+                      *ngIf="quotation.sendingEmail"
+                    ></i>
+                  </button>
+                </div>
+                <div class="flex items-center gap-1">
+                  <!-- Convert to Cash Sale -->
+                  <button
+                    *ngIf="quotation.status !== 'converted'"
+                    (click)="approveQuotation(quotation.id)"
+                    class="px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/20 hover:bg-cyan-100 dark:hover:bg-cyan-900/40 rounded-lg transition-colors border border-cyan-200 dark:border-cyan-800"
+                    title="Convert to Cash Sale"
+                  >
+                    Cash Sale
+                  </button>
+                  <!-- Convert to Invoice -->
+                  <button
+                    *ngIf="quotation.status === 'approved'"
+                    (click)="convertToInvoice(quotation)"
+                    [disabled]="quotation.converting"
+                    class="px-2 py-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 disabled:opacity-50 rounded-lg transition-colors border border-emerald-200 dark:border-emerald-800"
+                    title="Convert to Invoice"
+                  >
+                    Invoice
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Document Print Settings Modal -->
+<app-document-print-settings
+  [docType]="'quotation'"
+  [data]="docPrintData"
+  [isOpen]="docPrintModalOpen"
+  (closed)="closeDocPrintModal()"
+>
+</app-document-print-settings>

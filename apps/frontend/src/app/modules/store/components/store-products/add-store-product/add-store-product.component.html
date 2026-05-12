@@ -1,0 +1,282 @@
+<!-- Modal Backdrop -->
+<div
+  tabindex="-1"
+  aria-hidden="true"
+  class="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-y-auto backdrop-blur-sm bg-black/40 transition-opacity"
+>
+  <div
+    class="relative w-full max-w-2xl mx-4 animate-slideIn max-h-[85vh] sm:max-h-[90vh] overflow-y-auto"
+  >
+    <div
+      class="relative bg-gradient-to-br from-white to-purple-50 dark:from-slate-900 dark:to-slate-900 rounded-t-2xl sm:rounded-2xl shadow-2xl border border-purple-100 dark:border-gray-700"
+    >
+      <!-- Modal Header -->
+      <div
+        class="bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20 rounded-t-2xl sticky top-0 z-10"
+      >
+        <div class="flex justify-between items-center p-4 sm:p-6">
+          <h3 class="text-lg sm:text-2xl font-black text-white uppercase tracking-[0.1em]">
+            {{ isUpdateMode ? "Update" : "Add" }} Store Product
+          </h3>
+          <button
+            (click)="closeModal()"
+            type="button"
+            class="text-white/80 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors"
+          >
+            <svg
+              class="w-5 h-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form
+        [formGroup]="productForm"
+        (ngSubmit)="submit()"
+        class="p-4 sm:p-6 space-y-5"
+      >
+        <!-- Product Name & SKU -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="md:col-span-2 space-y-2">
+            <label
+              for="productName"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Product Name <span class="text-red-500">*</span></label
+            >
+            <input
+              id="productName"
+              type="text"
+              formControlName="productName"
+              placeholder="Enter product name"
+              class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50"
+              [ngClass]="{
+                'border-red-500 focus:ring-red-500':
+                  productForm.get('productName')?.invalid &&
+                  productForm.get('productName')?.touched,
+              }"
+            />
+            <div
+              *ngIf="
+                productForm.get('productName')?.invalid &&
+                productForm.get('productName')?.touched
+              "
+              class="text-sm text-red-500"
+            >
+              Product name is required
+            </div>
+          </div>
+          <div class="space-y-2">
+            <label
+              for="sku"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >SKU
+              <span class="text-xs text-gray-400">(auto-generated)</span></label
+            >
+            <input
+              id="sku"
+              type="text"
+              formControlName="sku"
+              placeholder="Auto-generated"
+              class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50"
+            />
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="space-y-2">
+          <label
+            for="description"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Description</label
+          >
+          <textarea
+            id="description"
+            formControlName="description"
+            rows="2"
+            placeholder="Optional product description"
+            class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50 resize-none"
+          ></textarea>
+        </div>
+
+        <!-- Category & Department -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label
+              for="storeCategoryId"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Category <span class="text-red-500">*</span></label
+            >
+            <select
+              id="storeCategoryId"
+              formControlName="storeCategoryId"
+              class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50"
+            >
+              <option value="">Select Category</option>
+              <option
+                *ngFor="let category of storeCategories"
+                [value]="category.id"
+              >
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label
+              for="departmentId"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Department <span class="text-red-500">*</span></label
+            >
+            <select
+              id="departmentId"
+              formControlName="departmentId"
+              class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50"
+            >
+              <option value="">Select Department</option>
+              <option
+                *ngFor="let department of departments"
+                [value]="department.id"
+              >
+                {{ department.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Unit, Price, Quantity -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="space-y-2">
+            <label
+              for="unitOfMeasurement"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Unit <span class="text-red-500">*</span></label
+            >
+            <input
+              id="unitOfMeasurement"
+              type="text"
+              formControlName="unitOfMeasurement"
+              placeholder="e.g., PCS, KG"
+              class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50"
+            />
+          </div>
+          <div class="space-y-2">
+            <label
+              for="buyingPrice"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Buying Price (KSH) <span class="text-red-500">*</span></label
+            >
+            <input
+              id="buyingPrice"
+              type="number"
+              formControlName="buyingPrice"
+              placeholder="0.00"
+              step="0.01"
+              class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50"
+            />
+          </div>
+          <div class="space-y-2">
+            <label
+              for="quantity"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Quantity <span class="text-red-500">*</span></label
+            >
+            <input
+              id="quantity"
+              type="number"
+              formControlName="quantity"
+              placeholder="0"
+              class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50"
+            />
+          </div>
+        </div>
+
+        <!-- Reorder Level, Max Stock, Location -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="space-y-2">
+            <label
+              for="reorderLevel"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Reorder Level</label
+            >
+            <input
+              id="reorderLevel"
+              type="number"
+              formControlName="reorderLevel"
+              placeholder="0"
+              class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50"
+            />
+            <p class="text-xs text-gray-400">Alert when stock falls below</p>
+          </div>
+          <div class="space-y-2">
+            <label
+              for="maxStock"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Max Stock</label
+            >
+            <input
+              id="maxStock"
+              type="number"
+              formControlName="maxStock"
+              placeholder="0"
+              class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50"
+            />
+          </div>
+          <div class="space-y-2">
+            <label
+              for="location"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Location</label
+            >
+            <input
+              id="location"
+              type="text"
+              formControlName="location"
+              placeholder="e.g., Shelf A-3"
+              class="w-full text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 outline-none bg-white/50 dark:bg-slate-900/50"
+            />
+          </div>
+        </div>
+
+        <!-- Active Toggle -->
+        <div class="flex items-center gap-3">
+          <input
+            id="isActive"
+            type="checkbox"
+            formControlName="isActive"
+            class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+          />
+          <label
+            for="isActive"
+            class="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Active Product</label
+          >
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-4">
+          <button
+            type="submit"
+            [disabled]="productForm.invalid || loading"
+            class="w-full py-2.5 px-4 rounded-lg font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:translate-y-0"
+          >
+            <span *ngIf="!loading"
+              >{{ isUpdateMode ? "Update" : "Add" }} Store Product</span
+            >
+            <span *ngIf="loading">Processing...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

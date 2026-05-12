@@ -1,0 +1,17 @@
+/* Action badge colors */
+.badge-success { background-color: #16a34a; }
+.badge-info { background-color: #0891b2; }
+.badge-danger { background-color: #dc2626; }
+.badge-warning { background-color: #d97706; color: #fff; }
+.badge-primary { background-color: #2563eb; }
+.badge-secondary { background-color: #6b7280; }
+
+/* Date input icon color fix for dark mode */
+:host-context(.dark) input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* Select dropdown arrow for dark mode */
+:host-context(.dark) select {
+  color-scheme: dark;
+}
