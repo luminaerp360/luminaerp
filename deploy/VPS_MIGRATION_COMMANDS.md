@@ -60,7 +60,7 @@ ls  # confirm deploy/, apps/, .github/ are present
 > ```
 >
 > Then go to: **https://github.com/luminaerp360/luminaerp → Settings → Deploy keys → Add deploy key**
-> Paste the public key, tick "Allow write access" is NOT needed.
+> Paste the public key, tick "Allow write access" is NOT neededd.
 
 ---
 
