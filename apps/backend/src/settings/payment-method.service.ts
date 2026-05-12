@@ -10,10 +10,21 @@ export class PaymentMethodService {
    * Create a new payment method
    */
   async create(dto: CreatePaymentMethodDto) {
+    const settings = await this.prisma.organizationSettings.findUnique({
+      where: { organizationId: dto.organizationId },
+      select: { id: true },
+    });
+
+    if (!settings) {
+      throw new NotFoundException(
+        'Organization settings not found. Please initialize settings first.',
+      );
+    }
+
     // Check if code already exists for this settings
     const existing = await this.prisma.paymentMethodConfig.findFirst({
       where: {
-        settingsId: dto.settingsId,
+        settingsId: settings.id,
         code: dto.code,
       },
     });
@@ -25,7 +36,22 @@ export class PaymentMethodService {
     }
 
     return this.prisma.paymentMethodConfig.create({
-      data: dto,
+      data: {
+        organizationId: dto.organizationId,
+        settingsId: settings.id,
+        name: dto.name,
+        code: dto.code,
+        displayName: dto.displayName,
+        description: dto.description,
+        icon: dto.icon,
+        enabled: dto.enabled,
+        sortOrder: dto.sortOrder,
+        requiresReference: dto.requiresReference,
+        autoReconcile: dto.autoReconcile,
+        accountNumber: dto.accountNumber,
+        providerName: dto.providerName,
+        providerConfig: dto.providerConfig,
+      },
     });
   }
 
