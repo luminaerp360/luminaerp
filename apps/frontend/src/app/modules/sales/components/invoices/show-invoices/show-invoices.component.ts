@@ -17,8 +17,8 @@ import {
   AppearanceAnimation,
   DisappearanceAnimation,
 } from '@ng-vibe/dialog';
-import { DocumentPrintService } from '../../../../../shared/services/document-print.service';
-import { DocumentData } from '../../../../../shared/services/document-template.service';
+import { DocumentPrintService } from '../../../../../shared/Services/document-print.service';
+import { DocumentData } from '../../../../../shared/Services/document-template.service';
 
 interface SelectedPayment {
   methodId: number;

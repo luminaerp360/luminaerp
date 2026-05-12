@@ -9,8 +9,8 @@ import { Customer } from '../../../../shared/interfaces/customer.interface';
 import { Product } from '../../../../shared/interfaces/products';
 import { QuotationReceiptService } from '../../services/QuotationReceiptService.service';
 import { OrgDetailsService } from '../../../../shared/Services/org-details.service';
-import { DocumentPrintService } from '../../../../shared/services/document-print.service';
-import { DocumentData } from '../../../../shared/services/document-template.service';
+import { DocumentPrintService } from '../../../../shared/Services/document-print.service';
+import { DocumentData } from '../../../../shared/Services/document-template.service';
 
 @Component({
   selector: 'app-show-quotations',

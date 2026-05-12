@@ -13,8 +13,8 @@ import { ReceiptService } from '../../services/receiprt.service';
 import { OrgDetailsService } from '../../../../shared/Services/org-details.service';
 import { PermissionService } from '../../../../shared/Services/permission.service';
 import { CustomerService } from '../../../../shared/Services/customer.service';
-import { DocumentPrintService } from '../../../../shared/services/document-print.service';
-import { DocumentData } from '../../../../shared/services/document-template.service';
+import { DocumentPrintService } from '../../../../shared/Services/document-print.service';
+import { DocumentData } from '../../../../shared/Services/document-template.service';
 import { DocumentTypeSettings } from '../../../../shared/interfaces/settings.interface';
 
 @Component({

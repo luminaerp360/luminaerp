@@ -19,8 +19,8 @@ import {
 import {
   DocumentTemplateService,
   DocumentData,
-} from '../../services/document-template.service';
-import { DocumentPrintService } from '../../services/document-print.service';
+} from '../../Services/document-template.service';
+import { DocumentPrintService } from '../../Services/document-print.service';
 import { SettingsService } from '../../Services/settings.service';
 import { HotToastService } from '@ngneat/hot-toast';
 
