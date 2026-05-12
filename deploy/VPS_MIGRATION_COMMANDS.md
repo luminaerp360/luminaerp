@@ -1,67 +1,78 @@
-# VPS Migration — Move to luminaerp360/luminaerp
+# VPS Migration — Tear Down Old Repo & Redeploy from luminaerp360/luminaerp
 
-Run these commands on the VPS. Docker and Nginx are already installed.
+Run these commands **in order** on the VPS web console.
+Other projects (`lumifarm`, `lumina-admin`, `lumischool`, `ecommerce-backend`) are **not touched**.
 
 ---
 
-## Step 1 — Stop & Remove Old Lumina ERP Deployment
+## PHASE 1 — Tear Down Old lumina-erp Deployment
 
 ```bash
 cd /opt/lumina-erp
 
-# Stop any running containers for this project
-docker compose -f deploy/docker-compose.blue.yml stop 2>/dev/null || true
-docker compose -f deploy/docker-compose.green.yml stop 2>/dev/null || true
-docker compose -f deploy/docker-compose.blue.yml down 2>/dev/null || true
-docker compose -f deploy/docker-compose.green.yml down 2>/dev/null || true
+# 1a. Stop and remove all containers from this project only
+docker compose -f deploy/docker-compose.blue.yml down --remove-orphans 2>/dev/null || true
+docker compose -f deploy/docker-compose.green.yml down --remove-orphans 2>/dev/null || true
 
-# Remove old images from old org (shaphankirui)
+# Confirm no lumina-erp containers remain
+docker ps -a --format "{{.Names}}" | grep lumina
+
+# 1b. Remove old GHCR images to free disk space
 docker rmi ghcr.io/shaphankirui/lumina-backend:latest 2>/dev/null || true
 docker rmi ghcr.io/shaphankirui/lumina-frontend:latest 2>/dev/null || true
 docker image prune -f
 
-# Stop PM2 processes for this project (if any still running from old setup)
+# 1c. Kill any PM2 processes left from the old PM2-based setup
 pm2 delete lumina-backend 2>/dev/null || true
 pm2 delete lumina-frontend 2>/dev/null || true
-pm2 save 2>/dev/null || true
+pm2 save --force 2>/dev/null || true
+
+# 1d. Remove old per-project Nginx site files (NOT the lumina-admin ones)
+rm -f /etc/nginx/sites-enabled/lumina-erp
+rm -f /etc/nginx/sites-enabled/lumina-backend
+rm -f /etc/nginx/sites-enabled/lumina-frontend
+rm -f /etc/nginx/sites-available/lumina-erp
+nginx -t && systemctl reload nginx
 ```
 
 ---
 
-## Step 2 — Update Git Remote to New Repo
+## PHASE 2 — Delete Old Folder & Clone New Repo
 
 ```bash
-cd /opt/lumina-erp
+cd /opt
 
-# Verify current remote
-git remote -v
+# Delete old folder entirely (the new repo is different — can't just change remote)
+rm -rf lumina-erp
 
-# Update remote to new org
-git remote set-url origin git@github.com:luminaerp360/luminaerp.git
+# Clone from the new org
+git clone git@github.com:luminaerp360/luminaerp.git lumina-erp
 
-# Pull latest code
-git pull origin main
+cd lumina-erp
+ls  # confirm deploy/, apps/, .github/ are present
 ```
 
-> **If git pull fails** (unrelated histories or repo was replaced):
+> **If git clone fails with "Permission denied (publickey)":**
+> The VPS needs read access to the new repo. Add the VPS public key as a Deploy Key:
 >
 > ```bash
-> cd /opt
-> rm -rf lumina-erp
-> git clone git@github.com:luminaerp360/luminaerp.git lumina-erp
-> cd lumina-erp
+> cat /root/.ssh/id_rsa.pub   # or id_ed25519.pub
 > ```
+>
+> Then go to: **https://github.com/luminaerp360/luminaerp → Settings → Deploy keys → Add deploy key**
+> Paste the public key, tick "Allow write access" is NOT needed.
 
 ---
 
-## Step 3 — Update .env on VPS
+## PHASE 3 — Write the .env File
 
 ```bash
+mkdir -p /opt/lumina-erp/apps/backend
+
 cat > /opt/lumina-erp/apps/backend/.env << 'EOF'
 NODE_ENV=production
 PORT=3000
 
-# PostgreSQL (DigitalOcean Managed — use the cloud URL in production)
 DATABASE_URL="postgresql://doadmin:AVNS_aRaQKWah4A2MmUVYmzS@db-postgresql-nyc3-93484-do-user-19339309-0.f.db.ondigitalocean.com:25060/defaultdb?sslmode=require"
 
 JWT_SECRET=FvatoypE6BfnRZ1djLjUQMYrlEI27UJg3LbeVXn4NEqttK2eR1lucVNvvSAOCaJkWFWanqb2qm6EleTFJY6VSw==
@@ -77,84 +88,100 @@ SMTP_USER=luminaerp360@gmail.com
 SMTP_PASSWORD=uloh bcxz vqgf stgt
 SMTP_FROM_EMAIL=luminaerp360@gmail.com
 EOF
+
+ls -la /opt/lumina-erp/apps/backend/.env
 ```
 
 ---
 
-## Step 4 — Install Nginx Deploy Configs
+## PHASE 4 — Install Nginx Configs
 
 ```bash
 cd /opt/lumina-erp
 
-# Copy upstream config (managed by deploy.sh)
+# Upstream config — rewritten on every blue/green swap
 cp deploy/nginx-upstream.conf /etc/nginx/conf.d/lumina-upstream.conf
 
-# Copy static server blocks
-cp deploy/nginx-backend.conf /etc/nginx/sites-available/api.lumina360.tech
+# Static server blocks for the two domains
+cp deploy/nginx-backend.conf  /etc/nginx/sites-available/api.lumina360.tech
 cp deploy/nginx-frontend.conf /etc/nginx/sites-available/erp.lumina360.tech
 
-# Enable sites (remove old symlinks first if they exist)
+# Enable them
 rm -f /etc/nginx/sites-enabled/api.lumina360.tech
 rm -f /etc/nginx/sites-enabled/erp.lumina360.tech
-ln -sf /etc/nginx/sites-available/api.lumina360.tech /etc/nginx/sites-enabled/
-ln -sf /etc/nginx/sites-available/erp.lumina360.tech /etc/nginx/sites-enabled/
+ln -sf /etc/nginx/sites-available/api.lumina360.tech  /etc/nginx/sites-enabled/
+ln -sf /etc/nginx/sites-available/erp.lumina360.tech  /etc/nginx/sites-enabled/
 
-# Test and reload
 nginx -t && systemctl reload nginx
 ```
 
+> **If nginx -t fails: "cannot load certificate"** — SSL certs are missing. Get them first:
+>
+> ```bash
+> systemctl stop nginx
+> certbot certonly --standalone -d api.lumina360.tech --non-interactive --agree-tos -m luminaerp360@gmail.com
+> certbot certonly --standalone -d erp.lumina360.tech --non-interactive --agree-tos -m luminaerp360@gmail.com
+> systemctl start nginx && nginx -t
+> ```
+
 ---
 
-## Step 5 — Authenticate Docker to GHCR (new org)
+## PHASE 5 — Authenticate Docker to GHCR (New Org)
 
-Generate a GitHub PAT at https://github.com/settings/tokens with **only** `read:packages` scope.
+1. Go to **https://github.com/settings/tokens/new**
+2. Tick **only** `read:packages`
+3. Copy the token, then on the VPS:
 
 ```bash
-# Replace <YOUR_GHCR_READ_PAT> with the token you generated
-echo "<YOUR_GHCR_READ_PAT>" | docker login ghcr.io -u luminaerp360 --password-stdin
+echo "<YOUR_READ_PACKAGES_PAT>" | docker login ghcr.io -u luminaerp360 --password-stdin
+# Expected: Login Succeeded
 ```
 
 ---
 
-## Step 6 — Generate a New SSH Deploy Key for GitHub Actions
+## PHASE 6 — Generate GitHub Actions Deploy SSH Key
 
 ```bash
 ssh-keygen -t ed25519 -C "github-actions-deploy" -f /root/.ssh/gha_deploy -N ""
 cat /root/.ssh/gha_deploy.pub >> /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/gha_deploy
 
-# Print the private key — copy this into GitHub secret VPS_SSH_KEY
+# Print private key — copy this EXACTLY into the VPS_SSH_KEY GitHub secret
 cat /root/.ssh/gha_deploy
 ```
 
 ---
 
-## Step 7 — Add GitHub Secrets (New Repo)
+## PHASE 7 — Add GitHub Actions Secrets
 
-Go to: **https://github.com/luminaerp360/luminaerp → Settings → Secrets → Actions**
+**https://github.com/luminaerp360/luminaerp → Settings → Secrets and variables → Actions**
 
-| Secret Name       | Value                                                  |
-| ----------------- | ------------------------------------------------------ |
-| `VPS_HOST`        | `64.23.162.220`                                        |
-| `VPS_SSH_KEY`     | Full contents of `/root/.ssh/gha_deploy` (private key) |
-| `GHCR_READ_TOKEN` | GitHub PAT with `read:packages` scope                  |
+| Secret Name       | Value                                                      |
+| ----------------- | ---------------------------------------------------------- |
+| `VPS_HOST`        | `64.23.162.220`                                            |
+| `VPS_SSH_KEY`     | Full contents of `/root/.ssh/gha_deploy` (the private key) |
+| `GHCR_READ_TOKEN` | GitHub PAT with `read:packages` scope (from Phase 5)       |
 
 ---
 
-## Step 8 — Bootstrap First Deploy
+## PHASE 8 — Trigger First Build & Deploy
 
-The GitHub Actions workflow builds the images on push to `main`. For the **very first time**, trigger a build before deploying:
+GitHub Actions builds Docker images when you push to `main`. The images must be in GHCR before `deploy.sh` can pull them.
 
-**Option A — Push to main to trigger Actions:**
+**From your local machine — push to trigger the pipeline:**
 
 ```bash
-# On your local machine
+git remote set-url origin git@github.com:luminaerp360/luminaerp.git
 git push origin main
-# Wait for Actions to build and push images to ghcr.io/luminaerp360/lumina-backend and lumina-frontend
-# Then Actions will auto-deploy
 ```
 
-**Option B — Manual bootstrap on VPS (if Actions already ran):**
+GitHub Actions will:
+
+1. Build and push `ghcr.io/luminaerp360/lumina-backend:latest`
+2. Build and push `ghcr.io/luminaerp360/lumina-frontend:latest`
+3. SSH into VPS and run `bash deploy/deploy.sh all` (blue/green swap)
+
+**To manually trigger on VPS after Actions completes:**
 
 ```bash
 cd /opt/lumina-erp
@@ -164,13 +191,21 @@ bash deploy/deploy.sh
 
 ---
 
-## Step 9 — Initialize Active Stack State
-
-If `.active-stack` does not exist yet, deploy.sh will treat active as "none" and deploy to blue:
+## Verify Everything is Running
 
 ```bash
-# Check current state
-cat /opt/lumina-erp/deploy/.active-stack 2>/dev/null || echo "(no state file — first deploy will create it)"
+# Containers running
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+# Active stack
+bash /opt/lumina-erp/deploy/deploy.sh status
+
+# Smoke test endpoints
+curl -I https://api.lumina360.tech/
+curl -I https://erp.lumina360.tech/
+
+# Backend logs
+docker logs lumina-backend-blue --tail=50
 ```
 
 ---
@@ -178,16 +213,13 @@ cat /opt/lumina-erp/deploy/.active-stack 2>/dev/null || echo "(no state file —
 ## Ongoing Commands
 
 ```bash
-# Manual deploy latest image
-bash /opt/lumina-erp/deploy/deploy.sh
+bash /opt/lumina-erp/deploy/deploy.sh            # deploy latest image
+bash /opt/lumina-erp/deploy/deploy.sh rollback   # instant rollback
+bash /opt/lumina-erp/deploy/deploy.sh status     # show active stack
+bash /opt/lumina-erp/deploy/deploy.sh backend    # backend only
+bash /opt/lumina-erp/deploy/deploy.sh frontend   # frontend only
+```
 
-# Instant rollback (keeps old container, no rebuild needed)
-bash /opt/lumina-erp/deploy/deploy.sh rollback
+```
 
-# Check which slot is live
-bash /opt/lumina-erp/deploy/deploy.sh status
-
-# View container logs
-docker logs lumina-backend-blue --tail=100 -f
-docker logs lumina-backend-green --tail=100 -f
 ```
