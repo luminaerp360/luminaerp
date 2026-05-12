@@ -116,8 +116,6 @@ export class ShowSalesComponent extends BaseComponent {
       'sales',
       'delete',
     );
-
-
   }
 
   loadOrgDetails() {

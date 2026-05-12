@@ -185,12 +185,13 @@ export class AuthService {
     const isPasswordValid = await argon.verify(user.password, dto.password);
     if (!isPasswordValid) throw new ForbiddenException('Invalid credentials.');
 
-    // Block login if email is not verified (only for email-registered users)
-    if (!user.isEmailVerified && user.authProvider === 'email') {
-      throw new ForbiddenException(
-        'Please verify your email address before logging in. Check your inbox for the verification link.',
-      );
-    }
+    // TEMPORARILY DISABLED: Block login if email is not verified (only for email-registered users)
+    // Re-enable after DigitalOcean unblocks SMTP ports
+    // if (!user.isEmailVerified && user.authProvider === 'email') {
+    //   throw new ForbiddenException(
+    //     'Please verify your email address before logging in. Check your inbox for the verification link.',
+    //   );
+    // }
 
     // Get additional organizations access in a single query
     const additionalAccess = await this.prisma.userOrganizationAccess.findMany({
