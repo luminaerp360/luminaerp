@@ -93,19 +93,24 @@ switch_nginx() {
 
   log "Switching Nginx to $new_stack stack (backend:$backend_port, frontend:$frontend_port)..."
 
-  # Update backend upstream
-  cat > "$NGINX_UPSTREAM_DIR/lumina-backend-upstream.conf" << EOF
+  # Write both upstreams to the single managed file
+  cat > "$NGINX_UPSTREAM_DIR/lumina-upstream.conf" << EOF
+# Managed by deploy.sh — DO NOT EDIT MANUALLY
+# Active stack: $new_stack
 upstream lumina_backend {
     server 127.0.0.1:$backend_port;
+    keepalive 32;
+}
+
+upstream lumina_frontend {
+    server 127.0.0.1:$frontend_port;
+    keepalive 32;
 }
 EOF
 
-  # Update frontend upstream
-  cat > "$NGINX_UPSTREAM_DIR/lumina-frontend-upstream.conf" << EOF
-upstream lumina_frontend {
-    server 127.0.0.1:$frontend_port;
-}
-EOF
+  # Remove old split files if they exist from previous deploys
+  rm -f "$NGINX_UPSTREAM_DIR/lumina-backend-upstream.conf"
+  rm -f "$NGINX_UPSTREAM_DIR/lumina-frontend-upstream.conf"
 
   # Test and reload nginx
   if nginx -t 2>/dev/null; then
