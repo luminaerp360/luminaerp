@@ -1,6 +1,6 @@
 services:
   lumina-backend-blue:
-    image: ghcr.io/shaphankirui/lumina-backend:${IMAGE_TAG:-latest}
+    image: ghcr.io/luminaerp360/lumina-backend:${IMAGE_TAG:-latest}
     container_name: lumina-backend-blue
     restart: unless-stopped
     network_mode: host
@@ -25,7 +25,7 @@ services:
       retries: 3
 
   lumina-frontend-blue:
-    image: ghcr.io/shaphankirui/lumina-frontend:${IMAGE_TAG:-latest}
+    image: ghcr.io/luminaerp360/lumina-frontend:${IMAGE_TAG:-latest}
     container_name: lumina-frontend-blue
     restart: unless-stopped
     ports:

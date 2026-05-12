@@ -15,7 +15,7 @@ set -e
 PROJECT_DIR="/opt/lumina-erp"
 STATE_FILE="$PROJECT_DIR/deploy/.active-stack"
 NGINX_UPSTREAM_DIR="/etc/nginx/conf.d"
-REGISTRY="ghcr.io/shaphankirui"
+REGISTRY="ghcr.io/luminaerp360"
 HEALTH_CHECK_RETRIES=30
 HEALTH_CHECK_INTERVAL=5
 
