@@ -1,6 +1,13 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreatePaymentMethodDto, UpdatePaymentMethodDto } from './payment-method.dto';
+import {
+  CreatePaymentMethodDto,
+  UpdatePaymentMethodDto,
+} from './payment-method.dto';
 
 @Injectable()
 export class PaymentMethodService {
