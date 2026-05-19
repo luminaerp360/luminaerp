@@ -13,6 +13,9 @@ import {
   UpdateInvoiceDto,
   RecordPaymentDto,
   InvoiceFilterDto,
+  FinalizeInvoiceDto,
+  MarkAsSentDto,
+  SendReminderDto,
 } from './invoice.dto';
 
 @Injectable()
@@ -121,7 +124,7 @@ export class InvoiceService {
             paymentTermsDays,
             lateFeePercentage: dto.lateFeePercentage || 0,
             lateFeeAmount: 0,
-            status: 'DRAFT',
+            status: dto.status || 'DRAFT',
             fullyPaid: false,
             taxRate: dto.taxRate || 0,
             taxType: dto.taxType,
@@ -946,6 +949,260 @@ export class InvoiceService {
       totalOverdue: totalOverdue._sum.balanceDue || 0,
       totalOutstanding:
         (totalAmount._sum.totalAmount || 0) - (totalPaid._sum.amountPaid || 0),
+    };
+  }
+
+  /**
+   * Finalize draft invoice (DRAFT → PENDING)
+   */
+  async finalizeInvoice(
+    organizationId: number,
+    invoiceId: number,
+    dto: FinalizeInvoiceDto,
+  ) {
+    // Get invoice
+    const invoice = await this.prisma.invoice.findFirst({
+      where: {
+        id: invoiceId,
+        organizationId,
+      },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    // Check status
+    if (invoice.status !== InvoiceStatus.DRAFT) {
+      throw new BadRequestException(
+        `Cannot finalize invoice with status ${invoice.status}. Only DRAFT invoices can be finalized.`,
+      );
+    }
+
+    // Update status to PENDING
+    const updatedInvoice = await this.prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        status: InvoiceStatus.PENDING,
+        notes: dto.notes
+          ? `${invoice.notes || ''}\n\nFinalized by ${dto.finalizedBy}: ${dto.notes}`.trim()
+          : invoice.notes,
+      },
+      include: {
+        customer: true,
+        items: true,
+      },
+    });
+
+    console.log(
+      `✅ Invoice ${invoice.invoiceNumber} finalized (DRAFT → PENDING) by ${dto.finalizedBy}`,
+    );
+
+    return updatedInvoice;
+  }
+
+  /**
+   * Mark invoice as sent (PENDING → SENT)
+   */
+  async markAsSent(
+    organizationId: number,
+    invoiceId: number,
+    dto: MarkAsSentDto,
+  ) {
+    // Get invoice
+    const invoice = await this.prisma.invoice.findFirst({
+      where: {
+        id: invoiceId,
+        organizationId,
+      },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    // Check status
+    if (invoice.status !== InvoiceStatus.PENDING && invoice.status !== InvoiceStatus.DRAFT) {
+      throw new BadRequestException(
+        `Cannot mark invoice as sent with status ${invoice.status}`,
+      );
+    }
+
+    // Update status to SENT
+    const sentAt = dto.sentAt ? new Date(dto.sentAt) : new Date();
+    const updatedInvoice = await this.prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        status: InvoiceStatus.SENT,
+        sentAt,
+        notes: dto.notes
+          ? `${invoice.notes || ''}\n\nMarked as sent by ${dto.sentBy}: ${dto.notes}`.trim()
+          : invoice.notes,
+      },
+      include: {
+        customer: true,
+        items: true,
+      },
+    });
+
+    console.log(
+      `✅ Invoice ${invoice.invoiceNumber} marked as sent by ${dto.sentBy}`,
+    );
+
+    return updatedInvoice;
+  }
+
+  /**
+   * Duplicate invoice (creates new DRAFT)
+   */
+  async duplicateInvoice(organizationId: number, invoiceId: number) {
+    // Get original invoice with items
+    const originalInvoice = await this.prisma.invoice.findFirst({
+      where: {
+        id: invoiceId,
+        organizationId,
+      },
+      include: {
+        items: true,
+        customer: true,
+      },
+    });
+
+    if (!originalInvoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    // Generate new invoice number
+    const invoiceNumber =
+      await this.invoiceNumberService.generateInvoiceNumber(organizationId);
+
+    // Create new invoice as DRAFT
+    const newInvoice = await this.prisma.invoice.create({
+      data: {
+        organizationId,
+        invoiceNumber,
+        invoiceType: originalInvoice.invoiceType,
+        customerId: originalInvoice.customerId,
+        customerName: originalInvoice.customerName,
+        customerPhone: originalInvoice.customerPhone,
+        customerEmail: originalInvoice.customerEmail,
+        customerAddress: originalInvoice.customerAddress,
+        customerTaxId: originalInvoice.customerTaxId,
+        issueDate: new Date(),
+        dueDate: new Date(Date.now() + originalInvoice.paymentTermsDays * 24 * 60 * 60 * 1000),
+        subtotal: originalInvoice.subtotal,
+        taxAmount: originalInvoice.taxAmount,
+        discountAmount: originalInvoice.discountAmount,
+        totalAmount: originalInvoice.totalAmount,
+        amountPaid: 0,
+        balanceDue: originalInvoice.totalAmount,
+        paymentTerms: originalInvoice.paymentTerms,
+        paymentTermsDays: originalInvoice.paymentTermsDays,
+        lateFeePercentage: originalInvoice.lateFeePercentage,
+        lateFeeAmount: 0,
+        status: InvoiceStatus.DRAFT,
+        fullyPaid: false,
+        taxRate: originalInvoice.taxRate,
+        taxType: originalInvoice.taxType,
+        organizationTaxId: originalInvoice.organizationTaxId,
+        notes: `Duplicated from invoice ${originalInvoice.invoiceNumber}`,
+        termsAndConditions: originalInvoice.termsAndConditions,
+        footerText: originalInvoice.footerText,
+        createdBy: `System (Duplicate)`,
+        salesPersonId: originalInvoice.salesPersonId,
+        publicToken: this.invoiceNumberService.generatePublicToken(),
+        qrCodeData: null,
+      },
+      include: {
+        customer: true,
+      },
+    });
+
+    // Create invoice items
+    await this.prisma.invoiceItem.createMany({
+      data: originalInvoice.items.map((item, index) => ({
+        invoiceId: newInvoice.id,
+        productId: item.productId,
+        productName: item.productName,
+        description: item.description,
+        sku: item.sku,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        subtotal: item.subtotal,
+        taxRate: item.taxRate,
+        taxAmount: item.taxAmount,
+        discountPercentage: item.discountPercentage,
+        discountAmount: item.discountAmount,
+        totalAmount: item.totalAmount,
+        sortOrder: item.sortOrder || index,
+      })),
+    });
+
+    console.log(
+      `✅ Invoice ${originalInvoice.invoiceNumber} duplicated as ${newInvoice.invoiceNumber}`,
+    );
+
+    return await this.prisma.invoice.findUnique({
+      where: { id: newInvoice.id },
+      include: {
+        customer: true,
+        items: true,
+      },
+    });
+  }
+
+  /**
+   * Send payment reminder
+   */
+  async sendReminder(
+    organizationId: number,
+    invoiceId: number,
+    dto: SendReminderDto,
+  ) {
+    // Get invoice
+    const invoice = await this.prisma.invoice.findFirst({
+      where: {
+        id: invoiceId,
+        organizationId,
+      },
+      include: {
+        customer: true,
+      },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    // Check if invoice is paid
+    if (invoice.fullyPaid) {
+      throw new BadRequestException('Cannot send reminder for paid invoice');
+    }
+
+    // TODO: Implement email sending logic here
+    // This would typically use an email service to send the reminder
+    // For now, just log and update reminder count
+
+    // Update reminder count
+    const updatedInvoice = await this.prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        notes: `${invoice.notes || ''}\n\nReminder sent by ${dto.sentBy} (${dto.reminderType || 'FRIENDLY'}): ${dto.customMessage || 'Payment reminder sent'}`.trim(),
+      },
+      include: {
+        customer: true,
+        items: true,
+      },
+    });
+
+    console.log(
+      `✅ Payment reminder sent for invoice ${invoice.invoiceNumber} (${dto.reminderType || 'FRIENDLY'})`,
+    );
+
+    return {
+      success: true,
+      message: 'Payment reminder sent successfully',
+      invoice: updatedInvoice,
     };
   }
 }

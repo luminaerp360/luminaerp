@@ -74,6 +74,7 @@ export class ShowInvoicesComponent extends BaseComponent implements OnInit {
     color: string;
   }> = [
     { value: 'all', label: 'All', color: 'bg-gray-100' },
+    { value: InvoiceStatus.DRAFT, label: 'Draft', color: 'bg-slate-100' },
     { value: InvoiceStatus.PENDING, label: 'Pending', color: 'bg-yellow-100' },
     { value: InvoiceStatus.SENT, label: 'Sent', color: 'bg-blue-100' },
     {
@@ -917,5 +918,115 @@ export class ShowInvoicesComponent extends BaseComponent implements OnInit {
     if (!target.closest('.dropdown-container')) {
       this.openDropdowns.clear();
     }
+  }
+
+  /**
+   * Finalize draft invoice (DRAFT → PENDING)
+   */
+  finalizeInvoice(invoice: Invoice): void {
+    const confirmation = confirm(
+      `Finalize invoice ${invoice.invoiceNumber}? This will mark it as ready for sending and payment.`
+    );
+
+    if (!confirmation) return;
+
+    this.invoiceService
+      .finalizeInvoice(this.orgDetails.id, invoice.id!)
+      .subscribe({
+        next: (updatedInvoice) => {
+          this.toast.success('Invoice finalized successfully');
+          this.loadInvoices();
+          this.openDropdowns.delete(invoice.id!);
+        },
+        error: (error) => {
+          console.error('Error finalizing invoice:', error);
+          this.toast.error(error.error?.message || 'Failed to finalize invoice');
+        },
+      });
+  }
+
+  /**
+   * Mark invoice as sent (PENDING → SENT)
+   */
+  markInvoiceAsSent(invoice: Invoice): void {
+    const confirmation = confirm(
+      `Mark invoice ${invoice.invoiceNumber} as sent?`
+    );
+
+    if (!confirmation) return;
+
+    this.invoiceService
+      .markAsSent(this.orgDetails.id, invoice.id!)
+      .subscribe({
+        next: (updatedInvoice) => {
+          this.toast.success('Invoice marked as sent');
+          this.loadInvoices();
+          this.openDropdowns.delete(invoice.id!);
+        },
+        error: (error) => {
+          console.error('Error marking invoice as sent:', error);
+          this.toast.error(error.error?.message || 'Failed to mark invoice as sent');
+        },
+      });
+  }
+
+  /**
+   * Duplicate invoice (creates new DRAFT)
+   */
+  duplicateInvoice(invoice: Invoice): void {
+    const confirmation = confirm(
+      `Create a copy of invoice ${invoice.invoiceNumber}? A new draft invoice will be created.`
+    );
+
+    if (!confirmation) return;
+
+    this.invoiceService
+      .duplicateInvoice(this.orgDetails.id, invoice.id!)
+      .subscribe({
+        next: (newInvoice) => {
+          this.toast.success(`Invoice duplicated as ${newInvoice.invoiceNumber}`);
+          this.loadInvoices();
+          this.openDropdowns.delete(invoice.id!);
+        },
+        error: (error) => {
+          console.error('Error duplicating invoice:', error);
+          this.toast.error(error.error?.message || 'Failed to duplicate invoice');
+        },
+      });
+  }
+
+  /**
+   * Send payment reminder
+   */
+  sendPaymentReminder(invoice: Invoice): void {
+    const reminderType: 'FRIENDLY' | 'FIRM' | 'URGENT' =
+      invoice.status === InvoiceStatus.OVERDUE ? 'URGENT' : 'FRIENDLY';
+
+    const confirmation = confirm(
+      `Send ${reminderType.toLowerCase()} payment reminder for invoice ${invoice.invoiceNumber} to ${invoice.customerName}?`
+    );
+
+    if (!confirmation) return;
+
+    this.invoiceService
+      .sendReminder(this.orgDetails.id, invoice.id!, reminderType)
+      .subscribe({
+        next: (result) => {
+          this.toast.success(result.message);
+          this.loadInvoices();
+          this.openDropdowns.delete(invoice.id!);
+        },
+        error: (error) => {
+          console.error('Error sending reminder:', error);
+          this.toast.error(error.error?.message || 'Failed to send reminder');
+        },
+      });
+  }
+
+  /**
+   * Check if action can be performed on invoice
+   */
+  canPerformAction(action: string, invoice: Invoice): boolean {
+    return this.invoiceService.canPerformAction(action, invoice);
   }
 }

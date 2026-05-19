@@ -21,6 +21,9 @@ import {
   RecordPaymentDto,
   SendInvoiceDto,
   InvoiceFilterDto,
+  FinalizeInvoiceDto,
+  MarkAsSentDto,
+  SendReminderDto,
 } from './invoice.dto';
 import { LogActivity } from '../system-logs/decorators/log-activity.decorator';
 import {
@@ -328,5 +331,84 @@ export class PublicInvoiceController {
 
     // Send PDF buffer
     res.send(pdfBuffer);
+  }
+
+  /**
+   * Finalize draft invoice (DRAFT → PENDING)
+   * PUT /invoices/:organizationId/:id/finalize
+   */
+  @Put(':organizationId/:id/finalize')
+  @LogActivity({
+    action: LogAction.UPDATE,
+    module: LogModule.INVOICES,
+    description: 'Finalized draft invoice',
+    entityType: 'Invoice',
+  })
+  async finalizeInvoice(
+    @Param('organizationId', ParseIntPipe) organizationId: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: FinalizeInvoiceDto,
+  ) {
+    return await this.invoiceService.finalizeInvoice(
+      organizationId,
+      id,
+      dto,
+    );
+  }
+
+  /**
+   * Mark invoice as sent (PENDING → SENT)
+   * PUT /invoices/:organizationId/:id/mark-sent
+   */
+  @Put(':organizationId/:id/mark-sent')
+  @LogActivity({
+    action: LogAction.UPDATE,
+    module: LogModule.INVOICES,
+    description: 'Marked invoice as sent',
+    entityType: 'Invoice',
+  })
+  async markAsSent(
+    @Param('organizationId', ParseIntPipe) organizationId: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: MarkAsSentDto,
+  ) {
+    return await this.invoiceService.markAsSent(organizationId, id, dto);
+  }
+
+  /**
+   * Duplicate invoice (creates new DRAFT)
+   * POST /invoices/:organizationId/:id/duplicate
+   */
+  @Post(':organizationId/:id/duplicate')
+  @LogActivity({
+    action: LogAction.CREATE,
+    module: LogModule.INVOICES,
+    description: 'Duplicated invoice',
+    entityType: 'Invoice',
+  })
+  async duplicateInvoice(
+    @Param('organizationId', ParseIntPipe) organizationId: number,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return await this.invoiceService.duplicateInvoice(organizationId, id);
+  }
+
+  /**
+   * Send payment reminder
+   * POST /invoices/:organizationId/:id/send-reminder
+   */
+  @Post(':organizationId/:id/send-reminder')
+  @LogActivity({
+    action: LogAction.UPDATE,
+    module: LogModule.INVOICES,
+    description: 'Sent payment reminder',
+    entityType: 'Invoice',
+  })
+  async sendReminder(
+    @Param('organizationId', ParseIntPipe) organizationId: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: SendReminderDto,
+  ) {
+    return await this.invoiceService.sendReminder(organizationId, id, dto);
   }
 }

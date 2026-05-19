@@ -151,6 +151,7 @@ export interface CreateInvoiceDto {
     commissionRate?: number;
     commissionAmount?: number;
   }>;
+  status?: InvoiceStatus;
 }
 
 export interface RecordPaymentDto {

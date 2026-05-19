@@ -20,7 +20,7 @@ import { CustomerService } from '../../../../../shared/Services/customer.service
 import { CreditSale } from '../../../../../shared/interfaces/cretitSale.interface';
 import { CreditSaleService } from '../../../../../shared/Services/credit-sale.service';
 import { InvoiceService } from '../../../../../shared/Services/invoice.service';
-import { CreateInvoiceDto, InvoiceType } from '../../../../../shared/interfaces/invoice.interface';
+import { CreateInvoiceDto, InvoiceType, InvoiceStatus } from '../../../../../shared/interfaces/invoice.interface';
 import { Router } from '@angular/router';
 import { AddCustomerComponent } from '../../../../customers/components/add-customer/add-customer.component';
 import { AuthService } from '../../../../../shared/Services/auth.service';
@@ -118,6 +118,10 @@ export class MakeCreditSalesComponent implements OnInit, AfterViewInit {
   showCommissionPreview: boolean = false;
   loadingCommission: boolean = false;
   commissionItems: any[] = [];
+
+  // Invoice status control
+  saveAsDraft: boolean = false;
+  InvoiceStatus = InvoiceStatus; // Expose enum to template
 
   constructor(
     private productService: ProductService,
@@ -1123,6 +1127,9 @@ export class MakeCreditSalesComponent implements OnInit, AfterViewInit {
       // Commission fields
       salesPersonId: this.selectedSalesPersonId || undefined,
       commissionOverrides: commissionOverrides.length > 0 ? commissionOverrides : undefined,
+
+      // Invoice status - save as draft or finalize
+      status: this.saveAsDraft ? InvoiceStatus.DRAFT : InvoiceStatus.PENDING,
     };
 
     this.posting = true;

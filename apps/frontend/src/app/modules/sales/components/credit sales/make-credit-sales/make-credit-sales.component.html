@@ -452,6 +452,39 @@
               </div>
             </div>
 
+            <!-- Save as Draft Toggle -->
+            <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border-2 border-gray-200 dark:border-gray-700">
+              <div class="flex items-start gap-3">
+                <div class="flex items-center h-5">
+                  <input
+                    id="saveAsDraft"
+                    type="checkbox"
+                    [(ngModel)]="saveAsDraft"
+                    class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                  />
+                </div>
+                <div class="flex-1">
+                  <label
+                    for="saveAsDraft"
+                    class="text-sm font-semibold text-gray-900 dark:text-white cursor-pointer flex items-center gap-2"
+                  >
+                    <i class="bi bi-file-earmark-text text-gray-600 dark:text-gray-400"></i>
+                    Save as Draft
+                  </label>
+                  <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    <span *ngIf="!saveAsDraft" class="text-green-600 dark:text-green-400 font-medium">
+                      <i class="bi bi-check-circle-fill mr-1"></i>
+                      Invoice will be created as <strong>Pending</strong> and ready for processing
+                    </span>
+                    <span *ngIf="saveAsDraft" class="text-blue-600 dark:text-blue-400 font-medium">
+                      <i class="bi bi-pencil-square mr-1"></i>
+                      Invoice will be saved as <strong>Draft</strong> for review and editing later
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <!-- Terms Summary -->
             <div
               *ngIf="selectedCustomer && dueDate"

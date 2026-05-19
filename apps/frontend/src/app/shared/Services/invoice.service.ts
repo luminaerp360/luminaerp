@@ -325,4 +325,117 @@ export class InvoiceService {
       return false;
     }
   }
+
+  /**
+   * Finalize draft invoice (DRAFT → PENDING)
+   */
+  finalizeInvoice(organizationId: number, invoiceId: number, notes?: string): Observable<Invoice> {
+    return this.http.put<Invoice>(
+      `${this.baseUrl}/${organizationId}/${invoiceId}/finalize`,
+      {
+        notes,
+        finalizedBy: 'Current User', // TODO: Get from auth service
+      }
+    );
+  }
+
+  /**
+   * Mark invoice as sent (PENDING → SENT)
+   */
+  markAsSent(organizationId: number, invoiceId: number, notes?: string): Observable<Invoice> {
+    return this.http.put<Invoice>(
+      `${this.baseUrl}/${organizationId}/${invoiceId}/mark-sent`,
+      {
+        sentAt: new Date().toISOString(),
+        notes,
+        sentBy: 'Current User', // TODO: Get from auth service
+      }
+    );
+  }
+
+  /**
+   * Duplicate invoice (creates new DRAFT)
+   */
+  duplicateInvoice(organizationId: number, invoiceId: number): Observable<Invoice> {
+    return this.http.post<Invoice>(
+      `${this.baseUrl}/${organizationId}/${invoiceId}/duplicate`,
+      {}
+    );
+  }
+
+  /**
+   * Send payment reminder
+   */
+  sendReminder(
+    organizationId: number,
+    invoiceId: number,
+    reminderType: 'FRIENDLY' | 'FIRM' | 'URGENT' = 'FRIENDLY',
+    customMessage?: string
+  ): Observable<{ success: boolean; message: string; invoice: Invoice }> {
+    return this.http.post<{ success: boolean; message: string; invoice: Invoice }>(
+      `${this.baseUrl}/${organizationId}/${invoiceId}/send-reminder`,
+      {
+        reminderType,
+        customMessage,
+        sentBy: 'Current User', // TODO: Get from auth service
+      }
+    );
+  }
+
+  /**
+   * Check if action can be performed on invoice based on status
+   */
+  canPerformAction(action: string, invoice: Invoice): boolean {
+    const status = invoice.status;
+
+    switch (action) {
+      case 'finalize':
+        return status === InvoiceStatus.DRAFT;
+
+      case 'markSent':
+        return status === InvoiceStatus.PENDING || status === InvoiceStatus.DRAFT;
+
+      case 'send':
+        // Cannot send draft invoices
+        return status !== InvoiceStatus.DRAFT;
+
+      case 'recordPayment':
+        // Cannot record payment on draft or fully paid invoices
+        return status !== InvoiceStatus.DRAFT && !invoice.fullyPaid;
+
+      case 'edit':
+        // Can edit DRAFT, PENDING, SENT. Cannot edit if has payments
+        return (
+          (status === InvoiceStatus.DRAFT ||
+            status === InvoiceStatus.PENDING ||
+            status === InvoiceStatus.SENT) &&
+          invoice.amountPaid === 0
+        );
+
+      case 'cancel':
+        // Cannot cancel paid invoices
+        return status !== InvoiceStatus.PAID && status !== InvoiceStatus.CANCELLED;
+
+      case 'delete':
+        // Can only delete drafts with no payments
+        return status === InvoiceStatus.DRAFT && invoice.amountPaid === 0;
+
+      case 'duplicate':
+        // Can duplicate any invoice
+        return true;
+
+      case 'sendReminder':
+        // Can send reminder for unpaid invoices that are sent or overdue
+        return (
+          !invoice.fullyPaid &&
+          (status === InvoiceStatus.SENT ||
+            status === InvoiceStatus.VIEWED ||
+            status === InvoiceStatus.PARTIALLY_PAID ||
+            status === InvoiceStatus.OVERDUE)
+        );
+
+      default:
+        return false;
+    }
+  }
 }

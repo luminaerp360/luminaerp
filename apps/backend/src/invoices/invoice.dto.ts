@@ -184,6 +184,11 @@ export class CreateInvoiceDto {
   @IsOptional()
   @IsBoolean()
   sendEmail?: boolean;
+
+  // Invoice status (defaults to DRAFT if not provided)
+  @IsOptional()
+  @IsEnum(InvoiceStatus)
+  status?: InvoiceStatus;
 }
 
 export class UpdateInvoiceDto {
@@ -318,4 +323,39 @@ export class InvoiceFilterDto {
   @IsOptional()
   @IsNumber()
   limit?: number;
+}
+
+export class FinalizeInvoiceDto {
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @IsString()
+  finalizedBy: string;
+}
+
+export class MarkAsSentDto {
+  @IsOptional()
+  @IsDateString()
+  sentAt?: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @IsString()
+  sentBy: string;
+}
+
+export class SendReminderDto {
+  @IsOptional()
+  @IsString()
+  customMessage?: string;
+
+  @IsOptional()
+  @IsString()
+  reminderType?: 'FRIENDLY' | 'FIRM' | 'URGENT';
+
+  @IsString()
+  sentBy: string;
 }

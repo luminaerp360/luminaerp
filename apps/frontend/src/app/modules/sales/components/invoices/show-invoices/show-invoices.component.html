@@ -412,8 +412,29 @@
                   <i class="bi bi-eye text-blue-600 dark:text-blue-400"></i>
                   <span class="font-medium">View</span>
                 </button>
+
+                <!-- Finalize Draft (DRAFT only) -->
                 <button
-                  *ngIf="!invoice.fullyPaid"
+                  *ngIf="canPerformAction('finalize', invoice)"
+                  (click)="finalizeInvoice(invoice)"
+                  class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center space-x-3 transition-colors"
+                >
+                  <i class="bi bi-check-circle-fill text-green-600 dark:text-green-400"></i>
+                  <span class="font-medium">Finalize Draft</span>
+                </button>
+
+                <!-- Mark as Sent (PENDING/DRAFT) -->
+                <button
+                  *ngIf="canPerformAction('markSent', invoice)"
+                  (click)="markInvoiceAsSent(invoice)"
+                  class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center space-x-3 transition-colors"
+                >
+                  <i class="bi bi-check2-circle text-blue-600 dark:text-blue-400"></i>
+                  <span class="font-medium">Mark as Sent</span>
+                </button>
+
+                <button
+                  *ngIf="canPerformAction('recordPayment', invoice)"
                   (click)="recordPayment(invoice)"
                   class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center space-x-3 transition-colors"
                 >
@@ -439,12 +460,24 @@
                   <span class="font-medium">Custom Print / PDF</span>
                 </button>
                 <button
+                  *ngIf="canPerformAction('send', invoice)"
                   (click)="sendInvoice(invoice)"
                   class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center space-x-3 transition-colors"
                 >
                   <i class="bi bi-send text-gray-600 dark:text-slate-400"></i>
                   <span>Send Invoice</span>
                 </button>
+
+                <!-- Send Reminder (SENT/OVERDUE) -->
+                <button
+                  *ngIf="canPerformAction('sendReminder', invoice)"
+                  (click)="sendPaymentReminder(invoice)"
+                  class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 flex items-center space-x-3 transition-colors"
+                >
+                  <i class="bi bi-bell-fill text-orange-600 dark:text-orange-400"></i>
+                  <span class="font-medium">Send Reminder</span>
+                </button>
+
                 <button
                   *ngIf="invoice.publicToken"
                   (click)="copyPublicLink(invoice)"
@@ -458,8 +491,20 @@
                 <div
                   class="border-t border-gray-200 dark:border-slate-700 my-1"
                 ></div>
+
+                <!-- Duplicate Invoice -->
                 <button
-                  *ngIf="canUpdateInvoice"
+                  (click)="duplicateInvoice(invoice)"
+                  class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center space-x-3 transition-colors"
+                >
+                  <i class="bi bi-files text-gray-600 dark:text-slate-400"></i>
+                  <span>Duplicate</span>
+                </button>
+                <div
+                  class="border-t border-gray-200 dark:border-slate-700 my-1"
+                ></div>
+                <button
+                  *ngIf="canUpdateInvoice && canPerformAction('edit', invoice)"
                   (click)="editInvoice(invoice)"
                   class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center space-x-3 transition-colors"
                 >
@@ -467,9 +512,7 @@
                   <span>Edit</span>
                 </button>
                 <button
-                  *ngIf="
-                    canDeleteInvoice && invoice.status !== InvoiceStatus.PAID
-                  "
+                  *ngIf="canDeleteInvoice && canPerformAction('cancel', invoice)"
                   (click)="cancelInvoice(invoice)"
                   class="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-3 transition-colors"
                 >
@@ -477,7 +520,7 @@
                   <span>Cancel</span>
                 </button>
                 <button
-                  *ngIf="canDeleteInvoice && invoice.amountPaid === 0"
+                  *ngIf="canDeleteInvoice && canPerformAction('delete', invoice)"
                   (click)="deleteInvoice(invoice)"
                   class="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-3 rounded-b-lg transition-colors"
                 >
@@ -734,8 +777,29 @@
                       <i class="bi bi-eye text-blue-600 dark:text-blue-400"></i>
                       <span class="font-medium">View Invoice</span>
                     </button>
+
+                    <!-- Finalize Draft (DRAFT only) -->
                     <button
-                      *ngIf="!invoice.fullyPaid"
+                      *ngIf="canPerformAction('finalize', invoice)"
+                      (click)="finalizeInvoice(invoice)"
+                      class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300 flex items-center space-x-3 transition-colors"
+                    >
+                      <i class="bi bi-check-circle-fill text-green-600 dark:text-green-400"></i>
+                      <span class="font-medium">Finalize Draft</span>
+                    </button>
+
+                    <!-- Mark as Sent (PENDING/DRAFT) -->
+                    <button
+                      *ngIf="canPerformAction('markSent', invoice)"
+                      (click)="markInvoiceAsSent(invoice)"
+                      class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 flex items-center space-x-3 transition-colors"
+                    >
+                      <i class="bi bi-check2-circle text-blue-600 dark:text-blue-400"></i>
+                      <span class="font-medium">Mark as Sent</span>
+                    </button>
+
+                    <button
+                      *ngIf="canPerformAction('recordPayment', invoice)"
                       (click)="recordPayment(invoice)"
                       class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300 flex items-center space-x-3 transition-colors"
                     >
@@ -763,6 +827,7 @@
                       <span class="font-medium">Custom Print / PDF</span>
                     </button>
                     <button
+                      *ngIf="canPerformAction('send', invoice)"
                       (click)="sendInvoice(invoice)"
                       class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-900/50 hover:text-gray-900 dark:hover:text-white flex items-center space-x-3 transition-colors"
                     >
@@ -771,6 +836,17 @@
                       ></i>
                       <span>Send Invoice</span>
                     </button>
+
+                    <!-- Send Reminder (SENT/OVERDUE) -->
+                    <button
+                      *ngIf="canPerformAction('sendReminder', invoice)"
+                      (click)="sendPaymentReminder(invoice)"
+                      class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-700 dark:hover:text-orange-300 flex items-center space-x-3 transition-colors"
+                    >
+                      <i class="bi bi-bell-fill text-orange-600 dark:text-orange-400"></i>
+                      <span class="font-medium">Send Reminder</span>
+                    </button>
+
                     <button
                       *ngIf="invoice.publicToken"
                       (click)="copyPublicLink(invoice)"
@@ -787,9 +863,23 @@
                       class="border-t border-gray-200 dark:border-slate-700 my-1"
                     ></div>
 
+                    <!-- Duplicate Invoice -->
+                    <button
+                      (click)="duplicateInvoice(invoice)"
+                      class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-900/50 hover:text-gray-900 dark:hover:text-white flex items-center space-x-3 transition-colors"
+                    >
+                      <i class="bi bi-files text-gray-600 dark:text-slate-400"></i>
+                      <span>Duplicate</span>
+                    </button>
+
+                    <!-- Divider -->
+                    <div
+                      class="border-t border-gray-200 dark:border-slate-700 my-1"
+                    ></div>
+
                     <!-- Edit/Delete Actions -->
                     <button
-                      *ngIf="canUpdateInvoice"
+                      *ngIf="canUpdateInvoice && canPerformAction('edit', invoice)"
                       (click)="editInvoice(invoice)"
                       class="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-900/50 hover:text-gray-900 dark:hover:text-white flex items-center space-x-3 transition-colors"
                     >
@@ -799,10 +889,7 @@
                       <span>Edit</span>
                     </button>
                     <button
-                      *ngIf="
-                        canDeleteInvoice &&
-                        invoice.status !== InvoiceStatus.PAID
-                      "
+                      *ngIf="canDeleteInvoice && canPerformAction('cancel', invoice)"
                       (click)="cancelInvoice(invoice)"
                       class="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 flex items-center space-x-3 transition-colors"
                     >
@@ -810,7 +897,7 @@
                       <span>Cancel</span>
                     </button>
                     <button
-                      *ngIf="canDeleteInvoice && invoice.amountPaid === 0"
+                      *ngIf="canDeleteInvoice && canPerformAction('delete', invoice)"
                       (click)="deleteInvoice(invoice)"
                       class="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 flex items-center space-x-3 rounded-b-lg transition-colors"
                     >
