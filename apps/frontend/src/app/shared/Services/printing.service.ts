@@ -68,41 +68,52 @@ export class PrintingService {
         printWindow.print();
       };
 
-      // Wait for all images to finish loading before printing
+      // Wait for all images AND stylesheets to finish loading before printing
       const images = Array.from(printWindow.document.images);
-      if (images.length === 0) {
-        setTimeout(doPrint, 300);
-        return;
-      }
+      const stylesheets = Array.from(printWindow.document.styleSheets);
 
-      let loaded = 0;
-      const total = images.length;
       let printed = false;
+      let imagesLoaded = 0;
+      const totalImages = images.length;
 
-      const onDone = () => {
-        loaded++;
-        if (loaded >= total && !printed) {
+      const checkReady = () => {
+        if (imagesLoaded >= totalImages && !printed) {
           printed = true;
-          doPrint();
+          // Extra delay to ensure fonts and styles are fully applied
+          setTimeout(doPrint, 800);
         }
       };
 
-      images.forEach((img) => {
-        if (img.complete) {
-          onDone();
-        } else {
-          img.addEventListener('load', onDone);
-          img.addEventListener('error', onDone); // don't block on broken images
-        }
-      });
+      // Wait for images
+      if (totalImages === 0) {
+        imagesLoaded = 0;
+        // Wait for fonts and stylesheets even if no images
+        setTimeout(checkReady, 800);
+      } else {
+        images.forEach((img) => {
+          if (img.complete) {
+            imagesLoaded++;
+            checkReady();
+          } else {
+            img.addEventListener('load', () => {
+              imagesLoaded++;
+              checkReady();
+            });
+            img.addEventListener('error', () => {
+              imagesLoaded++; // don't block on broken images
+              checkReady();
+            });
+          }
+        });
+      }
 
-      // Safety fallback: print after 5 seconds regardless
+      // Safety fallback: print after 6 seconds regardless
       setTimeout(() => {
         if (!printed) {
           printed = true;
           doPrint();
         }
-      }, 5000);
+      }, 6000);
     } else {
       // Fallback if popup blocked
       alert('Please allow popups for printing functionality');

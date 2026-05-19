@@ -118,14 +118,107 @@ export class DocumentTemplateService {
         : settings.paperSize === 'Letter'
           ? '216mm'
           : '210mm';
+    const pageSize = settings.paperSize === 'A5' ? 'A5' : settings.paperSize === 'Letter' ? 'letter' : 'A4';
+
     return `
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: 'Inter', Arial, sans-serif; color: #1a1a1a; background: #fff; }
-      .page { width: ${paper}; min-height: 297mm; margin: 0 auto; background: #fff; }
-      @media print { .page { width: 100%; } body { margin: 0; } }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { padding: 8px 10px; text-align: left; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color-adjust: exact;
+      }
+      body {
+        font-family: 'Inter', Arial, sans-serif;
+        color: #1a1a1a;
+        background: #fff;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .page {
+        width: ${paper};
+        min-height: 297mm;
+        margin: 0 auto;
+        background: #fff;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      th, td {
+        padding: 8px 10px;
+        text-align: left;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      @media screen {
+        .page {
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          margin: 20px auto;
+        }
+      }
+
+      @media print {
+        @page {
+          margin: 0;
+          size: ${pageSize} portrait;
+        }
+        html, body {
+          width: 100%;
+          height: 100%;
+          margin: 0 !important;
+          padding: 0 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+        .page {
+          width: 100%;
+          margin: 0;
+          box-shadow: none;
+          page-break-after: auto;
+        }
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+        table {
+          page-break-inside: auto;
+          border-collapse: collapse !important;
+        }
+        tr {
+          page-break-inside: avoid;
+          page-break-after: auto;
+        }
+        th, td {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        thead {
+          display: table-header-group;
+        }
+        tfoot {
+          display: table-footer-group;
+        }
+        img {
+          max-width: 100%;
+          page-break-inside: avoid;
+        }
+        /* Preserve all backgrounds and colors */
+        div[style*="background"],
+        span[style*="background"],
+        td[style*="background"],
+        th[style*="background"] {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+      }
     `;
   }
 

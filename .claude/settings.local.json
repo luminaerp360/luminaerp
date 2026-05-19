@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://erp.lumina360.tech)",
+      "Bash(git add deploy/deploy.sh deploy/nginx-backend.conf deploy/nginx-frontend.conf deploy/DEPLOYMENT_FIX.md deploy/deploy.sh.backup)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: improve blue/green deployment with independent service handling\n\n- Separate state tracking for backend and frontend stacks\n- Independent nginx upstream switching per service\n- First-time deployment auto-detection and protection\n- True zero-downtime partial deployments\n- Fixes 502 error during backend-only deployments\n\nChanges:\n- deploy/deploy.sh: Complete rewrite with service isolation\n- deploy/nginx-*.conf: Updated comments for separate upstreams\n- deploy/DEPLOYMENT_FIX.md: Comprehensive migration guide\n- deploy/deploy.sh.backup: Backup of original script\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push origin main)",
+      "Bash(git add deploy/deploy.sh)",
+      "Bash(git commit -m \"fix: improve frontend health check reliability\n\n- Change frontend health check from /health to / endpoint\n- Add initial 5s wait before health checking\n- Increase health check attempts to 60 with 3s interval\n- Better error messages and progress indicators\")",
+      "Bash(npx tsc --noEmit document-template.service.ts printing.service.ts)",
+      "Bash(echo \"Type check completed with status: $?\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
