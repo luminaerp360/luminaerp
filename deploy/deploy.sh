@@ -2,7 +2,7 @@
 set -e
 
 # ============================================================
-# Lumina ERP - Blue/Green Zero-Downtime Deploy Script
+# Lumina ERP - Blue/Green Zero-Downtime Deploy Script (Fixed)
 # Usage:
 #   ./deploy.sh              # Deploy all (backend + frontend)
 #   ./deploy.sh backend      # Deploy backend only
@@ -13,7 +13,8 @@ set -e
 # ============================================================
 
 PROJECT_DIR="/opt/lumina-erp"
-STATE_FILE="$PROJECT_DIR/deploy/.active-stack"
+BACKEND_STATE_FILE="$PROJECT_DIR/deploy/.active-backend-stack"
+FRONTEND_STATE_FILE="$PROJECT_DIR/deploy/.active-frontend-stack"
 NGINX_UPSTREAM_DIR="/etc/nginx/conf.d"
 REGISTRY="ghcr.io/luminaerp360"
 HEALTH_CHECK_RETRIES=30
@@ -31,18 +32,37 @@ warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; }
 info()  { echo -e "${BLUE}[INFO]${NC} $1"; }
 
-# Get current active stack
-get_active_stack() {
-  if [ -f "$STATE_FILE" ]; then
-    cat "$STATE_FILE"
+# Get current active backend stack
+get_active_backend_stack() {
+  if [ -f "$BACKEND_STATE_FILE" ]; then
+    cat "$BACKEND_STATE_FILE"
   else
     echo "none"
   fi
 }
 
-# Get the inactive stack
-get_inactive_stack() {
-  local active=$(get_active_stack)
+# Get current active frontend stack
+get_active_frontend_stack() {
+  if [ -f "$FRONTEND_STATE_FILE" ]; then
+    cat "$FRONTEND_STATE_FILE"
+  else
+    echo "none"
+  fi
+}
+
+# Get the inactive backend stack
+get_inactive_backend_stack() {
+  local active=$(get_active_backend_stack)
+  if [ "$active" = "blue" ]; then
+    echo "green"
+  else
+    echo "blue"
+  fi
+}
+
+# Get the inactive frontend stack
+get_inactive_frontend_stack() {
+  local active=$(get_active_frontend_stack)
   if [ "$active" = "blue" ]; then
     echo "green"
   else
@@ -59,7 +79,11 @@ get_frontend_port() {
   if [ "$1" = "blue" ]; then echo "4001"; else echo "4002"; fi
 }
 
-
+# Check if a container is running
+is_container_running() {
+  local container_name=$1
+  docker ps --format '{{.Names}}' | grep -q "^${container_name}$"
+}
 
 # Health check a service
 health_check() {
@@ -85,39 +109,97 @@ health_check() {
   return 1
 }
 
-# Switch nginx upstream to point to new stack
-switch_nginx() {
+# Switch nginx backend upstream only
+switch_nginx_backend() {
   local new_stack=$1
   local backend_port=$(get_backend_port "$new_stack")
-  local frontend_port=$(get_frontend_port "$new_stack")
 
-  log "Switching Nginx to $new_stack stack (backend:$backend_port, frontend:$frontend_port)..."
+  log "Switching Nginx backend to $new_stack stack (port:$backend_port)..."
 
-  # Write both upstreams to the single managed file
-  cat > "$NGINX_UPSTREAM_DIR/lumina-upstream.conf" << EOF
+  # Write backend upstream to separate file
+  cat > "$NGINX_UPSTREAM_DIR/lumina-backend-upstream.conf" << EOF
 # Managed by deploy.sh — DO NOT EDIT MANUALLY
-# Active stack: $new_stack
+# Active backend stack: $new_stack
 upstream lumina_backend {
     server 127.0.0.1:$backend_port;
     keepalive 32;
 }
+EOF
 
+  # Test and reload nginx
+  if nginx -t 2>/dev/null; then
+    systemctl reload nginx
+    log "Nginx backend switched to $new_stack stack"
+  else
+    error "Nginx config test failed! Keeping current backend stack."
+    return 1
+  fi
+}
+
+# Switch nginx frontend upstream only
+switch_nginx_frontend() {
+  local new_stack=$1
+  local frontend_port=$(get_frontend_port "$new_stack")
+
+  log "Switching Nginx frontend to $new_stack stack (port:$frontend_port)..."
+
+  # Write frontend upstream to separate file
+  cat > "$NGINX_UPSTREAM_DIR/lumina-frontend-upstream.conf" << EOF
+# Managed by deploy.sh — DO NOT EDIT MANUALLY
+# Active frontend stack: $new_stack
 upstream lumina_frontend {
     server 127.0.0.1:$frontend_port;
     keepalive 32;
 }
 EOF
 
-  # Remove old split files if they exist from previous deploys
-  rm -f "$NGINX_UPSTREAM_DIR/lumina-backend-upstream.conf"
-  rm -f "$NGINX_UPSTREAM_DIR/lumina-frontend-upstream.conf"
+  # Test and reload nginx
+  if nginx -t 2>/dev/null; then
+    systemctl reload nginx
+    log "Nginx frontend switched to $new_stack stack"
+  else
+    error "Nginx config test failed! Keeping current frontend stack."
+    return 1
+  fi
+}
+
+# Switch both nginx upstreams (for full deployment)
+switch_nginx_both() {
+  local backend_stack=$1
+  local frontend_stack=$2
+  local backend_port=$(get_backend_port "$backend_stack")
+  local frontend_port=$(get_frontend_port "$frontend_stack")
+
+  log "Switching Nginx to backend:$backend_stack (port:$backend_port), frontend:$frontend_stack (port:$frontend_port)..."
+
+  # Write both upstreams
+  cat > "$NGINX_UPSTREAM_DIR/lumina-backend-upstream.conf" << EOF
+# Managed by deploy.sh — DO NOT EDIT MANUALLY
+# Active backend stack: $backend_stack
+upstream lumina_backend {
+    server 127.0.0.1:$backend_port;
+    keepalive 32;
+}
+EOF
+
+  cat > "$NGINX_UPSTREAM_DIR/lumina-frontend-upstream.conf" << EOF
+# Managed by deploy.sh — DO NOT EDIT MANUALLY
+# Active frontend stack: $frontend_stack
+upstream lumina_frontend {
+    server 127.0.0.1:$frontend_port;
+    keepalive 32;
+}
+EOF
+
+  # Remove old combined file if it exists
+  rm -f "$NGINX_UPSTREAM_DIR/lumina-upstream.conf"
 
   # Test and reload nginx
   if nginx -t 2>/dev/null; then
     systemctl reload nginx
-    log "Nginx switched to $new_stack stack"
+    log "Nginx switched successfully"
   else
-    error "Nginx config test failed! Keeping current stack."
+    error "Nginx config test failed! Keeping current configuration."
     return 1
   fi
 }
@@ -195,109 +277,259 @@ stop_stack() {
   fi
 }
 
-# Save active stack
-save_state() {
-  echo "$1" > "$STATE_FILE"
-  log "Active stack saved: $1"
+# Save active backend stack
+save_backend_state() {
+  echo "$1" > "$BACKEND_STATE_FILE"
+  log "Active backend stack saved: $1"
 }
 
-# Deploy function  
+# Save active frontend stack
+save_frontend_state() {
+  echo "$1" > "$FRONTEND_STATE_FILE"
+  log "Active frontend stack saved: $1"
+}
+
+# Initialize first-time deployment
+initialize_if_needed() {
+  local target=$1
+
+  if [ "$target" = "backend" ] || [ "$target" = "all" ]; then
+    local active_backend=$(get_active_backend_stack)
+    if [ "$active_backend" = "none" ]; then
+      # Check if any backend container is running
+      if is_container_running "lumina-backend-blue"; then
+        warn "Found running backend-blue container, setting it as active"
+        save_backend_state "blue"
+      elif is_container_running "lumina-backend-green"; then
+        warn "Found running backend-green container, setting it as active"
+        save_backend_state "green"
+      else
+        info "First-time backend deployment detected"
+      fi
+    fi
+  fi
+
+  if [ "$target" = "frontend" ] || [ "$target" = "all" ]; then
+    local active_frontend=$(get_active_frontend_stack)
+    if [ "$active_frontend" = "none" ]; then
+      # Check if any frontend container is running
+      if is_container_running "lumina-frontend-blue"; then
+        warn "Found running frontend-blue container, setting it as active"
+        save_frontend_state "blue"
+      elif is_container_running "lumina-frontend-green"; then
+        warn "Found running frontend-green container, setting it as active"
+        save_frontend_state "green"
+      else
+        info "First-time frontend deployment detected"
+      fi
+    fi
+  fi
+}
+
+# Deploy function
 deploy() {
   local target=${1:-all}  # all, backend, or frontend
-  local active=$(get_active_stack)
-  local new_stack=$(get_inactive_stack)
+
+  # Initialize state files if needed
+  initialize_if_needed "$target"
+
+  local active_backend=$(get_active_backend_stack)
+  local active_frontend=$(get_active_frontend_stack)
 
   echo ""
   echo "=============================================="
   echo "  Lumina ERP - Blue/Green Deploy"
   echo "=============================================="
-  echo "  Target:       $target"
-  echo "  Active stack: $active"
-  echo "  New stack:    $new_stack"
+  echo "  Target:               $target"
+  echo "  Active backend stack: $active_backend"
+  echo "  Active frontend stack: $active_frontend"
   echo "=============================================="
   echo ""
 
   # Pull latest images
   pull_images "$target"
 
-  # Start new stack
-  start_stack "$new_stack" "$target"
-
-  # Health check
-  local health_ok=true
-
-  if [ "$target" = "backend" ] || [ "$target" = "all" ]; then
-    local backend_port=$(get_backend_port "$new_stack")
-    if ! health_check "Backend" "$backend_port" "/"; then
-      health_ok=false
-    fi
+  # Deploy based on target
+  if [ "$target" = "all" ]; then
+    deploy_all
+  elif [ "$target" = "backend" ]; then
+    deploy_backend_only
+  elif [ "$target" = "frontend" ]; then
+    deploy_frontend_only
   fi
+}
 
-  if [ "$target" = "frontend" ] || [ "$target" = "all" ]; then
-    local frontend_port=$(get_frontend_port "$new_stack")
-    if ! health_check "Frontend" "$frontend_port" "/health"; then
-      health_ok=false
-    fi
-  fi
+# Deploy backend only
+deploy_backend_only() {
+  local active_backend=$(get_active_backend_stack)
+  local new_backend=$(get_inactive_backend_stack)
 
-  if [ "$health_ok" = false ]; then
-    error "Health checks failed! Stopping new stack, keeping $active active."
-    stop_stack "$new_stack" "$target"
+  log "Deploying backend only: $active_backend -> $new_backend"
+
+  # Start new backend
+  start_stack "$new_backend" "backend"
+
+  # Health check backend
+  local backend_port=$(get_backend_port "$new_backend")
+  if ! health_check "Backend" "$backend_port" "/"; then
+    error "Backend health check failed! Stopping new backend, keeping $active_backend active."
+    stop_stack "$new_backend" "backend"
     exit 1
   fi
 
-  # Switch nginx
-  switch_nginx "$new_stack"
+  # Switch nginx backend upstream only
+  switch_nginx_backend "$new_backend"
 
-  # Stop old stack
-  stop_stack "$active" "$target"
+  # Stop old backend
+  stop_stack "$active_backend" "backend"
 
-  # Save state
-  save_state "$new_stack"
+  # Save backend state
+  save_backend_state "$new_backend"
 
   echo ""
-  log "Deploy complete! Active stack: $new_stack"
+  log "Backend deploy complete! Active backend stack: $new_backend"
+  log "Frontend stack remains: $(get_active_frontend_stack)"
+  echo ""
+}
+
+# Deploy frontend only
+deploy_frontend_only() {
+  local active_frontend=$(get_active_frontend_stack)
+  local new_frontend=$(get_inactive_frontend_stack)
+
+  log "Deploying frontend only: $active_frontend -> $new_frontend"
+
+  # Start new frontend
+  start_stack "$new_frontend" "frontend"
+
+  # Health check frontend
+  local frontend_port=$(get_frontend_port "$new_frontend")
+  if ! health_check "Frontend" "$frontend_port" "/health"; then
+    error "Frontend health check failed! Stopping new frontend, keeping $active_frontend active."
+    stop_stack "$new_frontend" "frontend"
+    exit 1
+  fi
+
+  # Switch nginx frontend upstream only
+  switch_nginx_frontend "$new_frontend"
+
+  # Stop old frontend
+  stop_stack "$active_frontend" "frontend"
+
+  # Save frontend state
+  save_frontend_state "$new_frontend"
+
+  echo ""
+  log "Frontend deploy complete! Active frontend stack: $new_frontend"
+  log "Backend stack remains: $(get_active_backend_stack)"
+  echo ""
+}
+
+# Deploy both services
+deploy_all() {
+  local active_backend=$(get_active_backend_stack)
+  local active_frontend=$(get_active_frontend_stack)
+  local new_backend=$(get_inactive_backend_stack)
+  local new_frontend=$(get_inactive_frontend_stack)
+
+  log "Deploying all services: backend($active_backend -> $new_backend), frontend($active_frontend -> $new_frontend)"
+
+  # Start new stack (both services)
+  start_stack "$new_backend" "all"
+
+  # Health check both services
+  local health_ok=true
+  local backend_port=$(get_backend_port "$new_backend")
+  local frontend_port=$(get_frontend_port "$new_frontend")
+
+  if ! health_check "Backend" "$backend_port" "/"; then
+    health_ok=false
+  fi
+
+  if ! health_check "Frontend" "$frontend_port" "/health"; then
+    health_ok=false
+  fi
+
+  if [ "$health_ok" = false ]; then
+    error "Health checks failed! Stopping new stack, keeping current stacks active."
+    stop_stack "$new_backend" "all"
+    exit 1
+  fi
+
+  # Switch both nginx upstreams
+  switch_nginx_both "$new_backend" "$new_frontend"
+
+  # Stop old stacks
+  stop_stack "$active_backend" "backend"
+  stop_stack "$active_frontend" "frontend"
+
+  # Save both states
+  save_backend_state "$new_backend"
+  save_frontend_state "$new_frontend"
+
+  echo ""
+  log "Full deploy complete! Active stacks - Backend: $new_backend, Frontend: $new_frontend"
   echo ""
 }
 
 # Rollback function
 rollback() {
-  local active=$(get_active_stack)
-  local previous=$(get_inactive_stack)
+  local active_backend=$(get_active_backend_stack)
+  local active_frontend=$(get_active_frontend_stack)
+  local previous_backend=$(get_inactive_backend_stack)
+  local previous_frontend=$(get_inactive_frontend_stack)
 
   echo ""
-  warn "Rolling back from $active to $previous..."
+  warn "Rolling back all services..."
+  warn "Backend: $active_backend -> $previous_backend"
+  warn "Frontend: $active_frontend -> $previous_frontend"
 
   # Start previous stack
-  start_stack "$previous" "all"
+  start_stack "$previous_backend" "all"
 
   # Health check
-  local backend_port=$(get_backend_port "$previous")
-  local frontend_port=$(get_frontend_port "$previous")
+  local backend_port=$(get_backend_port "$previous_backend")
+  local frontend_port=$(get_frontend_port "$previous_frontend")
 
   if health_check "Backend" "$backend_port" "/" && health_check "Frontend" "$frontend_port" "/health"; then
-    switch_nginx "$previous"
-    stop_stack "$active" "all"
-    save_state "$previous"
-    log "Rollback complete! Active stack: $previous"
+    switch_nginx_both "$previous_backend" "$previous_frontend"
+    stop_stack "$active_backend" "backend"
+    stop_stack "$active_frontend" "frontend"
+    save_backend_state "$previous_backend"
+    save_frontend_state "$previous_frontend"
+    log "Rollback complete! Active stacks - Backend: $previous_backend, Frontend: $previous_frontend"
   else
     error "Rollback failed! Previous containers are unhealthy."
-    stop_stack "$previous" "all"
+    stop_stack "$previous_backend" "all"
     exit 1
   fi
 }
 
 # Status function
 status() {
-  local active=$(get_active_stack)
+  local active_backend=$(get_active_backend_stack)
+  local active_frontend=$(get_active_frontend_stack)
   echo ""
   echo "=============================================="
   echo "  Lumina ERP - Deployment Status"
   echo "=============================================="
-  echo "  Active stack: $active"
+  echo "  Active backend stack:  $active_backend"
+  echo "  Active frontend stack: $active_frontend"
   echo ""
   echo "  Containers:"
   docker ps --format "  {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep lumina || echo "  No lumina containers running"
+  echo ""
+  echo "  Nginx Upstreams:"
+  if [ -f "$NGINX_UPSTREAM_DIR/lumina-backend-upstream.conf" ]; then
+    grep "server 127.0.0.1" "$NGINX_UPSTREAM_DIR/lumina-backend-upstream.conf" | sed 's/^/  Backend:  /'
+  else
+    echo "  Backend:  Not configured"
+  fi
+  if [ -f "$NGINX_UPSTREAM_DIR/lumina-frontend-upstream.conf" ]; then
+    grep "server 127.0.0.1" "$NGINX_UPSTREAM_DIR/lumina-frontend-upstream.conf" | sed 's/^/  Frontend: /'
+  else
+    echo "  Frontend: Not configured"
+  fi
   echo ""
   echo "=============================================="
 }
