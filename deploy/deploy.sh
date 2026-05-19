@@ -17,8 +17,8 @@ BACKEND_STATE_FILE="$PROJECT_DIR/deploy/.active-backend-stack"
 FRONTEND_STATE_FILE="$PROJECT_DIR/deploy/.active-frontend-stack"
 NGINX_UPSTREAM_DIR="/etc/nginx/conf.d"
 REGISTRY="ghcr.io/luminaerp360"
-HEALTH_CHECK_RETRIES=30
-HEALTH_CHECK_INTERVAL=5
+HEALTH_CHECK_RETRIES=60
+HEALTH_CHECK_INTERVAL=3
 
 # Colors
 RED='\033[0;31m'
@@ -92,20 +92,31 @@ health_check() {
   local endpoint=$3
   local retries=$HEALTH_CHECK_RETRIES
 
-  log "Health checking $service_name on port $port..."
+  log "Health checking $service_name on port $port$endpoint..."
+
+  # First, wait a bit for the container to fully start
+  sleep 5
 
   for i in $(seq 1 $retries); do
-    # Use -s -o /dev/null -w to check HTTP response (any response = healthy, including 404)
-    local http_code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$port$endpoint" 2>/dev/null)
+    # Try to check via localhost first
+    local http_code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$port$endpoint" 2>/dev/null || echo "000")
+
     if [ "$http_code" != "000" ] && [ -n "$http_code" ]; then
       log "$service_name is healthy! (HTTP $http_code, attempt $i/$retries)"
       return 0
     fi
-    info "Waiting for $service_name... ($i/$retries)"
+
+    # Show progress
+    if [ $((i % 10)) -eq 0 ]; then
+      warn "Still waiting for $service_name after $((i * HEALTH_CHECK_INTERVAL))s..."
+    else
+      info "Waiting for $service_name... ($i/$retries)"
+    fi
+
     sleep $HEALTH_CHECK_INTERVAL
   done
 
-  error "$service_name failed health check after $retries attempts"
+  error "$service_name failed health check after $retries attempts ($((retries * HEALTH_CHECK_INTERVAL))s total)"
   return 1
 }
 
@@ -404,7 +415,7 @@ deploy_frontend_only() {
 
   # Health check frontend
   local frontend_port=$(get_frontend_port "$new_frontend")
-  if ! health_check "Frontend" "$frontend_port" "/health"; then
+  if ! health_check "Frontend" "$frontend_port" "/"; then
     error "Frontend health check failed! Stopping new frontend, keeping $active_frontend active."
     stop_stack "$new_frontend" "frontend"
     exit 1
@@ -446,7 +457,7 @@ deploy_all() {
     health_ok=false
   fi
 
-  if ! health_check "Frontend" "$frontend_port" "/health"; then
+  if ! health_check "Frontend" "$frontend_port" "/"; then
     health_ok=false
   fi
 
@@ -491,7 +502,7 @@ rollback() {
   local backend_port=$(get_backend_port "$previous_backend")
   local frontend_port=$(get_frontend_port "$previous_frontend")
 
-  if health_check "Backend" "$backend_port" "/" && health_check "Frontend" "$frontend_port" "/health"; then
+  if health_check "Backend" "$backend_port" "/" && health_check "Frontend" "$frontend_port" "/"; then
     switch_nginx_both "$previous_backend" "$previous_frontend"
     stop_stack "$active_backend" "backend"
     stop_stack "$active_frontend" "frontend"
