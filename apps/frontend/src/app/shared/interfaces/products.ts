@@ -46,6 +46,8 @@ export interface Product {
   hasVariants?: boolean;
   isTaxable?: boolean;
   taxInclusive?: boolean;
+  taxRateId?: number; // Foreign key to TaxRate
+  taxRate?: number; // Actual tax rate percentage (e.g., 16 for 16%)
   minOrderQuantity?: number;
   maxOrderQuantity?: number;
 

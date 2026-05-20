@@ -128,6 +128,46 @@ export class AddProductsComponent extends ModalComponent {
         ? this.product.tags
         : [];
     }
+
+    // Handle tax logic automatically
+    this.setupTaxLogic();
+  }
+
+  /**
+   * Setup automatic tax logic based on requirements:
+   * 1. If taxable AND taxInclusive = true → Default to "inclusive"
+   * 2. If NOT taxable → Set to "exempt"
+   * 3. If taxable AND taxInclusive = false → Set to "exclusive" (add tax)
+   */
+  setupTaxLogic() {
+    // Listen for isTaxable changes
+    this.productForm.get('isTaxable')?.valueChanges.subscribe((isTaxable) => {
+      if (!isTaxable) {
+        // Not taxable = exempt
+        this.productForm.patchValue({
+          taxInclusive: false,
+        }, { emitEvent: false });
+      } else {
+        // Taxable = default to inclusive
+        this.productForm.patchValue({
+          taxInclusive: true,
+        }, { emitEvent: false });
+      }
+    });
+  }
+
+  /**
+   * Get computed tax type for display
+   */
+  getComputedTaxType(): 'exempt' | 'inclusive' | 'exclusive' {
+    const isTaxable = this.productForm.get('isTaxable')?.value;
+    const taxInclusive = this.productForm.get('taxInclusive')?.value;
+
+    if (!isTaxable) {
+      return 'exempt';
+    }
+
+    return taxInclusive ? 'inclusive' : 'exclusive';
   }
 
   toggleTag(tag: string): void {
@@ -273,6 +313,7 @@ export class AddProductsComponent extends ModalComponent {
       hasVariants: formValue.hasVariants,
       isTaxable: formValue.isTaxable,
       taxInclusive: formValue.taxInclusive,
+      taxRateId: formValue.taxRateId, // Add tax rate ID
       minOrderQuantity: formValue.minOrderQuantity,
       maxOrderQuantity: formValue.maxOrderQuantity,
       trackingMode: formValue.trackingMode,

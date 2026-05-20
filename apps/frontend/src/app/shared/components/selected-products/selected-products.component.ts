@@ -82,7 +82,37 @@ export class SelectedProductsComponent {
   // Tax type methods
   getTaxType(productId: number): 'exempt' | 'inclusive' | 'exclusive' {
     const product = this.products.find((p) => p.id === productId);
-    return product?.taxType || this.taxTypes[productId] || 'inclusive';
+
+    // If manually set, use that
+    if (this.taxTypes[productId]) {
+      return this.taxTypes[productId];
+    }
+
+    // If product has taxType set, use it
+    if (product?.taxType) {
+      return product.taxType;
+    }
+
+    // Apply automatic tax logic based on product configuration
+    if (product) {
+      // If not taxable → exempt
+      if (product.isTaxable === false) {
+        return 'exempt';
+      }
+
+      // If taxable and taxInclusive → inclusive (default)
+      if (product.isTaxable === true && product.taxInclusive === true) {
+        return 'inclusive';
+      }
+
+      // If taxable and not taxInclusive → exclusive (add tax)
+      if (product.isTaxable === true && product.taxInclusive === false) {
+        return 'exclusive';
+      }
+    }
+
+    // Default fallback
+    return 'inclusive';
   }
 
   toggleTaxType(
@@ -109,12 +139,16 @@ export class SelectedProductsComponent {
     const discount = (product.discountValue as number) || 0;
     const afterDiscount = subtotal - discount;
 
-    const VAT_RATE = 0.16; // 16%
+    // Use product's tax rate if available, otherwise default to 16%
+    const taxRatePercentage = product.taxRate || 16;
+    const VAT_RATE = taxRatePercentage / 100; // Convert to decimal (16 → 0.16)
+    const divisor = 1 + VAT_RATE; // For inclusive calculation (1.16 for 16%)
 
     if (taxType === 'inclusive') {
       // Tax is already included in price
-      // Tax = Price / 1.16 * 0.16
-      return afterDiscount - afterDiscount / 1.16;
+      // Tax = Price - (Price / divisor)
+      // Example: For 16% tax, Tax = Price - (Price / 1.16)
+      return afterDiscount - afterDiscount / divisor;
     } else {
       // Exclusive - tax is added on top
       return afterDiscount * VAT_RATE;
@@ -148,7 +182,9 @@ export class SelectedProductsComponent {
 
     if (taxType === 'inclusive') {
       // Remove tax to get base amount
-      return subtotal / 1.16;
+      const taxRatePercentage = p.taxRate || 16;
+      const divisor = 1 + taxRatePercentage / 100; // 1.16 for 16%
+      return subtotal / divisor;
     }
 
     return subtotal;
