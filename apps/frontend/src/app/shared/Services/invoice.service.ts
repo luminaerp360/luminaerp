@@ -331,7 +331,7 @@ export class InvoiceService {
    */
   finalizeInvoice(organizationId: number, invoiceId: number, notes?: string): Observable<Invoice> {
     return this.http.put<Invoice>(
-      `${this.baseUrl}/${organizationId}/${invoiceId}/finalize`,
+      `${this.baseUrl}invoices/${organizationId}/${invoiceId}/finalize`,
       {
         notes,
         finalizedBy: 'Current User', // TODO: Get from auth service
@@ -344,7 +344,7 @@ export class InvoiceService {
    */
   markAsSent(organizationId: number, invoiceId: number, notes?: string): Observable<Invoice> {
     return this.http.put<Invoice>(
-      `${this.baseUrl}/${organizationId}/${invoiceId}/mark-sent`,
+      `${this.baseUrl}invoices/${organizationId}/${invoiceId}/mark-sent`,
       {
         sentAt: new Date().toISOString(),
         notes,
@@ -358,7 +358,7 @@ export class InvoiceService {
    */
   duplicateInvoice(organizationId: number, invoiceId: number): Observable<Invoice> {
     return this.http.post<Invoice>(
-      `${this.baseUrl}/${organizationId}/${invoiceId}/duplicate`,
+      `${this.baseUrl}invoices/${organizationId}/${invoiceId}/duplicate`,
       {}
     );
   }
@@ -373,7 +373,7 @@ export class InvoiceService {
     customMessage?: string
   ): Observable<{ success: boolean; message: string; invoice: Invoice }> {
     return this.http.post<{ success: boolean; message: string; invoice: Invoice }>(
-      `${this.baseUrl}/${organizationId}/${invoiceId}/send-reminder`,
+      `${this.baseUrl}invoices/${organizationId}/${invoiceId}/send-reminder`,
       {
         reminderType,
         customMessage,

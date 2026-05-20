@@ -8,7 +8,8 @@
       "Bash(git add deploy/deploy.sh)",
       "Bash(git commit -m \"fix: improve frontend health check reliability\n\n- Change frontend health check from /health to / endpoint\n- Add initial 5s wait before health checking\n- Increase health check attempts to 60 with 3s interval\n- Better error messages and progress indicators\")",
       "Bash(npx tsc --noEmit document-template.service.ts printing.service.ts)",
-      "Bash(echo \"Type check completed with status: $?\")"
+      "Bash(echo \"Type check completed with status: $?\")",
+      "Bash(npm run build)"
     ],
     "deny": [],
     "ask": []
