@@ -464,7 +464,7 @@ export class ShowQuotationsComponent implements OnInit {
   }
 
   /**
-   * Convert quotation to credit sale (invoice)
+   * Convert quotation to invoice (modern invoice module)
    */
   convertToInvoice(quotation: any) {
     if (!quotation) return;
@@ -487,7 +487,7 @@ export class ShowQuotationsComponent implements OnInit {
       `Convert Quotation ${quotation.referenceNumber} to Invoice?\n\n` +
         `Customer: ${this.getCustomerNameById(quotation.customerId)}\n` +
         `Amount: KSH ${quotation.totalAmount.toFixed(2)}\n\n` +
-        `This will create a credit sale (invoice) and mark the quotation as converted.`,
+        `This will create an invoice and mark the quotation as converted.`,
     );
 
     if (!confirmation) return;
@@ -496,27 +496,32 @@ export class ShowQuotationsComponent implements OnInit {
     quotation.converting = true;
 
     // Optional: Ask for payment terms
-    const paymentTerms = prompt(
-      'Enter payment terms (optional, e.g., "30 Days"):',
-      '30 Days',
+    const paymentTermsInput = prompt(
+      'Enter payment terms (optional, e.g., "Net 30"):',
+      'Net 30',
+    );
+
+    // Optional: Ask for payment terms days
+    const paymentTermsDaysInput = prompt(
+      'Enter payment terms in days (e.g., 30):',
+      '30',
     );
 
     const options: any = {};
-    if (paymentTerms) {
-      options.payment_terms = paymentTerms;
-      // Calculate payment date (30 days from now by default)
-      const paymentDate = new Date();
-      paymentDate.setDate(paymentDate.getDate() + 30);
-      options.payment_date = paymentDate.toISOString().split('T')[0];
+    if (paymentTermsInput) {
+      options.paymentTerms = paymentTermsInput;
+    }
+    if (paymentTermsDaysInput) {
+      options.paymentTermsDays = parseInt(paymentTermsDaysInput, 10);
     }
 
-    this.quotationService.convertToCreditSale(quotation.id, options).subscribe({
+    this.quotationService.convertToInvoice(quotation.id, options).subscribe({
       next: (response: any) => {
         quotation.converting = false;
         alert(
           `Quotation successfully converted to Invoice!\n\n` +
-            `Credit Sale ID: ${response.creditSale?.id || 'N/A'}\n` +
-            `You can view the invoice in the Credit Sales section.`,
+            `Invoice Number: ${response.data?.invoice?.invoiceNumber || 'N/A'}\n` +
+            `You can view the invoice in the Invoices section.`,
         );
 
         // Update the quotation status locally

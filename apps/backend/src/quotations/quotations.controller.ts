@@ -602,7 +602,7 @@ export class QuotationsController {
   }
 
   // ========================================
-  // CONVERSION TO CREDIT SALE (INVOICE)
+  // CONVERSION TO CREDIT SALE (INVOICE) - DEPRECATED
   // ========================================
 
   @Post(':id/convert-to-credit-sale')
@@ -641,6 +641,51 @@ export class QuotationsController {
       return {
         success: false,
         message: 'Failed to convert quotation to credit sale',
+        error: error.message,
+      };
+    }
+  }
+
+  // ========================================
+  // CONVERSION TO INVOICE (NEW)
+  // ========================================
+
+  @Post(':id/convert-to-invoice')
+  async convertQuotationToInvoice(
+    @Param('organizationId', ParseIntPipe) organizationId: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body()
+    body?: {
+      paymentTermsDays?: number;
+      paymentTerms?: string;
+      notes?: string;
+      issueDate?: string;
+    },
+  ) {
+    try {
+      const result = await this.quotationsService.convertQuotationToInvoice(
+        organizationId,
+        id,
+        {
+          paymentTermsDays: body?.paymentTermsDays,
+          paymentTerms: body?.paymentTerms,
+          notes: body?.notes,
+          issueDate: body?.issueDate ? new Date(body.issueDate) : undefined,
+        },
+      );
+
+      return {
+        success: true,
+        message: result.message,
+        data: {
+          invoice: result.invoice,
+          quotation: result.quotation,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to convert quotation to invoice',
         error: error.message,
       };
     }

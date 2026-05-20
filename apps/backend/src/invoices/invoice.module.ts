@@ -24,6 +24,10 @@ import { PaymentsTransactionsModule } from '../payments-transactions/payments-tr
   ],
   providers: [
     InvoiceService,
+    {
+      provide: 'InvoiceService',
+      useExisting: InvoiceService,
+    },
     InvoiceNumberService,
     InvoicePDFService,
     InvoiceMigrationService,
@@ -33,6 +37,7 @@ import { PaymentsTransactionsModule } from '../payments-transactions/payments-tr
   ],
   exports: [
     InvoiceService,
+    'InvoiceService', // Export string token for forwardRef
     InvoiceNumberService,
     InvoicePDFService,
     InvoiceMigrationService,

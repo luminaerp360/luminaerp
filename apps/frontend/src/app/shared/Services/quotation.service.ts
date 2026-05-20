@@ -150,13 +150,28 @@ export class QuotationService {
   }
 
   /**
-   * Convert quotation to credit sale (invoice)
+   * Convert quotation to credit sale (invoice) - DEPRECATED
    * @param id Quotation ID
    * @param options Optional parameters (payment_date, payment_terms, order_remarks)
    */
   convertToCreditSale(id: number, options?: any): Observable<any> {
     return this.http.post(
       `${this.apiUrl}/${id}/convert-to-credit-sale`,
+      options || {},
+      {
+        headers: this.getHeaders(),
+      },
+    );
+  }
+
+  /**
+   * Convert quotation to invoice (modern invoice module)
+   * @param id Quotation ID
+   * @param options Optional parameters (paymentTermsDays, paymentTerms, notes, issueDate)
+   */
+  convertToInvoice(id: number, options?: any): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/${id}/convert-to-invoice`,
       options || {},
       {
         headers: this.getHeaders(),

@@ -87,7 +87,8 @@ export class AddProductsComponent extends ModalComponent {
       }),
       hasVariants: [false],
       isTaxable: [true],
-      taxInclusive: [false],
+      taxInclusive: [true], // Default to true (inclusive by default)
+      taxRateId: [null], // FK to TaxRate table
       minOrderQuantity: [null],
       maxOrderQuantity: [null],
       trackingMode: ['NONE'],

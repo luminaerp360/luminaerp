@@ -19,6 +19,8 @@ export class QuotationsService {
     private readonly counterService: DocumentCounterService,
     @Inject(forwardRef(() => 'EmailsService'))
     private emailsService: any, // Inject EmailsService to avoid circular dependency
+    @Inject(forwardRef(() => 'InvoiceService'))
+    private invoiceService: any, // Inject InvoiceService for invoice conversion
   ) {}
 
   async createQuotation(organizationId: number, dto: QuotationDto) {
@@ -1222,6 +1224,108 @@ export class QuotationsService {
         creditSale,
         quotation,
         message: `Quotation ${quotation.referenceNumber} converted to credit sale successfully`,
+      };
+    });
+  }
+
+  /**
+   * Convert an approved quotation into an invoice (modern invoice module)
+   */
+  async convertQuotationToInvoice(
+    organizationId: number,
+    quotationId: number,
+    additionalData?: {
+      paymentTermsDays?: number;
+      paymentTerms?: string;
+      notes?: string;
+      issueDate?: Date;
+    },
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      // Get the quotation
+      const quotation = await tx.quotation.findFirst({
+        where: {
+          id: quotationId,
+          organizationId,
+        },
+      });
+
+      if (!quotation) {
+        throw new NotFoundException(
+          `Quotation with ID ${quotationId} not found in this organization`,
+        );
+      }
+
+      // Check if quotation is approved
+      if (quotation.status !== 'approved') {
+        throw new Error(
+          'Only approved quotations can be converted to invoices',
+        );
+      }
+
+      // Get customer details
+      const customer = await tx.customer.findFirst({
+        where: {
+          id: quotation.customerId,
+          organizationId,
+        },
+      });
+
+      if (!customer) {
+        throw new NotFoundException('Customer not found');
+      }
+
+      // Parse quotation items
+      const parsedItems = this.parseQuotationItems(quotation.items);
+
+      // Transform quotation items to invoice items format
+      const invoiceItems = parsedItems.map((item) => ({
+        productId: item.productId || null,
+        productName: item.name || item.description || 'Item',
+        description: item.description || item.name || '',
+        sku: item.sku || '',
+        quantity: item.quantity || item.selectedItems || 1,
+        unitPrice: item.price || item.unitPrice || 0,
+        taxRate: 0, // Default tax rate, can be adjusted
+        discountPercentage: 0,
+        discountAmount: 0,
+      }));
+
+      // Create invoice using the invoice service
+      const invoice = await this.invoiceService.createInvoice(organizationId, {
+        invoiceType: 'CREDIT_SALE',
+        referenceNumber: quotation.referenceNumber, // Link to quotation reference
+        customerId: quotation.customerId,
+        customerAddress: '', // Customer model doesn't have address field
+        customerTaxId: customer.kraPin || '',
+        items: invoiceItems,
+        taxRate: 0, // Can be adjusted based on organization settings
+        discountAmount: 0,
+        paymentTermsDays: additionalData?.paymentTermsDays || 30,
+        paymentTerms: additionalData?.paymentTerms || 'Net 30',
+        notes:
+          additionalData?.notes ||
+          `Converted from quotation ${quotation.referenceNumber}`,
+        termsAndConditions: 'Payment due within payment terms',
+        footerText: 'Thank you for your business!',
+        createdBy: 'system',
+        issueDate: additionalData?.issueDate || new Date(),
+        status: 'SENT', // Set to SENT since quotation was approved
+      });
+
+      // Update quotation status to converted
+      const updatedQuotation = await tx.quotation.update({
+        where: { id: quotationId },
+        data: {
+          status: 'converted',
+          updatedAt: new Date(),
+        },
+      });
+
+      return {
+        invoice,
+        quotation: updatedQuotation,
+        message: `Quotation ${quotation.referenceNumber} converted to invoice ${invoice.invoiceNumber} successfully`,
       };
     });
   }

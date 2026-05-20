@@ -5,12 +5,14 @@ import { QuotationsController } from './quotations.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmailsModule } from '../emails/emails.module'; // Import EmailsModule
 import { SettingsModule } from '../settings/settings.module';
+import { InvoiceModule } from '../invoices/invoice.module'; // Import InvoiceModule
 
 @Module({
   imports: [
     PrismaModule,
     SettingsModule,
     forwardRef(() => EmailsModule), // Use forwardRef to handle circular dependency
+    forwardRef(() => InvoiceModule), // Add InvoiceModule for conversion
   ],
   controllers: [QuotationsController],
   providers: [
