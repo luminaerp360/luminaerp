@@ -273,13 +273,14 @@ export class MakeCreditSalesComponent implements OnInit, AfterViewInit {
       return false;
     }
 
-    const creditWarning = this.getCreditLimitWarning();
-    if (creditWarning && creditWarning.includes('exceed')) {
-      this.toast.error(
-        creditWarning + '. Please reduce the order or contact manager.'
-      );
-      return false;
-    }
+    // COMMENTED OUT: Credit limit validation - allowing sales over credit limit
+    // const creditWarning = this.getCreditLimitWarning();
+    // if (creditWarning && creditWarning.includes('exceed')) {
+    //   this.toast.error(
+    //     creditWarning + '. Please reduce the order or contact manager.'
+    //   );
+    //   return false;
+    // }
 
     return true;
   }
