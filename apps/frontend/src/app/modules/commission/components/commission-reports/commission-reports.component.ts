@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommissionService } from '../../../../shared/Services/commission/commission.service';
 import {
   CommissionReportResponse,
@@ -6,6 +6,7 @@ import {
   CommissionRecord,
   CommissionStatus,
 } from '../../../../shared/interfaces/commission.interface';
+import { HotToastService } from '@ngneat/hot-toast';
 
 @Component({
   selector: 'app-commission-reports',
@@ -30,6 +31,12 @@ export class CommissionReportsComponent implements OnInit {
   // Detail records for the expanded user
   CommissionStatus = CommissionStatus;
 
+  // Selection tracking
+  selectedCommissions: Map<number, Set<number>> = new Map(); // userId -> Set of commissionIds
+
+  // Payment modal reference (will be added in template)
+  @ViewChild('paymentModal') paymentModal: any;
+
   // Preset date ranges
   presets = [
     { label: 'Today', value: 'today' },
@@ -40,12 +47,21 @@ export class CommissionReportsComponent implements OnInit {
     { label: 'All Time', value: 'all' },
   ];
 
-  constructor(private commissionService: CommissionService) {}
+  constructor(
+    private commissionService: CommissionService,
+    private toast: HotToastService
+  ) {}
 
   ngOnInit() {
     this.organizationId = Number(localStorage.getItem('licencedOrg') || 1);
     // Default to current month
     this.applyPreset('month');
+
+    // Listen for payment events
+    window.addEventListener('commission-paid', () => {
+      this.loadReport();
+      this.clearSelections();
+    });
   }
 
   applyPreset(preset: string) {
@@ -181,5 +197,172 @@ export class CommissionReportsComponent implements OnInit {
 
   private formatDateInput(date: Date): string {
     return date.toISOString().split('T')[0];
+  }
+
+  // ============ PAYMENT FUNCTIONALITY ============
+
+  /**
+   * Toggle commission selection
+   */
+  toggleCommissionSelection(userId: number, commissionId: number, event: any) {
+    if (!this.selectedCommissions.has(userId)) {
+      this.selectedCommissions.set(userId, new Set());
+    }
+
+    const userSelections = this.selectedCommissions.get(userId)!;
+    if (event.target.checked) {
+      userSelections.add(commissionId);
+    } else {
+      userSelections.delete(commissionId);
+    }
+  }
+
+  /**
+   * Check if commission is selected
+   */
+  isCommissionSelected(userId: number, commissionId: number): boolean {
+    return this.selectedCommissions.get(userId)?.has(commissionId) || false;
+  }
+
+  /**
+   * Select all commissions for a user
+   */
+  selectAllUserCommissions(user: CommissionUserSummary, event: any) {
+    if (!this.selectedCommissions.has(user.userId)) {
+      this.selectedCommissions.set(user.userId, new Set());
+    }
+
+    const userSelections = this.selectedCommissions.get(user.userId)!;
+    const pendingRecords = this.getUserRecords(user).filter(
+      (r) => r.status === CommissionStatus.PENDING
+    );
+
+    if (event.target.checked) {
+      pendingRecords.forEach((r) => userSelections.add(r.id));
+    } else {
+      userSelections.clear();
+    }
+  }
+
+  /**
+   * Check if all user commissions are selected
+   */
+  areAllUserCommissionsSelected(user: CommissionUserSummary): boolean {
+    const pendingRecords = this.getUserRecords(user).filter(
+      (r) => r.status === CommissionStatus.PENDING
+    );
+    if (pendingRecords.length === 0) return false;
+
+    const userSelections = this.selectedCommissions.get(user.userId);
+    if (!userSelections) return false;
+
+    return pendingRecords.every((r) => userSelections.has(r.id));
+  }
+
+  /**
+   * Get count of selected commissions for a user
+   */
+  getSelectedCount(userId: number): number {
+    return this.selectedCommissions.get(userId)?.size || 0;
+  }
+
+  /**
+   * Check if user has any selected commissions
+   */
+  hasSelectedCommissions(userId: number): boolean {
+    return this.getSelectedCount(userId) > 0;
+  }
+
+  /**
+   * Clear all selections
+   */
+  clearSelections() {
+    this.selectedCommissions.clear();
+  }
+
+  /**
+   * Pay selected commissions for a user
+   */
+  paySelected(user: CommissionUserSummary) {
+    const selectedIds = Array.from(this.selectedCommissions.get(user.userId) || []);
+    if (selectedIds.length === 0) {
+      this.toast.error('Please select commissions to pay');
+      return;
+    }
+
+    const selectedRecords = this.getUserRecords(user).filter((r) =>
+      selectedIds.includes(r.id)
+    );
+
+    if (this.paymentModal) {
+      this.paymentModal.openManualPayment({
+        userId: user.userId,
+        userName: user.fullName,
+        commissionRecords: selectedRecords,
+        commissionIds: selectedIds,
+      });
+    }
+  }
+
+  /**
+   * Pay all unpaid commissions for a user
+   */
+  payAllUnpaid(user: CommissionUserSummary) {
+    if (user.pendingCommission === 0) {
+      this.toast.error('No unpaid commissions found');
+      return;
+    }
+
+    this.commissionService
+      .getUnpaidSummary(this.organizationId, user.userId)
+      .subscribe({
+        next: (summary) => {
+          if (summary.recordCount === 0) {
+            this.toast.error('No unpaid commissions found');
+            return;
+          }
+
+          if (this.paymentModal) {
+            this.paymentModal.openBulkPayment({
+              userId: user.userId,
+              userName: user.fullName,
+              totalAmount: summary.totalAmount,
+              recordCount: summary.recordCount,
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error loading unpaid summary:', error);
+          this.toast.error('Failed to load unpaid commissions');
+        },
+      });
+  }
+
+  /**
+   * Pay commissions by current period
+   */
+  payByPeriod(user: CommissionUserSummary) {
+    if (!this.startDate || !this.endDate) {
+      this.toast.error('Please select a date range first');
+      return;
+    }
+
+    if (user.pendingCommission === 0) {
+      this.toast.error('No unpaid commissions found for this period');
+      return;
+    }
+
+    if (this.paymentModal) {
+      this.paymentModal.openPeriodPayment({
+        userId: user.userId,
+        userName: user.fullName,
+        totalAmount: user.pendingCommission,
+        recordCount: this.getUserRecords(user).filter(
+          (r) => r.status === CommissionStatus.PENDING
+        ).length,
+        startDate: this.startDate,
+        endDate: this.endDate,
+      });
+    }
   }
 }

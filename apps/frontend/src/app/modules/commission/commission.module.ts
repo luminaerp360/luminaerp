@@ -6,6 +6,7 @@ import { CommissionDashboardComponent } from './components/commission-dashboard/
 import { UserCommissionRatesComponent } from './components/user-commission-rates/user-commission-rates.component';
 import { CommissionRecordsComponent } from './components/commission-records/commission-records.component';
 import { CommissionReportsComponent } from './components/commission-reports/commission-reports.component';
+import { CommissionPaymentModalComponent } from './components/commission-payment-modal/commission-payment-modal.component';
 
 @NgModule({
   declarations: [
@@ -13,6 +14,7 @@ import { CommissionReportsComponent } from './components/commission-reports/comm
     UserCommissionRatesComponent,
     CommissionRecordsComponent,
     CommissionReportsComponent,
+    CommissionPaymentModalComponent, // Commission payment modal
   ],
   imports: [
     CommonModule,

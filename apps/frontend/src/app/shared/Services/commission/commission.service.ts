@@ -210,4 +210,76 @@ export class CommissionService {
       { params },
     );
   }
+
+  /**
+   * Pay commissions with multiple payment methods
+   */
+  payCommissions(
+    organizationId: number,
+    data: any,
+  ): Observable<any> {
+    const params = new HttpParams().set(
+      'organizationId',
+      organizationId.toString(),
+    );
+
+    return this.http.post(`${this.apiUrl}/pay`, data, { params });
+  }
+
+  /**
+   * Bulk pay commissions (all unpaid or by period)
+   */
+  bulkPayCommissions(
+    organizationId: number,
+    data: any,
+  ): Observable<any> {
+    const params = new HttpParams().set(
+      'organizationId',
+      organizationId.toString(),
+    );
+
+    return this.http.post(`${this.apiUrl}/bulk-pay`, data, { params });
+  }
+
+  /**
+   * Get unpaid commission summary for a user
+   */
+  getUnpaidSummary(
+    organizationId: number,
+    userId: number,
+  ): Observable<any> {
+    const params = new HttpParams().set(
+      'organizationId',
+      organizationId.toString(),
+    );
+
+    return this.http.get(`${this.apiUrl}/unpaid-summary/${userId}`, { params });
+  }
+
+  /**
+   * Get commission payment history with breakdown
+   */
+  getPaymentHistory(
+    organizationId: number,
+    userId?: number,
+    startDate?: string,
+    endDate?: string,
+  ): Observable<any> {
+    let params = new HttpParams().set(
+      'organizationId',
+      organizationId.toString(),
+    );
+
+    if (userId) {
+      params = params.set('userId', userId.toString());
+    }
+    if (startDate) {
+      params = params.set('startDate', startDate);
+    }
+    if (endDate) {
+      params = params.set('endDate', endDate);
+    }
+
+    return this.http.get(`${this.apiUrl}/payment-history`, { params });
+  }
 }

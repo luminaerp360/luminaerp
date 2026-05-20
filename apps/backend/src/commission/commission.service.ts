@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CommissionCalculationResult,
   CommissionType,
   UserProductCommissionDto,
   MarkCommissionPaidDto,
+  PayCommissionsDto,
+  BulkPayCommissionsDto,
 } from './commission.dto';
 
 @Injectable()
@@ -940,5 +942,332 @@ export class CommissionService {
       items: commissions,
       totalCommission: parseFloat(totalCommission.toFixed(2)),
     };
+  }
+
+  /**
+   * Pay commissions with multiple payment methods
+   */
+  async payCommissions(
+    organizationId: number,
+    dto: PayCommissionsDto,
+    paidBy: string,
+  ) {
+    // Validate payment methods total matches commission total
+    const records = await this.prisma.commissionRecord.findMany({
+      where: {
+        id: { in: dto.commissionIds },
+        organizationId,
+        status: 'PENDING',
+      },
+    });
+
+    if (records.length === 0) {
+      throw new BadRequestException('No valid pending commission records found');
+    }
+
+    const totalCommissionAmount = records.reduce(
+      (sum, r) => sum + r.commissionAmount,
+      0,
+    );
+    const totalPaymentAmount = dto.paymentMethods.reduce(
+      (sum, pm) => sum + pm.amount,
+      0,
+    );
+
+    if (Math.abs(totalCommissionAmount - totalPaymentAmount) > 0.01) {
+      throw new BadRequestException(
+        `Payment amount (${totalPaymentAmount}) does not match commission total (${totalCommissionAmount})`,
+      );
+    }
+
+    const userId = records[0].userId;
+
+    // Generate batch number
+    const year = new Date().getFullYear();
+    const count = await this.prisma.commissionPayment.count({
+      where: { organizationId },
+    });
+    const batchNumber = `COMM-${year}-${String(count + 1).padStart(5, '0')}`;
+
+    // Create payment in transaction
+    return await this.prisma.$transaction(async (tx) => {
+      // Update commission records
+      await tx.commissionRecord.updateMany({
+        where: {
+          id: { in: dto.commissionIds },
+          organizationId,
+          status: 'PENDING',
+        },
+        data: {
+          status: 'PAID',
+          paidAt: new Date(),
+          paidBy,
+          paymentReference: batchNumber,
+          notes: dto.notes,
+        },
+      });
+
+      // Determine payment method summary
+      const paymentMethod =
+        dto.paymentMethods.length === 1
+          ? dto.paymentMethods[0].paymentMethodCode
+          : 'MULTIPLE';
+
+      // Create payment batch record
+      const payment = await tx.commissionPayment.create({
+        data: {
+          organizationId,
+          batchNumber,
+          userId,
+          totalAmount: totalCommissionAmount,
+          paymentMethod,
+          paymentDate: new Date(),
+          commissionIds: dto.commissionIds,
+          paidBy,
+          notes: dto.notes,
+          paymentType: 'MANUAL',
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      // Create payment breakdown records
+      const breakdownRecords = await Promise.all(
+        dto.paymentMethods.map((pm) =>
+          tx.commissionPaymentBreakdown.create({
+            data: {
+              commissionPaymentId: payment.id,
+              paymentMethodId: pm.paymentMethodId,
+              paymentMethodCode: pm.paymentMethodCode,
+              paymentMethodName: pm.paymentMethodName,
+              amount: pm.amount,
+              transactionCode: pm.transactionCode,
+              notes: pm.notes,
+            },
+          }),
+        ),
+      );
+
+      return {
+        success: true,
+        payment: {
+          ...payment,
+          paymentBreakdown: breakdownRecords,
+        },
+        recordsUpdated: records.length,
+        totalAmount: totalCommissionAmount,
+      };
+    });
+  }
+
+  /**
+   * Bulk pay commissions for a user (all unpaid or by period)
+   */
+  async bulkPayCommissions(
+    organizationId: number,
+    dto: BulkPayCommissionsDto,
+    paidBy: string,
+  ) {
+    // Build where clause based on payment type
+    const where: any = {
+      organizationId,
+      userId: dto.userId,
+      status: 'PENDING',
+    };
+
+    if (dto.paymentType === 'PERIOD') {
+      if (!dto.startDate || !dto.endDate) {
+        throw new BadRequestException(
+          'Start date and end date required for period-based payments',
+        );
+      }
+      where.createdAt = {
+        gte: new Date(dto.startDate),
+        lte: new Date(dto.endDate),
+      };
+    }
+    // For 'ALL_UNPAID', no additional filters needed
+
+    // Get commission records
+    const records = await this.prisma.commissionRecord.findMany({
+      where,
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (records.length === 0) {
+      throw new BadRequestException('No pending commission records found');
+    }
+
+    const commissionIds = records.map((r) => r.id);
+    const totalCommissionAmount = records.reduce(
+      (sum, r) => sum + r.commissionAmount,
+      0,
+    );
+    const totalPaymentAmount = dto.paymentMethods.reduce(
+      (sum, pm) => sum + pm.amount,
+      0,
+    );
+
+    if (Math.abs(totalCommissionAmount - totalPaymentAmount) > 0.01) {
+      throw new BadRequestException(
+        `Payment amount (${totalPaymentAmount}) does not match commission total (${totalCommissionAmount})`,
+      );
+    }
+
+    // Generate batch number
+    const year = new Date().getFullYear();
+    const count = await this.prisma.commissionPayment.count({
+      where: { organizationId },
+    });
+    const batchNumber = `COMM-${year}-${String(count + 1).padStart(5, '0')}`;
+
+    // Create payment in transaction
+    return await this.prisma.$transaction(async (tx) => {
+      // Update commission records
+      await tx.commissionRecord.updateMany({
+        where: {
+          id: { in: commissionIds },
+          organizationId,
+          status: 'PENDING',
+        },
+        data: {
+          status: 'PAID',
+          paidAt: new Date(),
+          paidBy,
+          paymentReference: batchNumber,
+          notes: dto.notes,
+        },
+      });
+
+      // Determine payment method summary
+      const paymentMethod =
+        dto.paymentMethods.length === 1
+          ? dto.paymentMethods[0].paymentMethodCode
+          : 'MULTIPLE';
+
+      // Create payment batch record
+      const payment = await tx.commissionPayment.create({
+        data: {
+          organizationId,
+          batchNumber,
+          userId: dto.userId,
+          totalAmount: totalCommissionAmount,
+          paymentMethod,
+          paymentDate: new Date(),
+          commissionIds,
+          paidBy,
+          notes: dto.notes,
+          paymentType:
+            dto.paymentType === 'PERIOD' ? 'BULK_PERIOD' : 'BULK_ALL_UNPAID',
+          startDate: dto.startDate ? new Date(dto.startDate) : null,
+          endDate: dto.endDate ? new Date(dto.endDate) : null,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      // Create payment breakdown records
+      const breakdownRecords = await Promise.all(
+        dto.paymentMethods.map((pm) =>
+          tx.commissionPaymentBreakdown.create({
+            data: {
+              commissionPaymentId: payment.id,
+              paymentMethodId: pm.paymentMethodId,
+              paymentMethodCode: pm.paymentMethodCode,
+              paymentMethodName: pm.paymentMethodName,
+              amount: pm.amount,
+              transactionCode: pm.transactionCode,
+              notes: pm.notes,
+            },
+          }),
+        ),
+      );
+
+      return {
+        success: true,
+        payment: {
+          ...payment,
+          paymentBreakdown: breakdownRecords,
+        },
+        recordsUpdated: records.length,
+        totalAmount: totalCommissionAmount,
+        commissionIds,
+      };
+    });
+  }
+
+  /**
+   * Get unpaid commission summary for a user
+   */
+  async getUnpaidCommissionSummary(organizationId: number, userId: number) {
+    const records = await this.prisma.commissionRecord.findMany({
+      where: {
+        organizationId,
+        userId,
+        status: 'PENDING',
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const totalAmount = records.reduce((sum, r) => sum + r.commissionAmount, 0);
+    const oldestDate = records.length > 0 ? records[0].createdAt : null;
+    const newestDate =
+      records.length > 0 ? records[records.length - 1].createdAt : null;
+
+    return {
+      userId,
+      recordCount: records.length,
+      totalAmount: parseFloat(totalAmount.toFixed(2)),
+      oldestCommissionDate: oldestDate,
+      newestCommissionDate: newestDate,
+      records,
+    };
+  }
+
+  /**
+   * Get commission payment history with breakdown
+   */
+  async getCommissionPaymentHistory(
+    organizationId: number,
+    userId?: number,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    const where: any = { organizationId };
+    if (userId) where.userId = userId;
+    if (startDate || endDate) {
+      where.paymentDate = {};
+      if (startDate) where.paymentDate.gte = new Date(startDate);
+      if (endDate) where.paymentDate.lte = new Date(endDate);
+    }
+
+    return this.prisma.commissionPayment.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        paymentBreakdown: true,
+      },
+      orderBy: { paymentDate: 'desc' },
+    });
   }
 }

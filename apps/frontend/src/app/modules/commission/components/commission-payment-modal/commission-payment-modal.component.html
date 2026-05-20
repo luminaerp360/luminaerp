@@ -1,0 +1,207 @@
+<div *ngIf="isOpen" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Background overlay -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 transition-opacity" (click)="closeModal()"></div>
+
+    <!-- Modal panel -->
+    <div class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 sm:px-6">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg leading-6 font-medium text-white" id="modal-title">
+            <i class="bi bi-cash-stack mr-2"></i>
+            Pay Commission - {{ userName }}
+          </h3>
+          <button type="button" (click)="closeModal()" class="text-white hover:text-gray-200 focus:outline-none">
+            <i class="bi bi-x-lg text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <form [formGroup]="paymentForm" (ngSubmit)="submitPayment()">
+        <div class="px-4 py-5 sm:p-6">
+          <!-- Payment Summary -->
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Payment Type</p>
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                  {{ paymentType === 'MANUAL' ? 'Selected Commissions' : paymentType === 'BULK_PERIOD' ? 'Period Payment' : 'All Unpaid' }}
+                </p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
+                <p class="text-lg font-semibold text-blue-600 dark:text-blue-400">
+                  {{ totalAmount | currency:'KES':'symbol':'1.2-2' }}
+                </p>
+              </div>
+              <div *ngIf="paymentType === 'MANUAL'">
+                <p class="text-sm text-gray-600 dark:text-gray-400">Commission Records</p>
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                  {{ commissionIds.length }} items
+                </p>
+              </div>
+              <div *ngIf="paymentType === 'BULK_PERIOD' && dateRange">
+                <p class="text-sm text-gray-600 dark:text-gray-400">Period</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ dateRange.start | date:'shortDate' }} - {{ dateRange.end | date:'shortDate' }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Methods -->
+          <div class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Payment Methods
+              </label>
+              <button
+                type="button"
+                (click)="addPaymentMethod()"
+                class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+              >
+                <i class="bi bi-plus-circle mr-1"></i> Add Method
+              </button>
+            </div>
+
+            <div formArrayName="paymentMethods" class="space-y-3">
+              <div *ngFor="let method of paymentMethodsArray.controls; let i = index" [formGroupName]="i"
+                   class="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <!-- Payment Method -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Method <span class="text-red-500">*</span>
+                    </label>
+                    <select
+                      formControlName="paymentMethodCode"
+                      (change)="onPaymentMethodChange(i)"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select method</option>
+                      <option *ngFor="let pm of availablePaymentMethods" [value]="pm.code">
+                        {{ pm.displayName }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Amount -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Amount <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      formControlName="amount"
+                      step="0.01"
+                      min="0"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <!-- Transaction Code -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Transaction Code
+                    </label>
+                    <input
+                      type="text"
+                      formControlName="transactionCode"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                      placeholder="Optional"
+                    />
+                  </div>
+
+                  <!-- Notes -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Notes
+                    </label>
+                    <input
+                      type="text"
+                      formControlName="notes"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                      placeholder="Optional"
+                    />
+                  </div>
+                </div>
+
+                <!-- Remove Button -->
+                <button
+                  *ngIf="paymentMethodsArray.length > 1"
+                  type="button"
+                  (click)="removePaymentMethod(i)"
+                  class="mt-2 text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
+                >
+                  <i class="bi bi-trash mr-1"></i> Remove
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Summary -->
+          <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 mb-6 space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Total Commission Amount:</span>
+              <span class="font-semibold text-gray-900 dark:text-white">
+                {{ totalAmount | currency:'KES':'symbol':'1.2-2' }}
+              </span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Total Payment:</span>
+              <span class="font-semibold" [class.text-green-600]="getTotalPaid() === totalAmount" [class.text-orange-600]="getTotalPaid() !== totalAmount">
+                {{ getTotalPaid() | currency:'KES':'symbol':'1.2-2' }}
+              </span>
+            </div>
+            <div class="flex justify-between text-sm border-t border-gray-200 dark:border-gray-600 pt-2">
+              <span class="font-medium text-gray-700 dark:text-gray-300">Remaining:</span>
+              <span class="font-bold" [class.text-green-600]="getRemainingAmount() === 0" [class.text-red-600]="getRemainingAmount() !== 0">
+                {{ getRemainingAmount() | currency:'KES':'symbol':'1.2-2' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- General Notes -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Payment Notes
+            </label>
+            <textarea
+              formControlName="notes"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              placeholder="Add any notes about this payment..."
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-gray-50 dark:bg-slate-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+          <button
+            type="submit"
+            [disabled]="!isPaymentValid() || loading"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            <span *ngIf="!loading">
+              <i class="bi bi-check-circle mr-2"></i>Record Payment
+            </span>
+            <span *ngIf="loading">
+              <i class="bi bi-arrow-repeat animate-spin mr-2"></i>Processing...
+            </span>
+          </button>
+          <button
+            type="button"
+            (click)="closeModal()"
+            [disabled]="loading"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-slate-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

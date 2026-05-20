@@ -83,3 +83,65 @@ export class MarkCommissionPaidDto {
   @IsString()
   notes?: string;
 }
+
+export class PaymentMethodBreakdownDto {
+  @IsOptional()
+  @IsNumber()
+  paymentMethodId?: number;
+
+  @IsNotEmpty()
+  @IsString()
+  paymentMethodCode: string;
+
+  @IsNotEmpty()
+  @IsString()
+  paymentMethodName: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(0)
+  amount: number;
+
+  @IsOptional()
+  @IsString()
+  transactionCode?: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}
+
+export class PayCommissionsDto {
+  @IsNotEmpty()
+  commissionIds: number[];
+
+  @IsNotEmpty()
+  paymentMethods: PaymentMethodBreakdownDto[];
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}
+
+export class BulkPayCommissionsDto {
+  @IsNotEmpty()
+  @IsNumber()
+  userId: number;
+
+  @IsNotEmpty()
+  @IsString()
+  paymentType: 'PERIOD' | 'ALL_UNPAID'; // PERIOD = pay for date range, ALL_UNPAID = pay all unpaid
+
+  @IsOptional()
+  startDate?: string; // Required if paymentType is PERIOD
+
+  @IsOptional()
+  endDate?: string; // Required if paymentType is PERIOD
+
+  @IsNotEmpty()
+  paymentMethods: PaymentMethodBreakdownDto[];
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}

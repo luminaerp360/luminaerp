@@ -14,6 +14,8 @@ import { JwtGuard } from '../auth/guard';
 import {
   UserProductCommissionDto,
   MarkCommissionPaidDto,
+  PayCommissionsDto,
+  BulkPayCommissionsDto,
 } from './commission.dto';
 
 @Controller('commission')
@@ -190,5 +192,73 @@ export class CommissionController {
     });
 
     return result;
+  }
+
+  /**
+   * Pay commissions with multiple payment methods
+   * POST /commission/pay
+   */
+  @Post('pay')
+  async payCommissions(
+    @Body() dto: PayCommissionsDto,
+    @Query('organizationId') organizationId: string,
+    @Req() req: any,
+  ) {
+    return this.commissionService.payCommissions(
+      parseInt(organizationId),
+      dto,
+      req.user?.fullName || 'System',
+    );
+  }
+
+  /**
+   * Bulk pay commissions for a user (all unpaid or by period)
+   * POST /commission/bulk-pay
+   */
+  @Post('bulk-pay')
+  async bulkPayCommissions(
+    @Body() dto: BulkPayCommissionsDto,
+    @Query('organizationId') organizationId: string,
+    @Req() req: any,
+  ) {
+    return this.commissionService.bulkPayCommissions(
+      parseInt(organizationId),
+      dto,
+      req.user?.fullName || 'System',
+    );
+  }
+
+  /**
+   * Get unpaid commission summary for a user
+   * GET /commission/unpaid-summary/:userId
+   */
+  @Get('unpaid-summary/:userId')
+  async getUnpaidSummary(
+    @Param('userId') userId: string,
+    @Query('organizationId') organizationId: string,
+  ) {
+    return this.commissionService.getUnpaidCommissionSummary(
+      parseInt(organizationId),
+      parseInt(userId),
+    );
+  }
+
+  /**
+   * Get commission payment history with breakdown
+   * GET /commission/payment-history
+   */
+  @Get('payment-history')
+  async getPaymentHistory(
+    @Query('organizationId') organizationId: string,
+    @Query('userId') userId?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.commissionService.getCommissionPaymentHistory(
+      parseInt(organizationId),
+      userId ? parseInt(userId) : undefined,
+      startDate,
+      endDate,
+    );
   }
 }

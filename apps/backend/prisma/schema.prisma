@@ -1700,24 +1700,46 @@ model CommissionRecord {
 }
 
 model CommissionPayment {
-  id             Int          @id @default(autoincrement())
-  organizationId Int
-  batchNumber    String
-  userId         Int
-  totalAmount    Float
-  paymentMethod  String
-  paymentDate    DateTime
-  commissionIds  Json
-  paidBy         String
-  notes          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                Int                           @id @default(autoincrement())
+  organizationId    Int
+  batchNumber       String
+  userId            Int
+  totalAmount       Float
+  paymentMethod     String                        @default("MULTIPLE") // Can be single method or "MULTIPLE"
+  paymentDate       DateTime
+  commissionIds     Json
+  paidBy            String
+  notes             String?
+  startDate         DateTime? // For period-based payments
+  endDate           DateTime? // For period-based payments
+  paymentType       String                        @default("MANUAL") // MANUAL, BULK_PERIOD, BULK_ALL_UNPAID
+  createdAt         DateTime                      @default(now())
+  updatedAt         DateTime                      @updatedAt
+  organization      Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user              User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentBreakdown  CommissionPaymentBreakdown[]
 
   @@index([organizationId, userId])
   @@index([batchNumber])
+  @@index([paymentDate])
   @@map("commission_payments")
+}
+
+model CommissionPaymentBreakdown {
+  id                  Int                 @id @default(autoincrement())
+  commissionPaymentId Int
+  paymentMethodId     Int?
+  paymentMethodCode   String
+  paymentMethodName   String
+  amount              Float
+  transactionCode     String?
+  notes               String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  commissionPayment   CommissionPayment   @relation(fields: [commissionPaymentId], references: [id], onDelete: Cascade)
+
+  @@index([commissionPaymentId])
+  @@map("commission_payment_breakdown")
 }
 
 model SystemLog {
